@@ -49,21 +49,23 @@ def create_basic_setup():
         
         # 2. Crear usuario admin
         print("\n👤 Creando usuario administrador...")
-        admin_user, created = User.objects.get_or_create(
-            username='demo_admin',
-            defaults={
-                'email': 'admin@demo.com',
-                'first_name': 'Admin',
-                'last_name': 'Demo',
-                'role': User.Role.TENANT_ADMIN,
-                'tenant': tenant,
-                'is_staff': True,
-                'phone': '+58-414-555-0000'
-            }
-        )
-        if created:
+        try:
+            admin_user = User.objects.get(username='demo_admin')
+            created = False
+        except User.DoesNotExist:
+            admin_user = User(
+                username='demo_admin',
+                email='admin@demo.com',
+                first_name='Admin',
+                last_name='Demo',
+                role=User.Role.TENANT_ADMIN,
+                tenant=tenant,
+                is_staff=True,
+                phone='+58-414-555-0000'
+            )
             admin_user.set_password('demo123')
             admin_user.save()
+            created = True
         status = "✅ Creado" if created else "⚠️  Ya existe"
         print(f"  {status}: {admin_user.username}")
         
