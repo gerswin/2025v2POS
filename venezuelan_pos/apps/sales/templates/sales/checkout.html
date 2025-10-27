@@ -4,8 +4,8 @@
 {% block title %}{% trans "Checkout" %} - Tiquemax{% endblock %}
 
 {% block breadcrumb_items %}
-<li class="breadcrumb-item"><a href="{% url 'sales:dashboard' %}">{% trans "Sales" %}</a></li>
-<li class="breadcrumb-item"><a href="{% url 'sales:shopping_cart' %}">{% trans "Cart" %}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'sales_web:dashboard' %}">{% trans "Sales" %}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'sales_web:shopping_cart' %}">{% trans "Cart" %}</a></li>
 <li class="breadcrumb-item active">{% trans "Checkout" %}</li>
 {% endblock %}
 
@@ -474,13 +474,13 @@ function proceedToPayment() {
     }
     
     // Submit to customer step
-    fetch('{% url "sales:checkout_customer" %}', {
+    fetch('{% url "sales_web:checkout_customer" %}', {
         method: 'POST',
         body: formData
     })
     .then(response => {
         if (response.ok) {
-            window.location.href = '{% url "sales:checkout_payment" %}';
+            window.location.href = '{% url "sales_web:checkout_payment" %}';
         } else {
             throw new Error('Server error');
         }

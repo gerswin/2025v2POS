@@ -4,8 +4,8 @@
 {% block title %}{% trans "Transaction" %} {{ transaction.fiscal_series|default:transaction.id }} - Tiquemax{% endblock %}
 
 {% block breadcrumb_items %}
-<li class="breadcrumb-item"><a href="{% url 'sales:dashboard' %}">{% trans "Sales" %}</a></li>
-<li class="breadcrumb-item"><a href="{% url 'sales:transaction_list' %}">{% trans "Transactions" %}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'sales_web:dashboard' %}">{% trans "Sales" %}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'sales_web:transaction_list' %}">{% trans "Transactions" %}</a></li>
 <li class="breadcrumb-item active">
     {% if transaction.fiscal_series %}
         {{ transaction.fiscal_series }}
@@ -312,13 +312,13 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{% url 'sales:transaction_receipt' transaction_id=transaction.id %}" 
+                        <a href="{% url 'sales_web:transaction_receipt' transaction_id=transaction.id %}" 
                            class="btn btn-primary" target="_blank">
                             <i class="bi bi-printer"></i> {% trans "Print Receipt" %}
                         </a>
                         
                         {% if transaction.status == 'pending' or transaction.status == 'reserved' %}
-                        <form method="post" action="{% url 'sales:complete_transaction' transaction_id=transaction.id %}">
+                        <form method="post" action="{% url 'sales_web:complete_transaction' transaction_id=transaction.id %}">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-success w-100">
                                 <i class="bi bi-check-circle"></i> {% trans "Complete Transaction" %}
@@ -326,7 +326,7 @@
                         </form>
                         {% endif %}
                         
-                        <a href="{% url 'sales:transaction_list' %}" class="btn btn-outline-secondary">
+                        <a href="{% url 'sales_web:transaction_list' %}" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-left"></i> {% trans "Back to Transactions" %}
                         </a>
                     </div>

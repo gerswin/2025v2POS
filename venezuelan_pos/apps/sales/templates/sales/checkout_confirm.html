@@ -4,8 +4,8 @@
 {% block title %}{% trans "Confirm Purchase" %} - Tiquemax{% endblock %}
 
 {% block breadcrumb_items %}
-<li class="breadcrumb-item"><a href="{% url 'sales:dashboard' %}">{% trans "Sales" %}</a></li>
-<li class="breadcrumb-item"><a href="{% url 'sales:shopping_cart' %}">{% trans "Cart" %}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'sales_web:dashboard' %}">{% trans "Sales" %}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'sales_web:shopping_cart' %}">{% trans "Cart" %}</a></li>
 <li class="breadcrumb-item active">{% trans "Confirm" %}</li>
 {% endblock %}
 
@@ -352,7 +352,7 @@
     <!-- Action Buttons -->
     <div class="row">
         <div class="col-md-6">
-            <a href="{% url 'sales:checkout_payment' %}" class="btn btn-outline-secondary btn-lg w-100">
+            <a href="{% url 'sales_web:checkout_payment' %}" class="btn btn-outline-secondary btn-lg w-100">
                 <i class="bi bi-arrow-left"></i>
                 {% trans "Back to Payment" %}
             </a>
@@ -419,7 +419,7 @@ function completePurchase() {
     `;
     
     // Submit the form
-    fetch('{% url "sales:checkout_confirm" %}', {
+    fetch('{% url "sales_web:checkout_confirm" %}', {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCookie('csrftoken'),

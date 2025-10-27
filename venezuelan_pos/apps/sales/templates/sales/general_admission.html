@@ -395,7 +395,7 @@ function addGeneralTicketsToCart() {
 function startAvailabilityPolling() {
     // Update zone availability every 10 seconds
     setInterval(() => {
-        fetch(`{% url "sales:ajax_zone_availability" %}?zone_id={{ zone.id }}`)
+        fetch(`{% url "sales_web:ajax_zone_availability" %}?zone_id={{ zone.id }}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.availability) {

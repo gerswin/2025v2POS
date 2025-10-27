@@ -4,7 +4,7 @@
 {% block title %}{% trans "Seat Selection" %} - {{ event.name }} - Tiquemax{% endblock %}
 
 {% block breadcrumb_items %}
-<li class="breadcrumb-item"><a href="{% url 'sales:dashboard' %}">{% trans "Sales" %}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'sales_web:dashboard' %}">{% trans "Sales" %}</a></li>
 <li class="breadcrumb-item active">{% trans "Seat Selection" %}</li>
 {% endblock %}
 
@@ -260,7 +260,7 @@
                         </div>
                         
                         <div class="d-grid gap-2">
-                            <a href="{% url 'sales:checkout' %}" class="btn btn-primary">
+                            <a href="{% url 'sales_web:checkout' %}" class="btn btn-primary">
                                 <i class="bi bi-credit-card"></i> {% trans "Proceed to Checkout" %}
                             </a>
                             <button class="btn btn-outline-secondary" onclick="clearCart()">
@@ -388,7 +388,7 @@ function selectZone(zoneId, zoneType) {
 }
 
 function removeFromCart(itemKey) {
-    fetch('{% url "sales:remove_from_cart" %}', {
+    fetch('{% url "sales_web:remove_from_cart" %}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -414,7 +414,7 @@ function removeFromCart(itemKey) {
 
 function clearCart() {
     if (confirm('Are you sure you want to clear your cart?')) {
-        fetch('{% url "sales:clear_cart" %}', {
+        fetch('{% url "sales_web:clear_cart" %}', {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCookie('csrftoken')
@@ -436,7 +436,7 @@ function clearCart() {
 function updateCartDisplay() {
     console.log('🔄 Updating cart display...');
     
-    fetch('{% url "sales:ajax_cart_update" %}')
+    fetch('{% url "sales_web:ajax_cart_update" %}')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -504,7 +504,7 @@ function updateCartDisplay() {
                             </div>
                             
                             <div class="d-grid gap-2">
-                                <a href="{% url 'sales:checkout' %}" class="btn btn-primary">
+                                <a href="{% url 'sales_web:checkout' %}" class="btn btn-primary">
                                     <i class="bi bi-credit-card"></i> Proceed to Checkout
                                 </a>
                                 <button class="btn btn-outline-secondary" onclick="clearCart()">

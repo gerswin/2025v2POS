@@ -321,7 +321,7 @@ function startAvailabilityPolling() {
     setInterval(() => {
         const seatIds = Array.from(document.querySelectorAll('.seat')).map(seat => seat.dataset.seatId);
         
-        fetch(`{% url "sales:ajax_seat_availability" %}?${seatIds.map(id => `seat_ids[]=${id}`).join('&')}`)
+        fetch(`{% url "sales_web:ajax_seat_availability" %}?${seatIds.map(id => `seat_ids[]=${id}`).join('&')}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {

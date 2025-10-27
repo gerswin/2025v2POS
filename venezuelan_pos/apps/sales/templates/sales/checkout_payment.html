@@ -4,8 +4,8 @@
 {% block title %}{% trans "Payment Method" %} - Tiquemax{% endblock %}
 
 {% block breadcrumb_items %}
-<li class="breadcrumb-item"><a href="{% url 'sales:dashboard' %}">{% trans "Sales" %}</a></li>
-<li class="breadcrumb-item"><a href="{% url 'sales:shopping_cart' %}">{% trans "Cart" %}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'sales_web:dashboard' %}">{% trans "Sales" %}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'sales_web:shopping_cart' %}">{% trans "Cart" %}</a></li>
 <li class="breadcrumb-item active">{% trans "Payment" %}</li>
 {% endblock %}
 
@@ -290,7 +290,7 @@
             
             <!-- Continue Button -->
             <div class="text-end mt-4">
-                <a href="{% url 'sales:checkout' %}" class="btn btn-outline-secondary btn-lg me-3">
+                <a href="{% url 'sales_web:checkout' %}" class="btn btn-outline-secondary btn-lg me-3">
                     <i class="bi bi-arrow-left"></i> {% trans "Back" %}
                 </a>
                 <button class="btn btn-primary btn-lg" onclick="proceedToConfirmation()">
@@ -440,7 +440,7 @@ function updatePaymentInfo() {
 
 function proceedToConfirmation() {
     // Store payment method in session and redirect
-    window.location.href = '{% url "sales:checkout_confirm" %}';
+    window.location.href = '{% url "sales_web:checkout_confirm" %}';
 }
 
 document.addEventListener('DOMContentLoaded', function() {

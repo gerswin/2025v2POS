@@ -141,7 +141,7 @@ def seat_selection(request, event_id):
     
     if not event.is_sales_active:
         messages.error(request, 'Las ventas para este evento no están activas.')
-        return redirect('sales:dashboard')
+        return redirect('sales_web:dashboard')
     
     # Get zones with availability information
     zones = event.zones.filter(status=Zone.Status.ACTIVE).order_by('display_order', 'name')
@@ -458,7 +458,7 @@ def checkout(request):
     
     if not cart:
         messages.error(request, 'Your cart is empty.')
-        return redirect('sales:dashboard')
+        return redirect('sales_web:dashboard')
     
     # Process cart items
     cart_items = []
@@ -515,7 +515,7 @@ def checkout_customer(request):
     cart = request.session.get('shopping_cart', {})
     if not cart:
         messages.error(request, 'Your cart is empty.')
-        return redirect('sales:dashboard')
+        return redirect('sales_web:dashboard')
     
     if request.method == 'POST':
         # Handle customer selection or creation
@@ -546,7 +546,7 @@ def checkout_customer(request):
         request.session['checkout_customer_id'] = str(customer.id)
         request.session.modified = True
         
-        return redirect('sales:checkout_payment')
+        return redirect('sales_web:checkout_payment')
     
     return render(request, 'sales/checkout_customer.html')
 
@@ -560,7 +560,7 @@ def checkout_payment(request):
     
     if not cart or not customer_id:
         messages.error(request, 'Invalid checkout session.')
-        return redirect('sales:checkout')
+        return redirect('sales_web:checkout')
     
     # Get customer
     if request.user.is_admin_user:
@@ -589,7 +589,7 @@ def checkout_confirm(request):
     
     if not cart or not customer_id:
         messages.error(request, 'Invalid checkout session.')
-        return redirect('sales:checkout')
+        return redirect('sales_web:checkout')
     
     if request.method == 'POST':
         try:
@@ -649,11 +649,11 @@ def checkout_confirm(request):
                     f'Transaction completed successfully! Fiscal series: {completed_transaction.fiscal_series}'
                 )
                 
-                return redirect('sales:transaction_detail', transaction_id=completed_transaction.id)
+                return redirect('sales_web:transaction_detail', transaction_id=completed_transaction.id)
                 
         except Exception as e:
             messages.error(request, f'Error completing transaction: {str(e)}')
-            return redirect('sales:checkout')
+            return redirect('sales_web:checkout')
     
     # GET request - show confirmation page
     if request.user.is_admin_user:
@@ -824,7 +824,7 @@ def complete_transaction(request, transaction_id):
     except Exception as e:
         messages.error(request, f'Error completing transaction: {str(e)}')
     
-    return redirect('sales:transaction_detail', transaction_id=transaction_id)
+    return redirect('sales_web:transaction_detail', transaction_id=transaction_id)
 
 
 @login_required
@@ -880,7 +880,7 @@ def extend_reservation(request, reservation_id):
     else:
         messages.error(request, 'Cannot extend expired or inactive reservation.')
     
-    return redirect('sales:reservation_list')
+    return redirect('sales_web:reservation_list')
 
 
 @login_required
@@ -903,7 +903,7 @@ def cancel_reservation(request, reservation_id):
     except Exception as e:
         messages.error(request, f'Error cancelling reservation: {str(e)}')
     
-    return redirect('sales:reservation_list')
+    return redirect('sales_web:reservation_list')
 
 
 # AJAX Views for real-time updates

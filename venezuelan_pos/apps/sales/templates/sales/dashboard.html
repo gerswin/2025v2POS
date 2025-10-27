@@ -11,10 +11,10 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0">{% trans "Sales Dashboard" %}</h1>
     <div>
-        <a href="{% url 'sales:transaction_list' %}" class="btn btn-outline-primary me-2">
+        <a href="{% url 'sales_web:transaction_list' %}" class="btn btn-outline-primary me-2">
             <i class="bi bi-list-ul"></i> {% trans "All Transactions" %}
         </a>
-        <a href="{% url 'sales:reservation_list' %}" class="btn btn-outline-warning">
+        <a href="{% url 'sales_web:reservation_list' %}" class="btn btn-outline-warning">
             <i class="bi bi-clock"></i> {% trans "Reservations" %}
         </a>
     </div>
@@ -80,7 +80,7 @@
                                 </small>
                             </div>
                             <div>
-                                <a href="{% url 'sales:seat_selection' event_id=event.id %}" 
+                                <a href="{% url 'sales_web:seat_selection' event_id=event.id %}" 
                                    class="btn btn-primary btn-sm">
                                     <i class="bi bi-ticket"></i> {% trans "Sell Tickets" %}
                                 </a>
@@ -137,7 +137,7 @@
                         {% endfor %}
                     </div>
                     <div class="text-center mt-3">
-                        <a href="{% url 'sales:transaction_list' %}" class="btn btn-outline-primary btn-sm">
+                        <a href="{% url 'sales_web:transaction_list' %}" class="btn btn-outline-primary btn-sm">
                             {% trans "View All Transactions" %}
                         </a>
                     </div>
@@ -189,7 +189,7 @@
                 {% endfor %}
             </div>
             <hr>
-            <a href="{% url 'sales:reservation_list' %}" class="btn btn-warning btn-sm">
+            <a href="{% url 'sales_web:reservation_list' %}" class="btn btn-warning btn-sm">
                 {% trans "Manage Reservations" %}
             </a>
         </div>
