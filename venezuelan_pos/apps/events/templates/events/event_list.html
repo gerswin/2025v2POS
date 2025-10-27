@@ -155,13 +155,19 @@
                                             <i class="fas fa-edit"></i> Edit
                                         </a>
                                         {% if event.status == 'draft' %}
-                                            <a href="{% url 'events:event_activate' event.id %}" class="btn btn-sm btn-success">
-                                                <i class="fas fa-play"></i> Activate
-                                            </a>
+                                            <form method="post" action="{% url 'events:event_activate' event.id %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('¿Activar este evento?')">
+                                                    <i class="fas fa-play"></i> Activate
+                                                </button>
+                                            </form>
                                         {% elif event.status == 'active' %}
-                                            <a href="{% url 'events:event_deactivate' event.id %}" class="btn btn-sm btn-warning">
-                                                <i class="fas fa-pause"></i> Pause
-                                            </a>
+                                            <form method="post" action="{% url 'events:event_deactivate' event.id %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('¿Pausar este evento?')">
+                                                    <i class="fas fa-pause"></i> Pause
+                                                </button>
+                                            </form>
                                         {% endif %}
                                     </div>
                                 </div>

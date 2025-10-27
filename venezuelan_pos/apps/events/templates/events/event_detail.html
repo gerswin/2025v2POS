@@ -199,20 +199,29 @@
                         <div class="card-body">
                             <div class="d-grid gap-2">
                                 {% if event.status == 'draft' %}
-                                    <a href="{% url 'events:event_activate' event.id %}" class="btn btn-success">
-                                        <i class="fas fa-play"></i> Activate Event
-                                    </a>
+                                    <form method="post" action="{% url 'events:event_activate' event.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-success" onclick="return confirm('¿Activar este evento?')">
+                                            <i class="fas fa-play"></i> Activate Event
+                                        </button>
+                                    </form>
                                 {% elif event.status == 'active' %}
-                                    <a href="{% url 'events:event_deactivate' event.id %}" class="btn btn-warning">
-                                        <i class="fas fa-pause"></i> Deactivate Event
-                                    </a>
+                                    <form method="post" action="{% url 'events:event_deactivate' event.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-warning" onclick="return confirm('¿Desactivar este evento?')">
+                                            <i class="fas fa-pause"></i> Deactivate Event
+                                        </button>
+                                    </form>
                                 {% endif %}
                                 
                                 {% if event.status != 'cancelled' %}
-                                    <a href="{% url 'events:event_cancel' event.id %}" class="btn btn-danger" 
-                                       onclick="return confirm('Are you sure you want to cancel this event?')">
-                                        <i class="fas fa-times"></i> Cancel Event
-                                    </a>
+                                    <form method="post" action="{% url 'events:event_cancel' event.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger" 
+                                               onclick="return confirm('¿Estás seguro de que quieres cancelar este evento?')">
+                                            <i class="fas fa-times"></i> Cancel Event
+                                        </button>
+                                    </form>
                                 {% endif %}
                                 
                                 <a href="{% url 'events:event_edit' event.id %}" class="btn btn-primary">
