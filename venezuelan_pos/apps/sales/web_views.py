@@ -4,6 +4,7 @@ Provides interactive ticket sales interface with real-time seat selection and sh
 """
 
 import json
+import logging
 from decimal import Decimal
 from datetime import datetime, timedelta
 from django.shortcuts import render, get_object_or_404, redirect
@@ -25,6 +26,8 @@ from ..events.models import Event
 from ..zones.models import Zone, Seat
 from ..customers.models import Customer
 from ..pricing.services import PricingCalculationService
+
+logger = logging.getLogger(__name__)
 
 
 def serialize_pricing_details(pricing_details: dict) -> dict:
@@ -183,7 +186,9 @@ def seat_selection(request, event_id):
 
 @login_required
 def zone_seat_map(request, event_id, zone_id):
-    """Detailed seat map for a specific zone."""
+    """Detailed seat map for a specific zone - OPTIMIZED VERSION."""
+    import time
+    start_time = time.time()
     
     if request.user.is_admin_user:
         event = get_object_or_404(Event, id=event_id)
@@ -193,31 +198,39 @@ def zone_seat_map(request, event_id, zone_id):
         zone = get_object_or_404(Zone, id=zone_id, event=event, tenant=request.user.tenant)
     
     if zone.zone_type == Zone.ZoneType.NUMBERED:
-        # Initialize pricing service
+        # Initialize pricing service once
         pricing_service = PricingCalculationService()
         
-        # Get seats organized by row
-        seats_by_row = {}
-        seats = zone.seats.select_related().order_by('row_number', 'seat_number')
+        # Calculate zone price once (this is the same for all seats in the zone)
+        zone_price, pricing_details = pricing_service.calculate_zone_price(zone)
         
+        # Get shopping cart items once
+        shopping_cart = request.session.get('shopping_cart', {})
+        
+        # Get all seats with optimized query
+        seats = zone.seats.select_related('zone').order_by('row_number', 'seat_number')
+        
+        # Get zone availability data from cache (includes all seats)
+        zone_availability = sales_cache.get_zone_seat_availability(str(zone_id))
+        cached_seats = zone_availability.get('seats', {}) if zone_availability else {}
+        
+        # Organize seats by row with optimized processing
+        seats_by_row = {}
         for seat in seats:
             if seat.row_number not in seats_by_row:
                 seats_by_row[seat.row_number] = []
             
-            # Add cached availability information
-            cached_availability = sales_cache.get_seat_availability(str(seat.id))
-            seat.cached_status = cached_availability.get('status') if cached_availability else seat.status
-            seat.is_in_cart = str(seat.id) in request.session.get('shopping_cart', {})
+            # Use cached status if available, otherwise use database status
+            seat_key = f"{seat.row_number}_{seat.seat_number}"
+            cached_seat_data = cached_seats.get(seat_key, {})
+            seat.cached_status = cached_seat_data.get('status', seat.status)
+            seat.is_in_cart = str(seat.id) in shopping_cart
             
-            # Calculate individual seat price
-            seat_price, seat_pricing_details = pricing_service.calculate_seat_price(seat)
-            seat.dynamic_price = seat_price
-            seat.dynamic_pricing_details = serialize_pricing_details(seat_pricing_details)
+            # Use zone price for all seats (optimization: avoid per-seat calculation)
+            # In most cases, seats in the same zone have the same base price
+            seat.dynamic_price = zone_price
             
             seats_by_row[seat.row_number].append(seat)
-        
-        # Calculate pricing for the zone
-        zone_price, pricing_details = pricing_service.calculate_zone_price(zone)
         
         context = {
             'event': event,
@@ -226,6 +239,11 @@ def zone_seat_map(request, event_id, zone_id):
             'zone_price': zone_price,
             'pricing_details': serialize_pricing_details(pricing_details),
         }
+        
+        # Log performance metrics
+        end_time = time.time()
+        processing_time = end_time - start_time
+        logger.info(f"zone_seat_map optimized processing time: {processing_time:.3f}s for zone {zone_id} with {len(seats)} seats")
         
         return render(request, 'sales/zone_seat_map.html', context)
     

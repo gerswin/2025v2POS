@@ -252,6 +252,38 @@ class SalesCacheService:
         except Zone.DoesNotExist:
             return None
     
+    def get_bulk_seat_availability(self, seat_ids: List[str]) -> Dict[str, Dict]:
+        """
+        Get availability for multiple seats efficiently.
+        Returns a dictionary mapping seat_id to availability data.
+        """
+        if not seat_ids:
+            return {}
+        
+        # Try to get from cache first
+        pipeline = self.redis_client.pipeline()
+        keys = [self._get_cache_key(self.SEAT_AVAILABILITY_PREFIX, seat_id) for seat_id in seat_ids]
+        
+        try:
+            for key in keys:
+                pipeline.get(key)
+            
+            cached_results = pipeline.execute()
+            bulk_data = {}
+            
+            for i, result in enumerate(cached_results):
+                if result:
+                    try:
+                        bulk_data[seat_ids[i]] = json.loads(result)
+                    except (json.JSONDecodeError, ValueError):
+                        continue
+            
+            return bulk_data
+            
+        except (ConnectionError, TimeoutError) as e:
+            logger.warning(f"Redis bulk seat availability fetch failed: {e}")
+            return {}
+    
     def rebuild_zone_availability_cache(self, zone: Zone) -> Dict:
         """
         Rebuild zone availability cache from database.
