@@ -1,0 +1,333 @@
+{% extends 'events/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Pricing Dashboard" %} - Tiquemax{% endblock %}
+
+{% block breadcrumb_items %}
+    <li class="breadcrumb-item active">{% trans "Pricing" %}</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="bi bi-currency-dollar me-2"></i>
+        {% trans "Pricing Dashboard" %}
+    </h1>
+    <div class="btn-group">
+        <a href="{% url 'pricing_web:price_calculation' %}" class="btn btn-primary">
+            <i class="bi bi-calculator"></i> {% trans "Price Calculator" %}
+        </a>
+        <a href="{% url 'pricing_web:price_history' %}" class="btn btn-outline-primary">
+            <i class="bi bi-clock-history"></i> {% trans "Price History" %}
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-funnel me-2"></i>{% trans "Filters" %}
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                {{ filter_form.event.label_tag }}
+                {{ filter_form.event }}
+            </div>
+            <div class="col-md-4">
+                {{ filter_form.zone.label_tag }}
+                {{ filter_form.zone }}
+            </div>
+            <div class="col-md-4">
+                {{ filter_form.stage_status.label_tag }}
+                {{ filter_form.stage_status }}
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> {% trans "Apply Filters" %}
+                </button>
+                <a href="{% url 'pricing_web:dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> {% trans "Clear Filters" %}
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <div class="stats-number">{{ stats.total_events }}</div>
+                <div>{% trans "Total Events" %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <div class="stats-number">{{ stats.events_with_pricing }}</div>
+                <div>{% trans "Events with Pricing" %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <div class="stats-number">{{ stats.current_price_stages }}</div>
+                <div>{% trans "Current Price Stages" %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <div class="stats-number">{{ stats.active_row_pricing }}</div>
+                <div>{% trans "Active Row Pricing" %}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Current Price Stages -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock me-2"></i>{% trans "Current Price Stages" %}</span>
+                <span class="badge bg-success">{{ current_stages|length }}</span>
+            </div>
+            <div class="card-body">
+                {% if current_stages %}
+                    <div class="list-group list-group-flush">
+                        {% for stage in current_stages %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ stage.event.name }}</h6>
+                                <p class="mb-1">
+                                    <strong>{{ stage.name }}</strong>
+                                    <span class="badge bg-primary ms-2">+{{ stage.percentage_markup }}%</span>
+                                </p>
+                                <small class="text-muted">
+                                    {% trans "Until" %} {{ stage.end_date|date:"M d, Y H:i" }}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <a href="{% url 'pricing_web:price_stage_list' event_id=stage.event.id %}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    {% trans "Manage" %}
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-clock display-4"></i>
+                        <p class="mt-2">{% trans "No current price stages" %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Price Stages -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-calendar-plus me-2"></i>{% trans "Upcoming Price Stages" %}</span>
+                <span class="badge bg-warning">{{ upcoming_stages|length }}</span>
+            </div>
+            <div class="card-body">
+                {% if upcoming_stages %}
+                    <div class="list-group list-group-flush">
+                        {% for stage in upcoming_stages %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ stage.event.name }}</h6>
+                                <p class="mb-1">
+                                    <strong>{{ stage.name }}</strong>
+                                    <span class="badge bg-primary ms-2">+{{ stage.percentage_markup }}%</span>
+                                </p>
+                                <small class="text-muted">
+                                    {% trans "Starts" %} {{ stage.start_date|date:"M d, Y H:i" }}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <a href="{% url 'pricing_web:price_stage_list' event_id=stage.event.id %}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    {% trans "Manage" %}
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-calendar-plus display-4"></i>
+                        <p class="mt-2">{% trans "No upcoming price stages" %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Price Stage Distribution -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-bar-chart me-2"></i>{% trans "Price Stage Distribution" %}
+            </div>
+            <div class="card-body">
+                {% if stage_distribution %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Event" %}</th>
+                                    <th class="text-center">{% trans "Stages" %}</th>
+                                    <th class="text-center">{% trans "Avg Markup" %}</th>
+                                    <th class="text-center">{% trans "Range" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in stage_distribution %}
+                                <tr>
+                                    <td>{{ item.event__name|truncatechars:30 }}</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">{{ item.stage_count }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if item.avg_markup %}
+                                            {{ item.avg_markup|floatformat:1 }}%
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if item.min_markup is not None and item.max_markup is not None %}
+                                            {{ item.min_markup|floatformat:1 }}% - {{ item.max_markup|floatformat:1 }}%
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-bar-chart display-4"></i>
+                        <p class="mt-2">{% trans "No pricing data available" %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Price History -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock-history me-2"></i>{% trans "Recent Price History" %}</span>
+                <a href="{% url 'pricing_web:price_history' %}" class="btn btn-sm btn-outline-primary">
+                    {% trans "View All" %}
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_history %}
+                    <div class="list-group list-group-flush">
+                        {% for history in recent_history %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ history.event.name }}</h6>
+                                    <p class="mb-1">
+                                        {% if history.zone %}
+                                            {{ history.zone.name }}
+                                            {% if history.row_number %}
+                                                - {% trans "Row" %} {{ history.row_number }}
+                                                {% if history.seat_number %}
+                                                    {% trans "Seat" %} {{ history.seat_number }}
+                                                {% endif %}
+                                            {% endif %}
+                                        {% endif %}
+                                    </p>
+                                    <small class="text-muted">
+                                        {{ history.calculation_date|date:"M d, Y H:i" }}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-success">${{ history.final_price }}</span>
+                                    <br>
+                                    <small class="text-muted">{{ history.get_price_type_display }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-clock-history display-4"></i>
+                        <p class="mt-2">{% trans "No price history available" %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-lightning me-2"></i>{% trans "Quick Actions" %}
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <a href="{% url 'pricing_web:price_calculation' %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-calculator d-block mb-2" style="font-size: 2rem;"></i>
+                            {% trans "Calculate Prices" %}
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'events:event_list' %}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-plus-circle d-block mb-2" style="font-size: 2rem;"></i>
+                            {% trans "Manage Events" %}
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'pricing_web:price_history' %}" class="btn btn-outline-info w-100">
+                            <i class="bi bi-graph-up d-block mb-2" style="font-size: 2rem;"></i>
+                            {% trans "View Reports" %}
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="#" class="btn btn-outline-warning w-100">
+                            <i class="bi bi-gear d-block mb-2" style="font-size: 2rem;"></i>
+                            {% trans "Settings" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh current stages every 5 minutes
+    setInterval(function() {
+        location.reload();
+    }, 300000);
+});
+</script>
+{% endblock %}

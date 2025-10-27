@@ -1,0 +1,198 @@
+{% extends "customers/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Customer Management" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{% trans "Customer Management" %}</h1>
+                <div>
+                    <a href="{% url 'customers_web:customer_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> {% trans "Add Customer" %}
+                    </a>
+                    <a href="{% url 'customers_web:customer_search' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-search"></i> {% trans "Search" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ stats.total_customers }}</h3>
+                <p>{% trans "Total Customers" %}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                <h3>{{ stats.active_customers }}</h3>
+                <p>{% trans "Active Customers" %}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" style="background: linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%);">
+                <h3>{{ stats.customers_with_phone }}</h3>
+                <p>{% trans "With Phone" %}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <h3>{{ stats.customers_with_email }}</h3>
+                <p>{% trans "With Email" %}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Customers -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{% trans "Recent Customers" %}</h5>
+                    <a href="{% url 'customers_web:customer_list' %}" class="btn btn-sm btn-outline-primary">
+                        {% trans "View All" %}
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_customers %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Name" %}</th>
+                                        <th>{% trans "Contact" %}</th>
+                                        <th>{% trans "Identification" %}</th>
+                                        <th>{% trans "Status" %}</th>
+                                        <th>{% trans "Created" %}</th>
+                                        <th>{% trans "Actions" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for customer in recent_customers %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ customer.full_name }}</strong>
+                                        </td>
+                                        <td>
+                                            <small class="contact-info">{{ customer.primary_contact }}</small>
+                                        </td>
+                                        <td>
+                                            <code>{{ customer.display_identification }}</code>
+                                        </td>
+                                        <td>
+                                            <span class="customer-status {% if customer.is_active %}active{% else %}inactive{% endif %}">
+                                                {% if customer.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small>{{ customer.created_at|date:"M d, Y" }}</small>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'customers_web:customer_detail' customer.pk %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                {% trans "View" %}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">{% trans "No customers yet" %}</p>
+                            <a href="{% url 'customers_web:customer_create' %}" class="btn btn-primary">
+                                {% trans "Add First Customer" %}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Communication Preferences Stats -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "Communication Preferences" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>{% trans "Email Enabled" %}</span>
+                            <strong>{{ preferences_stats.email_enabled }}</strong>
+                        </div>
+                        <div class="progress" style="height: 5px;">
+                            <div class="progress-bar bg-primary" 
+                                 style="width: {% widthratio preferences_stats.email_enabled stats.total_customers 100 %}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>{% trans "SMS Enabled" %}</span>
+                            <strong>{{ preferences_stats.sms_enabled }}</strong>
+                        </div>
+                        <div class="progress" style="height: 5px;">
+                            <div class="progress-bar bg-success" 
+                                 style="width: {% widthratio preferences_stats.sms_enabled stats.total_customers 100 %}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>{% trans "WhatsApp Enabled" %}</span>
+                            <strong>{{ preferences_stats.whatsapp_enabled }}</strong>
+                        </div>
+                        <div class="progress" style="height: 5px;">
+                            <div class="progress-bar bg-info" 
+                                 style="width: {% widthratio preferences_stats.whatsapp_enabled stats.total_customers 100 %}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>{% trans "Promotional Messages" %}</span>
+                            <strong>{{ preferences_stats.promotional_enabled }}</strong>
+                        </div>
+                        <div class="progress" style="height: 5px;">
+                            <div class="progress-bar bg-warning" 
+                                 style="width: {% widthratio preferences_stats.promotional_enabled stats.total_customers 100 %}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "Quick Actions" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'customers_web:customer_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> {% trans "Add Customer" %}
+                        </a>
+                        <a href="{% url 'customers_web:customer_search' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-search"></i> {% trans "Search Customers" %}
+                        </a>
+                        <a href="{% url 'customers_web:customer_lookup' %}" class="btn btn-outline-info">
+                            <i class="fas fa-id-card"></i> {% trans "Lookup by ID" %}
+                        </a>
+                        <a href="{% url 'customers_web:customer_list' %}" class="btn btn-outline-dark">
+                            <i class="fas fa-list"></i> {% trans "All Customers" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,337 @@
+{% extends "customers/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ customer.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{{ customer.full_name }}</h1>
+                <div>
+                    <a href="{% url 'customers_web:customer_edit' customer.pk %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> {% trans "Edit Customer" %}
+                    </a>
+                    <a href="{% url 'customers_web:customer_preferences' customer.pk %}" class="btn btn-outline-info">
+                        <i class="fas fa-cog"></i> {% trans "Preferences" %}
+                    </a>
+                    <a href="{% url 'customers_web:customer_toggle_active' customer.pk %}" 
+                       class="btn btn-outline-{% if customer.is_active %}warning{% else %}success{% endif %}">
+                        {% if customer.is_active %}
+                            <i class="fas fa-pause"></i> {% trans "Deactivate" %}
+                        {% else %}
+                            <i class="fas fa-play"></i> {% trans "Activate" %}
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'customers_web:customer_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> {% trans "Back to List" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Customer Information -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user"></i> {% trans "Customer Information" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">{% trans "Full Name" %}:</th>
+                                    <td><strong>{{ customer.full_name }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <th>{% trans "Email" %}:</th>
+                                    <td>
+                                        {% if customer.email %}
+                                            <a href="mailto:{{ customer.email }}">{{ customer.email }}</a>
+                                        {% else %}
+                                            <span class="text-muted">{% trans "Not provided" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>{% trans "Phone" %}:</th>
+                                    <td>
+                                        {% if customer.phone %}
+                                            <a href="tel:{{ customer.phone }}">{{ customer.phone }}</a>
+                                        {% else %}
+                                            <span class="text-muted">{% trans "Not provided" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>{% trans "Identification" %}:</th>
+                                    <td>
+                                        {% if customer.identification %}
+                                            <code>{{ customer.identification }}</code>
+                                        {% else %}
+                                            <span class="text-muted">{% trans "Not provided" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">{% trans "Date of Birth" %}:</th>
+                                    <td>
+                                        {% if customer.date_of_birth %}
+                                            {{ customer.date_of_birth|date:"F d, Y" }}
+                                        {% else %}
+                                            <span class="text-muted">{% trans "Not provided" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>{% trans "Status" %}:</th>
+                                    <td>
+                                        <span class="customer-status {% if customer.is_active %}active{% else %}inactive{% endif %}">
+                                            {% if customer.is_active %}
+                                                <i class="fas fa-check-circle"></i> {% trans "Active" %}
+                                            {% else %}
+                                                <i class="fas fa-times-circle"></i> {% trans "Inactive" %}
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>{% trans "Created" %}:</th>
+                                    <td>{{ customer.created_at|date:"F d, Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>{% trans "Last Updated" %}:</th>
+                                    <td>{{ customer.updated_at|date:"F d, Y H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    {% if customer.address %}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>{% trans "Address" %}:</h6>
+                                <p class="text-muted">{{ customer.address }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% if customer.notes %}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>{% trans "Notes" %}:</h6>
+                                <p class="text-muted">{{ customer.notes }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Purchase History -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shopping-cart"></i> {% trans "Purchase History" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if purchase_history %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Date" %}</th>
+                                        <th>{% trans "Event" %}</th>
+                                        <th>{% trans "Amount" %}</th>
+                                        <th>{% trans "Status" %}</th>
+                                        <th>{% trans "Actions" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for purchase in purchase_history %}
+                                    <tr>
+                                        <td>{{ purchase.date|date:"M d, Y" }}</td>
+                                        <td>{{ purchase.event_name }}</td>
+                                        <td>${{ purchase.amount }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ purchase.status_color }}">
+                                                {{ purchase.status }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="#" class="btn btn-sm btn-outline-primary">
+                                                {% trans "View" %}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">{% trans "No purchase history yet" %}</p>
+                            <small class="text-muted">
+                                {% trans "Purchase history will appear here when the customer makes ticket purchases." %}
+                            </small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Sales Validation -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-check-circle"></i> {% trans "Sales Validation" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if validation.is_valid %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check"></i> {% trans "Customer is valid for purchases" %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> {% trans "Customer has validation issues" %}
+                            <ul class="mb-0 mt-2">
+                                {% for error in validation.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    {% if validation.warnings %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-circle"></i> {% trans "Warnings" %}
+                            <ul class="mb-0 mt-2">
+                                {% for warning in validation.warnings %}
+                                    <li>{{ warning }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Communication Preferences -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bell"></i> {% trans "Communication" %}
+                    </h5>
+                    <a href="{% url 'customers_web:customer_preferences' customer.pk %}" 
+                       class="btn btn-sm btn-outline-primary">
+                        {% trans "Edit" %}
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>{% trans "Enabled Channels" %}:</h6>
+                        <div>
+                            {% if customer.preferences.email_enabled and customer.email %}
+                                <span class="badge bg-primary me-1">
+                                    <i class="fas fa-envelope"></i> {% trans "Email" %}
+                                </span>
+                            {% endif %}
+                            {% if customer.preferences.sms_enabled and customer.phone %}
+                                <span class="badge bg-success me-1">
+                                    <i class="fas fa-sms"></i> {% trans "SMS" %}
+                                </span>
+                            {% endif %}
+                            {% if customer.preferences.whatsapp_enabled and customer.phone %}
+                                <span class="badge bg-info me-1">
+                                    <i class="fab fa-whatsapp"></i> {% trans "WhatsApp" %}
+                                </span>
+                            {% endif %}
+                            {% if customer.preferences.phone_enabled and customer.phone %}
+                                <span class="badge bg-warning me-1">
+                                    <i class="fas fa-phone"></i> {% trans "Phone" %}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6>{% trans "Notification Types" %}:</h6>
+                        <div class="small">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" disabled 
+                                       {% if customer.preferences.purchase_confirmations %}checked{% endif %}>
+                                <label class="form-check-label">{% trans "Purchases" %}</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" disabled 
+                                       {% if customer.preferences.payment_reminders %}checked{% endif %}>
+                                <label class="form-check-label">{% trans "Payments" %}</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" disabled 
+                                       {% if customer.preferences.event_reminders %}checked{% endif %}>
+                                <label class="form-check-label">{% trans "Events" %}</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" disabled 
+                                       {% if customer.preferences.promotional_messages %}checked{% endif %}>
+                                <label class="form-check-label">{% trans "Promotions" %}</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h6>{% trans "Preferred Language" %}:</h6>
+                        <span class="badge bg-secondary">
+                            {% if customer.preferences.preferred_language == 'es' %}
+                                🇻🇪 {% trans "Spanish" %}
+                            {% else %}
+                                🇺🇸 {% trans "English" %}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt"></i> {% trans "Quick Actions" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'customers_web:customer_edit' customer.pk %}" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> {% trans "Edit Customer" %}
+                        </a>
+                        <a href="{% url 'customers_web:customer_preferences' customer.pk %}" class="btn btn-outline-info">
+                            <i class="fas fa-cog"></i> {% trans "Edit Preferences" %}
+                        </a>
+                        <button class="btn btn-outline-secondary" onclick="window.print()">
+                            <i class="fas fa-print"></i> {% trans "Print Details" %}
+                        </button>
+                        <a href="mailto:{{ customer.email }}" class="btn btn-outline-primary" 
+                           {% if not customer.email %}disabled{% endif %}>
+                            <i class="fas fa-envelope"></i> {% trans "Send Email" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

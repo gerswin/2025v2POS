@@ -1,0 +1,375 @@
+{% extends 'events/base.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit Event{% else %}Create Event{% endif %} - Tiquemax{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0">
+                        {% if form.instance.pk %}
+                            <i class="fas fa-edit"></i> Edit Event
+                        {% else %}
+                            <i class="fas fa-plus"></i> Create Event
+                        {% endif %}
+                    </h1>
+                    <p class="text-muted mb-0">
+                        {% if form.instance.pk %}
+                            Update event information and settings
+                        {% else %}
+                            Create a new event for ticket sales
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <a href="{% if form.instance.pk %}{% url 'events:event_detail' form.instance.id %}{% else %}{% url 'events:event_list' %}{% endif %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="row">
+                    <!-- Main Form -->
+                    <div class="col-lg-8">
+                        <!-- Basic Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-info-circle"></i> Basic Information
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="mb-3">
+                                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                                Event Name <span class="text-danger">*</span>
+                                            </label>
+                                            {{ form.name }}
+                                            {% if form.name.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.name.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="{{ form.event_type.id_for_label }}" class="form-label">
+                                                Event Type <span class="text-danger">*</span>
+                                            </label>
+                                            {{ form.event_type }}
+                                            {% if form.event_type.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.event_type.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.description.id_for_label }}" class="form-label">
+                                        Description
+                                    </label>
+                                    {{ form.description }}
+                                    {% if form.description.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.description.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.venue.id_for_label }}" class="form-label">
+                                        Venue <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.venue }}
+                                    {% if form.venue.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.venue.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        <a href="{% url 'events:venue_create' %}" target="_blank">
+                                            <i class="fas fa-plus"></i> Create new venue
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Date and Time -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-calendar-alt"></i> Date and Time
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.start_date.id_for_label }}" class="form-label">
+                                                Start Date & Time <span class="text-danger">*</span>
+                                            </label>
+                                            {{ form.start_date }}
+                                            {% if form.start_date.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.start_date.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.end_date.id_for_label }}" class="form-label">
+                                                End Date & Time <span class="text-danger">*</span>
+                                            </label>
+                                            {{ form.end_date }}
+                                            {% if form.end_date.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.end_date.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.sales_start_date.id_for_label }}" class="form-label">
+                                                Sales Start Date & Time
+                                            </label>
+                                            {{ form.sales_start_date }}
+                                            {% if form.sales_start_date.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.sales_start_date.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">Leave empty to start sales immediately</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.sales_end_date.id_for_label }}" class="form-label">
+                                                Sales End Date & Time
+                                            </label>
+                                            {{ form.sales_end_date }}
+                                            {% if form.sales_end_date.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.sales_end_date.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">Leave empty to sell until event starts</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Currency Settings -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-dollar-sign"></i> Currency Settings
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.base_currency.id_for_label }}" class="form-label">
+                                                Base Currency <span class="text-danger">*</span>
+                                            </label>
+                                            {{ form.base_currency }}
+                                            {% if form.base_currency.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.base_currency.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.currency_conversion_rate.id_for_label }}" class="form-label">
+                                                Conversion Rate
+                                            </label>
+                                            {{ form.currency_conversion_rate }}
+                                            {% if form.currency_conversion_rate.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.currency_conversion_rate.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">Rate from USD to local currency (1.0000 = USD)</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status -->
+                        {% if form.instance.pk %}
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-toggle-on"></i> Event Status
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="{{ form.status.id_for_label }}" class="form-label">
+                                        Status <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.status }}
+                                    {% if form.status.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.status.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="col-lg-4">
+                        <!-- Form Actions -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-save"></i> Actions
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> 
+                                        {% if form.instance.pk %}Update Event{% else %}Create Event{% endif %}
+                                    </button>
+                                    
+                                    {% if form.instance.pk %}
+                                        <a href="{% url 'events:event_detail' form.instance.id %}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-eye"></i> View Event
+                                        </a>
+                                        
+                                        {% if form.instance.status == 'draft' %}
+                                            <button type="submit" name="activate" value="true" class="btn btn-success">
+                                                <i class="fas fa-play"></i> Save & Activate
+                                            </button>
+                                        {% endif %}
+                                    {% endif %}
+                                    
+                                    <a href="{% if form.instance.pk %}{% url 'events:event_detail' form.instance.id %}{% else %}{% url 'events:event_list' %}{% endif %}" class="btn btn-outline-danger">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Help -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-question-circle"></i> Help
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="small">
+                                    <h6>Event Types:</h6>
+                                    <ul class="mb-3">
+                                        <li><strong>General Assignment:</strong> Open seating, first-come first-served</li>
+                                        <li><strong>Numbered Seating:</strong> Specific seat assignments</li>
+                                        <li><strong>Mixed:</strong> Combination of both types</li>
+                                    </ul>
+
+                                    <h6>Status Options:</h6>
+                                    <ul class="mb-3">
+                                        <li><strong>Draft:</strong> Event is being prepared</li>
+                                        <li><strong>Active:</strong> Event is live and selling tickets</li>
+                                        <li><strong>Closed:</strong> Event has ended</li>
+                                        <li><strong>Cancelled:</strong> Event was cancelled</li>
+                                    </ul>
+
+                                    <h6>Tips:</h6>
+                                    <ul class="mb-0">
+                                        <li>Set sales dates to control when tickets go on sale</li>
+                                        <li>Use conversion rates for local currency pricing</li>
+                                        <li>Create zones after saving the event</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add datetime-local input type for better UX
+    const dateTimeInputs = document.querySelectorAll('input[type="datetime-local"]');
+    dateTimeInputs.forEach(input => {
+        input.classList.add('form-control');
+        if (input.hasAttribute('required')) {
+            input.classList.add('is-invalid');
+            input.addEventListener('input', function() {
+                if (this.value) {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                } else {
+                    this.classList.remove('is-valid');
+                    this.classList.add('is-invalid');
+                }
+            });
+        }
+    });
+
+    // Add form validation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const startDate = document.querySelector('#id_start_date');
+        const endDate = document.querySelector('#id_end_date');
+        const salesStart = document.querySelector('#id_sales_start_date');
+        const salesEnd = document.querySelector('#id_sales_end_date');
+
+        // Validate date logic
+        if (startDate.value && endDate.value) {
+            if (new Date(startDate.value) >= new Date(endDate.value)) {
+                alert('End date must be after start date');
+                e.preventDefault();
+                return;
+            }
+        }
+
+        if (salesStart.value && salesEnd.value) {
+            if (new Date(salesStart.value) >= new Date(salesEnd.value)) {
+                alert('Sales end date must be after sales start date');
+                e.preventDefault();
+                return;
+            }
+        }
+
+        if (salesEnd.value && startDate.value) {
+            if (new Date(salesEnd.value) > new Date(startDate.value)) {
+                alert('Sales must end before the event starts');
+                e.preventDefault();
+                return;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,198 @@
+{% extends "customers/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Customers" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{% trans "Customers" %}</h1>
+                <div>
+                    <a href="{% url 'customers_web:customer_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> {% trans "Add Customer" %}
+                    </a>
+                    <a href="{% url 'customers_web:customer_search' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-search"></i> {% trans "Advanced Search" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter Form -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-6">
+                            {{ search_form.query.label_tag }}
+                            {{ search_form.query }}
+                            {% if search_form.query.help_text %}
+                                <div class="form-text">{{ search_form.query.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            {{ search_form.is_active.label_tag }}
+                            {{ search_form.is_active }}
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> {% trans "Search" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                {% blocktrans with total=total_customers active=active_customers %}
+                    Showing {{ page_obj.paginator.count }} of {{ total }} customers ({{ active }} active)
+                {% endblocktrans %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer List -->
+    <div class="row">
+        <div class="col-12">
+            {% if page_obj %}
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Name" %}</th>
+                                        <th>{% trans "Contact Information" %}</th>
+                                        <th>{% trans "Identification" %}</th>
+                                        <th>{% trans "Status" %}</th>
+                                        <th>{% trans "Created" %}</th>
+                                        <th>{% trans "Actions" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for customer in page_obj %}
+                                    <tr>
+                                        <td>
+                                            <div>
+                                                <strong>{{ customer.full_name }}</strong>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="contact-info">
+                                                {% if customer.email %}
+                                                    <div><i class="fas fa-envelope"></i> {{ customer.email }}</div>
+                                                {% endif %}
+                                                {% if customer.phone %}
+                                                    <div><i class="fas fa-phone"></i> {{ customer.phone }}</div>
+                                                {% endif %}
+                                                {% if not customer.email and not customer.phone %}
+                                                    <span class="text-muted">{% trans "No contact info" %}</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <code>{{ customer.display_identification }}</code>
+                                        </td>
+                                        <td>
+                                            <span class="customer-status {% if customer.is_active %}active{% else %}inactive{% endif %}">
+                                                {% if customer.is_active %}
+                                                    <i class="fas fa-check-circle"></i> {% trans "Active" %}
+                                                {% else %}
+                                                    <i class="fas fa-times-circle"></i> {% trans "Inactive" %}
+                                                {% endif %}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small>{{ customer.created_at|date:"M d, Y H:i" }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'customers_web:customer_detail' customer.pk %}" 
+                                                   class="btn btn-sm btn-outline-primary" title="{% trans 'View Details' %}">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'customers_web:customer_edit' customer.pk %}" 
+                                                   class="btn btn-sm btn-outline-secondary" title="{% trans 'Edit' %}">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{% url 'customers_web:customer_preferences' customer.pk %}" 
+                                                   class="btn btn-sm btn-outline-info" title="{% trans 'Preferences' %}">
+                                                    <i class="fas fa-cog"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <nav aria-label="{% trans 'Customer pagination' %}" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% if request.GET.query %}query={{ request.GET.query }}&{% endif %}{% if request.GET.is_active %}is_active={{ request.GET.is_active }}&{% endif %}page=1">
+                                    {% trans "First" %}
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?{% if request.GET.query %}query={{ request.GET.query }}&{% endif %}{% if request.GET.is_active %}is_active={{ request.GET.is_active }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                                    {% trans "Previous" %}
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">
+                                {% blocktrans with current=page_obj.number total=page_obj.paginator.num_pages %}
+                                    Page {{ current }} of {{ total }}
+                                {% endblocktrans %}
+                            </span>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% if request.GET.query %}query={{ request.GET.query }}&{% endif %}{% if request.GET.is_active %}is_active={{ request.GET.is_active }}&{% endif %}page={{ page_obj.next_page_number }}">
+                                    {% trans "Next" %}
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?{% if request.GET.query %}query={{ request.GET.query }}&{% endif %}{% if request.GET.is_active %}is_active={{ request.GET.is_active }}&{% endif %}page={{ page_obj.paginator.num_pages }}">
+                                    {% trans "Last" %}
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-users fa-4x text-muted mb-4"></i>
+                        <h4 class="text-muted">{% trans "No customers found" %}</h4>
+                        <p class="text-muted">{% trans "Try adjusting your search criteria or add a new customer." %}</p>
+                        <a href="{% url 'customers_web:customer_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> {% trans "Add Customer" %}
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

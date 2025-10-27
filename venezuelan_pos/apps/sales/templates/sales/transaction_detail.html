@@ -1,0 +1,439 @@
+{% extends 'events/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Transaction" %} {{ transaction.fiscal_series|default:transaction.id }} - Tiquemax{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'sales:dashboard' %}">{% trans "Sales" %}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'sales:transaction_list' %}">{% trans "Transactions" %}</a></li>
+<li class="breadcrumb-item active">
+    {% if transaction.fiscal_series %}
+        {{ transaction.fiscal_series }}
+    {% else %}
+        #{{ transaction.id|slice:":8" }}
+    {% endif %}
+</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.transaction-header {
+    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    color: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.status-badge {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+}
+
+.transaction-info {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+}
+
+.customer-card {
+    background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+    border: 1px solid #bbdefb;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+}
+
+.ticket-item {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ticket-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.ticket-item:last-child {
+    margin-bottom: 0;
+}
+
+.total-summary {
+    background: linear-gradient(135deg, var(--success-color), #1e7e34);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    text-align: center;
+}
+
+.action-buttons {
+    position: sticky;
+    top: 20px;
+}
+
+.fiscal-info {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.print-section {
+    display: none;
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .print-section {
+        display: block !important;
+    }
+    
+    .transaction-header {
+        background: #333 !important;
+        -webkit-print-color-adjust: exact;
+    }
+}
+
+@media (max-width: 768px) {
+    .action-buttons {
+        position: static;
+        margin-top: 2rem;
+    }
+    
+    .transaction-header {
+        padding: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Transaction Header -->
+<div class="transaction-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center mb-2">
+                <h1 class="h2 mb-0 me-3">
+                    {% if transaction.fiscal_series %}
+                        {% trans "Transaction" %} {{ transaction.fiscal_series }}
+                    {% else %}
+                        {% trans "Transaction" %} #{{ transaction.id|slice:":8" }}
+                    {% endif %}
+                </h1>
+                <span class="badge status-badge bg-{% if transaction.status == 'completed' %}success{% elif transaction.status == 'pending' %}warning{% elif transaction.status == 'reserved' %}info{% else %}secondary{% endif %}">
+                    {{ transaction.get_status_display }}
+                </span>
+            </div>
+            <p class="mb-1">
+                <i class="bi bi-calendar-event"></i> {{ transaction.event.name }}
+            </p>
+            <p class="mb-0">
+                <i class="bi bi-clock"></i> {{ transaction.created_at|date:"M d, Y H:i" }}
+                {% if transaction.completed_at %}
+                    • <i class="bi bi-check-circle"></i> {% trans "Completed" %}: {{ transaction.completed_at|date:"M d, Y H:i" }}
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <div class="h3 mb-1">${{ transaction.total_amount|floatformat:2 }}</div>
+            <small>{{ transaction.currency }} • {{ transaction.get_transaction_type_display }}</small>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Customer Information -->
+        <div class="customer-card mb-4">
+            <h5 class="mb-3">
+                <i class="bi bi-person"></i>
+                {% trans "Customer Information" %}
+            </h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>{{ transaction.customer.full_name }}</h6>
+                    {% if transaction.customer.identification %}
+                    <p class="text-muted mb-1">
+                        <i class="bi bi-card-text"></i> {{ transaction.customer.identification }}
+                    </p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    {% if transaction.customer.phone %}
+                    <p class="mb-1">
+                        <i class="bi bi-phone"></i> {{ transaction.customer.phone }}
+                    </p>
+                    {% endif %}
+                    {% if transaction.customer.email %}
+                    <p class="mb-1">
+                        <i class="bi bi-envelope"></i> {{ transaction.customer.email }}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Information -->
+        <div class="transaction-info mb-4">
+            <h5 class="mb-3">
+                <i class="bi bi-calendar-event"></i>
+                {% trans "Event Information" %}
+            </h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>{{ transaction.event.name }}</h6>
+                    <p class="text-muted mb-1">
+                        <i class="bi bi-building"></i> {{ transaction.event.venue.name }}
+                    </p>
+                    <p class="text-muted mb-1">
+                        <i class="bi bi-geo-alt"></i> {{ transaction.event.venue.address }}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1">
+                        <i class="bi bi-calendar"></i> {{ transaction.event.start_date|date:"l, F d, Y" }}
+                    </p>
+                    <p class="mb-1">
+                        <i class="bi bi-clock"></i> {{ transaction.event.start_date|date:"H:i" }} - {{ transaction.event.end_date|date:"H:i" }}
+                    </p>
+                    <span class="badge bg-{% if transaction.event.status == 'active' %}success{% else %}secondary{% endif %}">
+                        {{ transaction.event.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ticket Details -->
+        <div class="mb-4">
+            <h5 class="mb-3">
+                <i class="bi bi-ticket"></i>
+                {% trans "Ticket Details" %} ({{ transaction.items.count }})
+            </h5>
+            
+            {% for item in transaction.items.all %}
+            <div class="ticket-item">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="me-3">
+                                {% if item.seat %}
+                                    <i class="bi bi-grid-3x3 text-primary" style="font-size: 1.5rem;"></i>
+                                {% else %}
+                                    <i class="bi bi-people text-info" style="font-size: 1.5rem;"></i>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h6 class="mb-1">{{ item.zone.name }}</h6>
+                                <div class="ticket-details">
+                                    {% if item.seat %}
+                                        <span class="badge bg-primary">
+                                            <i class="bi bi-geo-alt"></i> {{ item.seat.seat_label }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-info">
+                                            <i class="bi bi-people"></i> {{ item.quantity }} {% trans "tickets" %}
+                                        </span>
+                                    {% endif %}
+                                    <span class="badge bg-secondary ms-1">
+                                        {{ item.get_item_type_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% if item.description %}
+                        <p class="text-muted small mb-0">{{ item.description }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <div class="pricing-breakdown">
+                            {% if item.quantity > 1 %}
+                            <div class="text-muted small">
+                                ${{ item.unit_price|floatformat:2 }} × {{ item.quantity }}
+                            </div>
+                            {% endif %}
+                            <div class="fw-bold">
+                                ${{ item.subtotal_price|floatformat:2 }}
+                            </div>
+                            {% if item.tax_amount > 0 %}
+                            <div class="text-muted small">
+                                {% trans "Tax" %}: ${{ item.tax_amount|floatformat:2 }}
+                            </div>
+                            {% endif %}
+                            <div class="h6 text-success mb-0">
+                                ${{ item.total_price|floatformat:2 }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Fiscal Information -->
+        {% if transaction.fiscal_series %}
+        <div class="fiscal-info">
+            <h6 class="mb-2">
+                <i class="bi bi-receipt"></i>
+                {% trans "Fiscal Information" %}
+            </h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <small class="text-muted">{% trans "Fiscal Series" %}:</small>
+                    <br>
+                    <strong>{{ transaction.fiscal_series }}</strong>
+                </div>
+                <div class="col-md-6">
+                    <small class="text-muted">{% trans "Issue Date" %}:</small>
+                    <br>
+                    <strong>{{ transaction.completed_at|date:"M d, Y H:i" }}</strong>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <!-- Action Buttons -->
+        <div class="action-buttons no-print">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-gear"></i>
+                        {% trans "Actions" %}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'sales:transaction_receipt' transaction_id=transaction.id %}" 
+                           class="btn btn-primary" target="_blank">
+                            <i class="bi bi-printer"></i> {% trans "Print Receipt" %}
+                        </a>
+                        
+                        {% if transaction.status == 'pending' or transaction.status == 'reserved' %}
+                        <form method="post" action="{% url 'sales:complete_transaction' transaction_id=transaction.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-check-circle"></i> {% trans "Complete Transaction" %}
+                            </button>
+                        </form>
+                        {% endif %}
+                        
+                        <a href="{% url 'sales:transaction_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> {% trans "Back to Transactions" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Summary -->
+        <div class="total-summary">
+            <h6 class="mb-2">{% trans "Transaction Summary" %}</h6>
+            <div class="row text-start">
+                <div class="col-6">
+                    <small>{% trans "Subtotal" %}:</small>
+                    <br>
+                    <strong>${{ transaction.subtotal_amount|floatformat:2 }}</strong>
+                </div>
+                <div class="col-6">
+                    <small>{% trans "Tax" %}:</small>
+                    <br>
+                    <strong>${{ transaction.tax_amount|floatformat:2 }}</strong>
+                </div>
+            </div>
+            <hr class="my-3">
+            <div class="text-center">
+                <div class="h4 mb-1">{% trans "Total" %}</div>
+                <div class="display-6 fw-bold">
+                    ${{ transaction.total_amount|floatformat:2 }}
+                </div>
+                <small>{{ transaction.currency }}</small>
+            </div>
+        </div>
+
+        <!-- Transaction Metadata -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    {% trans "Transaction Details" %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 mb-2">
+                        <small class="text-muted">{% trans "Transaction ID" %}:</small>
+                        <br>
+                        <code>{{ transaction.id }}</code>
+                    </div>
+                    <div class="col-12 mb-2">
+                        <small class="text-muted">{% trans "Type" %}:</small>
+                        <br>
+                        <span class="badge bg-info">{{ transaction.get_transaction_type_display }}</span>
+                    </div>
+                    <div class="col-12 mb-2">
+                        <small class="text-muted">{% trans "Created" %}:</small>
+                        <br>
+                        {{ transaction.created_at|date:"M d, Y H:i:s" }}
+                    </div>
+                    {% if transaction.completed_at %}
+                    <div class="col-12 mb-2">
+                        <small class="text-muted">{% trans "Completed" %}:</small>
+                        <br>
+                        {{ transaction.completed_at|date:"M d, Y H:i:s" }}
+                    </div>
+                    {% endif %}
+                    <div class="col-12">
+                        <small class="text-muted">{% trans "Items" %}:</small>
+                        <br>
+                        <strong>{{ transaction.ticket_count }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Print Section (Hidden on screen) -->
+<div class="print-section">
+    <div class="text-center mb-4">
+        <h2>{{ transaction.event.name }}</h2>
+        <p>{{ transaction.event.venue.name }}</p>
+        <hr>
+        <h4>
+            {% if transaction.fiscal_series %}
+                {% trans "Receipt" %} {{ transaction.fiscal_series }}
+            {% else %}
+                {% trans "Transaction" %} #{{ transaction.id|slice:":8" }}
+            {% endif %}
+        </h4>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh for pending transactions
+    {% if transaction.status == 'pending' or transaction.status == 'reserved' %}
+    setInterval(function() {
+        if (document.visibilityState === 'visible') {
+            location.reload();
+        }
+    }, 30000); // Refresh every 30 seconds
+    {% endif %}
+});
+
+function printReceipt() {
+    window.print();
+}
+</script>
+{% endblock %}

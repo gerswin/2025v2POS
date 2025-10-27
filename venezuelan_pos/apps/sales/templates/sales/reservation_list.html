@@ -1,0 +1,290 @@
+{% extends 'events/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Reservations" %} - Tiquemax{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'sales:dashboard' %}">{% trans "Sales" %}</a></li>
+<li class="breadcrumb-item active">{% trans "Reservations" %}</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.reservation-card {
+    border-left: 4px solid var(--warning-color);
+    margin-bottom: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.reservation-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.reservation-card.expiring {
+    border-left-color: var(--danger-color);
+    background-color: #fff5f5;
+}
+
+.reservation-card.expired {
+    border-left-color: var(--secondary-color);
+    background-color: #f8f9fa;
+    opacity: 0.7;
+}
+
+.time-remaining {
+    font-weight: bold;
+}
+
+.time-remaining.critical {
+    color: var(--danger-color);
+    animation: pulse 2s infinite;
+}
+
+.time-remaining.warning {
+    color: var(--warning-color);
+}
+
+.time-remaining.normal {
+    color: var(--success-color);
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.filters-bar {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 2rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="bi bi-clock"></i>
+        {% trans "Reservations" %}
+    </h1>
+    <div>
+        <a href="{% url 'sales:dashboard' %}" class="btn btn-outline-primary me-2">
+            <i class="bi bi-speedometer2"></i> {% trans "Dashboard" %}
+        </a>
+        <a href="{% url 'sales:transaction_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-receipt"></i> {% trans "Transactions" %}
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filters-bar">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label for="status" class="form-label">{% trans "Status" %}</label>
+            <select class="form-select" id="status" name="status" onchange="this.form.submit()">
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>
+                    {% trans "Active Reservations" %}
+                </option>
+                <option value="" {% if not status_filter %}selected{% endif %}>
+                    {% trans "All Reservations" %}
+                </option>
+                <option value="expired" {% if status_filter == 'expired' %}selected{% endif %}>
+                    {% trans "Expired" %}
+                </option>
+                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>
+                    {% trans "Completed" %}
+                </option>
+                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>
+                    {% trans "Cancelled" %}
+                </option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="button" class="btn btn-outline-primary" onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise"></i> {% trans "Refresh" %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Reservations List -->
+{% if reservations %}
+<div class="reservations-list">
+    {% for reservation in reservations %}
+    <div class="card reservation-card {% if reservation.is_expired %}expired{% elif reservation.reserved_until|timeuntil|slice:':2' == '00' %}expiring{% endif %}">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <div class="customer-info">
+                        <h6 class="mb-1">{{ reservation.transaction.customer.full_name }}</h6>
+                        <small class="text-muted">
+                            {% if reservation.transaction.customer.phone %}
+                                <i class="bi bi-phone"></i> {{ reservation.transaction.customer.phone }}
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="reservation-details">
+                        <h6 class="mb-1">{{ reservation.zone.name }}</h6>
+                        <div class="ticket-info">
+                            {% if reservation.seat %}
+                                <span class="badge bg-primary">
+                                    <i class="bi bi-geo-alt"></i> {{ reservation.seat.seat_label }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-info">
+                                    <i class="bi bi-people"></i> {{ reservation.quantity }} {% trans "tickets" %}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="time-info">
+                        <small class="text-muted">{% trans "Reserved until" %}</small>
+                        <br>
+                        <strong>{{ reservation.reserved_until|date:"H:i" }}</strong>
+                        <br>
+                        <small>{{ reservation.reserved_until|date:"M d" }}</small>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="time-remaining-info">
+                        {% if not reservation.is_expired %}
+                        <small class="text-muted">{% trans "Time remaining" %}</small>
+                        <br>
+                        <span class="time-remaining {% if reservation.reserved_until|timeuntil|slice:':2' == '00' %}critical{% elif reservation.reserved_until|timeuntil|slice:':5' < '01:00' %}warning{% else %}normal{% endif %}">
+                            {{ reservation.reserved_until|timeuntil }}
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary">{% trans "Expired" %}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-2 text-end">
+                    <div class="actions">
+                        {% if reservation.is_active %}
+                        <div class="btn-group-vertical" role="group">
+                            <form method="post" action="{% url 'sales:extend_reservation' reservation_id=reservation.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-warning btn-sm" 
+                                        title="{% trans 'Extend by 30 minutes' %}">
+                                    <i class="bi bi-clock"></i> {% trans "Extend" %}
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'sales:cancel_reservation' reservation_id=reservation.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                        onclick="return confirm('{% trans 'Are you sure you want to cancel this reservation?' %}')"
+                                        title="{% trans 'Cancel reservation' %}">
+                                    <i class="bi bi-x-circle"></i> {% trans "Cancel" %}
+                                </button>
+                            </form>
+                        </div>
+                        {% else %}
+                        <span class="badge bg-{% if reservation.status == 'completed' %}success{% elif reservation.status == 'expired' %}secondary{% else %}danger{% endif %}">
+                            {{ reservation.get_status_display }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Additional Info -->
+            <div class="row mt-2">
+                <div class="col-12">
+                    <small class="text-muted">
+                        <i class="bi bi-calendar-event"></i> {{ reservation.zone.event.name }}
+                        • <i class="bi bi-clock"></i> {% trans "Created" %}: {{ reservation.created_at|date:"M d, H:i" }}
+                        • <i class="bi bi-hash"></i> {{ reservation.transaction.id|slice:":8" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<!-- Empty State -->
+<div class="empty-state">
+    <i class="bi bi-clock-history"></i>
+    <h3>{% trans "No reservations found" %}</h3>
+    <p class="text-muted">
+        {% if status_filter == 'active' %}
+            {% trans "There are no active reservations at the moment." %}
+        {% else %}
+            {% trans "No reservations match the current filter." %}
+        {% endif %}
+    </p>
+    <a href="{% url 'sales:dashboard' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> {% trans "Start Selling" %}
+    </a>
+</div>
+{% endif %}
+
+<!-- Auto-refresh Notice -->
+<div class="text-center mt-4">
+    <small class="text-muted">
+        <i class="bi bi-arrow-clockwise"></i>
+        {% trans "This page refreshes automatically every 30 seconds" %}
+    </small>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh every 30 seconds
+    setInterval(function() {
+        if (document.visibilityState === 'visible') {
+            location.reload();
+        }
+    }, 30000);
+    
+    // Update time remaining every second
+    updateTimeRemaining();
+    setInterval(updateTimeRemaining, 1000);
+});
+
+function updateTimeRemaining() {
+    const timeElements = document.querySelectorAll('.time-remaining');
+    const now = new Date();
+    
+    timeElements.forEach(element => {
+        const card = element.closest('.reservation-card');
+        const reservedUntilText = card.querySelector('.time-info strong').textContent;
+        const dateText = card.querySelector('.time-info small:last-child').textContent;
+        
+        // This is a simplified update - in a real implementation,
+        // you'd want to parse the actual datetime and calculate remaining time
+        // For now, we'll just update the styling based on current classes
+        
+        if (element.textContent.includes('0:0')) {
+            element.className = 'time-remaining critical';
+            card.classList.add('expiring');
+        } else if (element.textContent.includes('0:')) {
+            element.className = 'time-remaining warning';
+        }
+    });
+}
+</script>
+{% endblock %}

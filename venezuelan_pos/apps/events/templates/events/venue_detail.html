@@ -1,0 +1,295 @@
+{% extends 'events/base.html' %}
+
+{% block title %}{{ venue.name }} - Tiquemax{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'events:venue_list' %}">Venues</a></li>
+<li class="breadcrumb-item active">{{ venue.name }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="h3 mb-2">{{ venue.name }}</h1>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary">{{ venue.get_venue_type_display }}</span>
+            {% if venue.is_active %}
+                <span class="badge bg-success">Activa</span>
+            {% else %}
+                <span class="badge bg-secondary">Inactiva</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'events:venue_edit' venue.id %}" class="btn btn-primary">
+            <i class="bi bi-pencil me-2"></i>Editar
+        </a>
+        <button type="button" class="btn btn-outline-danger" 
+                onclick="confirmDelete('{{ venue.name }}', '{% url 'events:venue_delete' venue.id %}')">
+            <i class="bi bi-trash me-2"></i>Eliminar
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Venue Information -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Información de la Venue
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Ubicación</h6>
+                        {% if venue.address %}
+                            <p class="mb-1">{{ venue.address }}</p>
+                        {% endif %}
+                        <p class="mb-3">
+                            {{ venue.city }}{% if venue.state %}, {{ venue.state }}{% endif %}
+                            {% if venue.country %}<br>{{ venue.country }}{% endif %}
+                            {% if venue.postal_code %} {{ venue.postal_code }}{% endif %}
+                        </p>
+                        
+                        {% if venue.capacity %}
+                        <h6 class="text-muted">Capacidad</h6>
+                        <p class="mb-3">{{ venue.capacity|floatformat:0 }} personas</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        {% if venue.contact_phone or venue.contact_email %}
+                        <h6 class="text-muted">Contacto</h6>
+                        {% if venue.contact_phone %}
+                            <p class="mb-1">
+                                <i class="bi bi-telephone me-2"></i>
+                                <a href="tel:{{ venue.contact_phone }}">{{ venue.contact_phone }}</a>
+                            </p>
+                        {% endif %}
+                        {% if venue.contact_email %}
+                            <p class="mb-3">
+                                <i class="bi bi-envelope me-2"></i>
+                                <a href="mailto:{{ venue.contact_email }}">{{ venue.contact_email }}</a>
+                            </p>
+                        {% endif %}
+                        {% endif %}
+                        
+                        <h6 class="text-muted">Información del Sistema</h6>
+                        <p class="mb-1">
+                            <small class="text-muted">Creada: {{ venue.created_at|date:"d M Y H:i" }}</small>
+                        </p>
+                        <p class="mb-0">
+                            <small class="text-muted">Actualizada: {{ venue.updated_at|date:"d M Y H:i" }}</small>
+                        </p>
+                    </div>
+                </div>
+                
+                {% if venue.configuration and venue.configuration != '{}' %}
+                <hr>
+                <h6 class="text-muted">Configuración Adicional</h6>
+                <pre class="bg-light p-3 rounded"><code>{{ venue.configuration }}</code></pre>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats and Quick Actions -->
+    <div class="col-lg-4">
+        <!-- Stats -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-graph-up me-2"></i>
+                    Estadísticas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="h4 text-primary mb-1">{{ stats.total_events }}</div>
+                        <small class="text-muted">Total Eventos</small>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="h4 text-success mb-1">{{ stats.active_events }}</div>
+                        <small class="text-muted">Activos</small>
+                    </div>
+                    <div class="col-6">
+                        <div class="h4 text-warning mb-1">{{ stats.upcoming_events }}</div>
+                        <small class="text-muted">Próximos</small>
+                    </div>
+                    <div class="col-6">
+                        <div class="h4 text-secondary mb-1">{{ stats.past_events }}</div>
+                        <small class="text-muted">Pasados</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning me-2"></i>
+                    Acciones Rápidas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'events:event_create' %}?venue={{ venue.id }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Crear Evento en esta Venue
+                    </a>
+                    <a href="{% url 'events:venue_edit' venue.id %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-pencil me-2"></i>
+                        Editar Venue
+                    </a>
+                    {% if venue.is_active %}
+                        <button class="btn btn-outline-warning" onclick="toggleVenueStatus(false)">
+                            <i class="bi bi-pause-circle me-2"></i>
+                            Desactivar Venue
+                        </button>
+                    {% else %}
+                        <button class="btn btn-outline-success" onclick="toggleVenueStatus(true)">
+                            <i class="bi bi-play-circle me-2"></i>
+                            Activar Venue
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Events List -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-event me-2"></i>
+                    Eventos en esta Venue
+                </h5>
+                <a href="{% url 'events:event_create' %}?venue={{ venue.id }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus"></i> Nuevo Evento
+                </a>
+            </div>
+            <div class="card-body">
+                {% if events %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Evento</th>
+                                    <th>Tipo</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in events %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ event.name }}</div>
+                                        {% if event.description %}
+                                            <small class="text-muted">{{ event.description|truncatechars:50 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ event.get_event_type_display }}</span>
+                                    </td>
+                                    <td>
+                                        <div>{{ event.start_date|date:"d M Y" }}</div>
+                                        <small class="text-muted">{{ event.start_date|time:"H:i" }} - {{ event.end_date|time:"H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        {% if event.status == 'active' %}
+                                            <span class="badge bg-success">Activo</span>
+                                        {% elif event.status == 'draft' %}
+                                            <span class="badge bg-warning">Borrador</span>
+                                        {% elif event.status == 'closed' %}
+                                            <span class="badge bg-secondary">Cerrado</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Cancelado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'events:event_detail' event.id %}" 
+                                               class="btn btn-outline-primary" title="Ver">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{% url 'events:event_edit' event.id %}" 
+                                               class="btn btn-outline-secondary" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if events|length == 10 %}
+                        <div class="text-center mt-3">
+                            <a href="{% url 'events:event_list' %}?venue={{ venue.id }}" class="btn btn-outline-primary">
+                                Ver Todos los Eventos
+                            </a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-calendar-x display-4 text-muted"></i>
+                        <p class="text-muted mt-2">No hay eventos programados en esta venue</p>
+                        <a href="{% url 'events:event_create' %}?venue={{ venue.id }}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Crear Primer Evento
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar la venue <strong id="venue-name"></strong>?</p>
+                <p class="text-muted">Esta acción no se puede deshacer y eliminará todos los datos asociados.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <a href="#" id="delete-confirm" class="btn btn-danger">Eliminar</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Delete confirmation
+function confirmDelete(venueName, deleteUrl) {
+    document.getElementById('venue-name').textContent = venueName;
+    document.getElementById('delete-confirm').href = deleteUrl;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+// Toggle venue status (placeholder for future implementation)
+function toggleVenueStatus(activate) {
+    // This would be implemented with AJAX in a real application
+    console.log('Toggle venue status:', activate);
+}
+</script>
+{% endblock %}

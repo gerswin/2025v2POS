@@ -1,0 +1,47 @@
+# Core Django and API
+Django==5.0.*
+djangorestframework==3.14.*
+djangorestframework-simplejwt==5.3.*
+
+# Database and Performance
+psycopg2-binary==2.9.*
+django-redis==5.4.*
+redis==5.0.*
+
+# Async Processing
+celery==5.3.*
+flower==2.0.*
+
+# Development and Optimization
+django-extensions==3.2.*
+django-silk==5.0.*
+django-debug-toolbar==4.2.*
+
+# API Documentation
+drf-spectacular==0.27.*
+django-filter==23.5.*
+
+# Monitoring and Logging
+sentry-sdk==1.38.*
+structlog==23.2.*
+
+# Validation and Utilities
+django-phonenumber-field==7.2.*
+django-localflavor==4.0.*
+python-decouple==3.8
+django-cors-headers==4.3.*
+
+# Health Checks and Monitoring
+django-health-check==3.17.*
+django-prometheus==2.3.*
+
+# Production Server
+gunicorn==21.*
+uvicorn[standard]==0.24.*
+whitenoise==6.6.*
+
+# Development Dependencies
+pytest-django==4.7.*
+factory-boy==3.3.*
+pytest-cov==4.1.*
+setuptools>=65.0

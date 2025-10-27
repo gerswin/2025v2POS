@@ -1,0 +1,341 @@
+{% extends 'events/base.html' %}
+
+{% block title %}Venues - Tiquemax{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active">Venues</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="bi bi-building me-2"></i>
+        Gestión de Venues
+    </h1>
+    <a href="{% url 'events:venue_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>
+        Nueva Venue
+    </a>
+</div>
+
+<!-- Filters and Search -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="search" class="form-label">Buscar</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       value="{{ request.GET.search }}" placeholder="Nombre, ciudad, dirección...">
+            </div>
+            <div class="col-md-2">
+                <label for="venue_type" class="form-label">Tipo</label>
+                <select class="form-select" id="venue_type" name="venue_type">
+                    <option value="">Todos</option>
+                    <option value="physical" {% if request.GET.venue_type == 'physical' %}selected{% endif %}>Física</option>
+                    <option value="virtual" {% if request.GET.venue_type == 'virtual' %}selected{% endif %}>Virtual</option>
+                    <option value="hybrid" {% if request.GET.venue_type == 'hybrid' %}selected{% endif %}>Híbrida</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="city" class="form-label">Ciudad</label>
+                <select class="form-select" id="city" name="city">
+                    <option value="">Todas</option>
+                    {% for city in cities %}
+                    <option value="{{ city }}" {% if request.GET.city == city %}selected{% endif %}>{{ city }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="is_active" class="form-label">Estado</label>
+                <select class="form-select" id="is_active" name="is_active">
+                    <option value="">Todos</option>
+                    <option value="true" {% if request.GET.is_active == 'true' %}selected{% endif %}>Activas</option>
+                    <option value="false" {% if request.GET.is_active == 'false' %}selected{% endif %}>Inactivas</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary me-2">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+                <a href="{% url 'events:venue_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Venues List -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            Venues ({{ venues|length }} de {{ total_venues }})
+        </h5>
+        <div class="btn-group btn-group-sm" role="group">
+            <input type="radio" class="btn-check" name="view" id="grid-view" checked>
+            <label class="btn btn-outline-secondary" for="grid-view">
+                <i class="bi bi-grid"></i>
+            </label>
+            <input type="radio" class="btn-check" name="view" id="list-view">
+            <label class="btn btn-outline-secondary" for="list-view">
+                <i class="bi bi-list"></i>
+            </label>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if venues %}
+            <!-- Grid View -->
+            <div id="grid-container" class="row">
+                {% for venue in venues %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 venue-card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 text-truncate">{{ venue.name }}</h6>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                        type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="{% url 'events:venue_detail' venue.id %}">
+                                        <i class="bi bi-eye me-2"></i>Ver Detalles
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'events:venue_edit' venue.id %}">
+                                        <i class="bi bi-pencil me-2"></i>Editar
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="#" 
+                                           onclick="confirmDelete('{{ venue.name }}', '{% url 'events:venue_delete' venue.id %}')">
+                                        <i class="bi bi-trash me-2"></i>Eliminar
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <span class="badge bg-primary">{{ venue.get_venue_type_display }}</span>
+                                {% if venue.is_active %}
+                                    <span class="badge bg-success">Activa</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactiva</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-2">
+                                <i class="bi bi-geo-alt text-muted me-1"></i>
+                                <small>{{ venue.city }}{% if venue.state %}, {{ venue.state }}{% endif %}</small>
+                            </div>
+                            
+                            {% if venue.capacity %}
+                            <div class="mb-2">
+                                <i class="bi bi-people text-muted me-1"></i>
+                                <small>Capacidad: {{ venue.capacity|floatformat:0 }} personas</small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if venue.contact_phone %}
+                            <div class="mb-2">
+                                <i class="bi bi-telephone text-muted me-1"></i>
+                                <small>{{ venue.contact_phone }}</small>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="text-muted">
+                                <small>
+                                    <i class="bi bi-calendar-event me-1"></i>
+                                    {{ venue.events_count|default:0 }} eventos
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="btn-group w-100" role="group">
+                                <a href="{% url 'events:venue_detail' venue.id %}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye"></i> Ver
+                                </a>
+                                <a href="{% url 'events:venue_edit' venue.id %}" 
+                                   class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-pencil"></i> Editar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- List View (Hidden by default) -->
+            <div id="list-container" class="d-none">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Venue</th>
+                                <th>Ubicación</th>
+                                <th>Tipo</th>
+                                <th>Capacidad</th>
+                                <th>Estado</th>
+                                <th>Eventos</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for venue in venues %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">{{ venue.name }}</div>
+                                    {% if venue.contact_phone %}
+                                        <small class="text-muted">{{ venue.contact_phone }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div>{{ venue.city }}</div>
+                                    {% if venue.state %}
+                                        <small class="text-muted">{{ venue.state }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ venue.get_venue_type_display }}</span>
+                                </td>
+                                <td>
+                                    {% if venue.capacity %}
+                                        {{ venue.capacity|floatformat:0 }}
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if venue.is_active %}
+                                        <span class="badge bg-success">Activa</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactiva</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark">{{ venue.events_count|default:0 }}</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'events:venue_detail' venue.id %}" 
+                                           class="btn btn-outline-primary" title="Ver">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{% url 'events:venue_edit' venue.id %}" 
+                                           class="btn btn-outline-secondary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button class="btn btn-outline-danger" title="Eliminar"
+                                                onclick="confirmDelete('{{ venue.name }}', '{% url 'events:venue_delete' venue.id %}')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Venues pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.venue_type %}&venue_type={{ request.GET.venue_type }}{% endif %}{% if request.GET.city %}&city={{ request.GET.city }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">Primera</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.venue_type %}&venue_type={{ request.GET.venue_type }}{% endif %}{% if request.GET.city %}&city={{ request.GET.city }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">Anterior</a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.venue_type %}&venue_type={{ request.GET.venue_type }}{% endif %}{% if request.GET.city %}&city={{ request.GET.city }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">Siguiente</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.venue_type %}&venue_type={{ request.GET.venue_type }}{% endif %}{% if request.GET.city %}&city={{ request.GET.city }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">Última</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-building-x display-1 text-muted"></i>
+                <h4 class="mt-3">No se encontraron venues</h4>
+                <p class="text-muted">
+                    {% if request.GET.search or request.GET.venue_type or request.GET.city or request.GET.is_active %}
+                        No hay venues que coincidan con los filtros aplicados.
+                    {% else %}
+                        Aún no has creado ninguna venue.
+                    {% endif %}
+                </p>
+                <a href="{% url 'events:venue_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Crear Primera Venue
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar la venue <strong id="venue-name"></strong>?</p>
+                <p class="text-muted">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <a href="#" id="delete-confirm" class="btn btn-danger">Eliminar</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// View toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const gridView = document.getElementById('grid-view');
+    const listView = document.getElementById('list-view');
+    const gridContainer = document.getElementById('grid-container');
+    const listContainer = document.getElementById('list-container');
+    
+    gridView.addEventListener('change', function() {
+        if (this.checked) {
+            gridContainer.classList.remove('d-none');
+            listContainer.classList.add('d-none');
+        }
+    });
+    
+    listView.addEventListener('change', function() {
+        if (this.checked) {
+            listContainer.classList.remove('d-none');
+            gridContainer.classList.add('d-none');
+        }
+    });
+});
+
+// Delete confirmation
+function confirmDelete(venueName, deleteUrl) {
+    document.getElementById('venue-name').textContent = venueName;
+    document.getElementById('delete-confirm').href = deleteUrl;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+{% endblock %}

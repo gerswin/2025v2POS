@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt {{ transaction.fiscal_series|default:transaction.id }}</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            margin: 0;
+            padding: 20px;
+            background: white;
+        }
+        
+        .receipt {
+            max-width: 300px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .company-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .receipt-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .info-section {
+            margin-bottom: 15px;
+            border-bottom: 1px dashed #666;
+            padding-bottom: 10px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+        
+        .items-section {
+            margin-bottom: 15px;
+        }
+        
+        .item {
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 1px dotted #ccc;
+        }
+        
+        .item-name {
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        
+        .item-details {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 2px;
+        }
+        
+        .item-price {
+            text-align: right;
+            font-weight: bold;
+        }
+        
+        .totals {
+            border-top: 2px solid #000;
+            padding-top: 10px;
+            margin-top: 15px;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+        
+        .final-total {
+            font-size: 14px;
+            font-weight: bold;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+            margin-top: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px dashed #666;
+            font-size: 10px;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            .receipt {
+                border: none;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt">
+        <!-- Header -->
+        <div class="header">
+            <div class="company-name">TIQUEMAX</div>
+            <div>{{ transaction.event.venue.name }}</div>
+            {% if transaction.event.venue.address %}
+            <div style="font-size: 10px;">{{ transaction.event.venue.address }}</div>
+            {% endif %}
+            <div class="receipt-title">
+                {% if transaction.fiscal_series %}
+                    FISCAL RECEIPT
+                {% else %}
+                    TRANSACTION RECEIPT
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Transaction Info -->
+        <div class="info-section">
+            <div class="info-row">
+                <span>Receipt #:</span>
+                <span>
+                    {% if transaction.fiscal_series %}
+                        {{ transaction.fiscal_series }}
+                    {% else %}
+                        {{ transaction.id|slice:":8" }}
+                    {% endif %}
+                </span>
+            </div>
+            <div class="info-row">
+                <span>Date:</span>
+                <span>{{ transaction.created_at|date:"M d, Y H:i" }}</span>
+            </div>
+            {% if transaction.completed_at %}
+            <div class="info-row">
+                <span>Completed:</span>
+                <span>{{ transaction.completed_at|date:"M d, Y H:i" }}</span>
+            </div>
+            {% endif %}
+            <div class="info-row">
+                <span>Status:</span>
+                <span>{{ transaction.get_status_display|upper }}</span>
+            </div>
+        </div>
+
+        <!-- Customer Info -->
+        <div class="info-section">
+            <div style="font-weight: bold; margin-bottom: 5px;">CUSTOMER:</div>
+            <div>{{ transaction.customer.full_name }}</div>
+            {% if transaction.customer.identification %}
+            <div>ID: {{ transaction.customer.identification }}</div>
+            {% endif %}
+            {% if transaction.customer.phone %}
+            <div>Phone: {{ transaction.customer.phone }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Event Info -->
+        <div class="info-section">
+            <div style="font-weight: bold; margin-bottom: 5px;">EVENT:</div>
+            <div>{{ transaction.event.name }}</div>
+            <div>{{ transaction.event.start_date|date:"l, F d, Y" }}</div>
+            <div>{{ transaction.event.start_date|date:"H:i" }} - {{ transaction.event.end_date|date:"H:i" }}</div>
+            <div>{{ transaction.event.venue.name }}</div>
+        </div>
+
+        <!-- Items -->
+        <div class="items-section">
+            <div style="font-weight: bold; margin-bottom: 10px;">TICKETS:</div>
+            {% for item in transaction.items.all %}
+            <div class="item">
+                <div class="item-name">{{ item.zone.name }}</div>
+                <div class="item-details">
+                    {% if item.seat %}
+                        Seat: {{ item.seat.seat_label }}
+                    {% else %}
+                        Quantity: {{ item.quantity }}
+                    {% endif %}
+                    | Type: {{ item.get_item_type_display }}
+                </div>
+                <div class="item-details">
+                    {% if item.quantity > 1 %}
+                        ${{ item.unit_price|floatformat:2 }} x {{ item.quantity }}
+                    {% else %}
+                        Unit Price: ${{ item.unit_price|floatformat:2 }}
+                    {% endif %}
+                </div>
+                {% if item.tax_amount > 0 %}
+                <div class="item-details">Tax: ${{ item.tax_amount|floatformat:2 }}</div>
+                {% endif %}
+                <div class="item-price">${{ item.total_price|floatformat:2 }}</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Totals -->
+        <div class="totals">
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span>${{ transaction.subtotal_amount|floatformat:2 }}</span>
+            </div>
+            {% if transaction.tax_amount > 0 %}
+            <div class="total-row">
+                <span>Tax:</span>
+                <span>${{ transaction.tax_amount|floatformat:2 }}</span>
+            </div>
+            {% endif %}
+            <div class="total-row final-total">
+                <span>TOTAL:</span>
+                <span>${{ transaction.total_amount|floatformat:2 }} {{ transaction.currency }}</span>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div>Thank you for your purchase!</div>
+            <div>Keep this receipt for your records</div>
+            {% if transaction.fiscal_series %}
+            <div style="margin-top: 10px;">
+                <strong>FISCAL DOCUMENT</strong><br>
+                Series: {{ transaction.fiscal_series }}<br>
+                Issued: {{ transaction.completed_at|date:"M d, Y H:i:s" }}
+            </div>
+            {% endif %}
+            <div style="margin-top: 10px;">
+                Transaction ID: {{ transaction.id }}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-print when page loads
+        window.onload = function() {
+            window.print();
+        };
+    </script>
+</body>
+</html>

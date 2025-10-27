@@ -1,0 +1,370 @@
+"""
+Views for pricing configuration and calculation endpoints.
+"""
+
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
+from django.utils import timezone
+from django.db import transaction
+from decimal import Decimal
+
+from .models import PriceStage, RowPricing, PriceHistory
+from .serializers import (
+    PriceStageSerializer, RowPricingSerializer, PriceHistorySerializer,
+    PriceCalculationRequestSerializer, PriceCalculationResponseSerializer,
+    PriceBreakdownSerializer, BulkPriceCalculationSerializer,
+    PriceStageListSerializer, RowPricingListSerializer
+)
+from .services import PricingCalculationService
+# Removed TenantPermission import - using standard permissions
+from venezuelan_pos.apps.events.models import Event
+from venezuelan_pos.apps.zones.models import Zone, Seat
+
+
+class PriceStageViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing price stages.
+    Provides CRUD operations for time-based pricing periods.
+    """
+    
+    serializer_class = PriceStageSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['event', 'is_active', 'stage_order']
+    ordering = ['stage_order', 'start_date']
+    
+    def get_queryset(self):
+        """Filter price stages by tenant."""
+        return PriceStage.objects.filter(
+            tenant=self.request.user.tenant
+        ).select_related('event')
+    
+    def get_serializer_class(self):
+        """Use simplified serializer for list actions."""
+        if self.action == 'list':
+            return PriceStageListSerializer
+        return PriceStageSerializer
+    
+    def perform_create(self, serializer):
+        """Set tenant when creating price stage."""
+        serializer.save(tenant=self.request.user.tenant)
+    
+    @action(detail=False, methods=['get'])
+    def current_stages(self, request):
+        """Get currently active price stages."""
+        now = timezone.now()
+        current_stages = self.get_queryset().filter(
+            is_active=True,
+            start_date__lte=now,
+            end_date__gte=now
+        )
+        
+        serializer = PriceStageListSerializer(current_stages, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def duplicate(self, request, pk=None):
+        """Duplicate a price stage with new dates."""
+        stage = self.get_object()
+        
+        # Get new dates from request
+        start_date = request.data.get('start_date')
+        end_date = request.data.get('end_date')
+        name = request.data.get('name', f"{stage.name} (Copy)")
+        
+        if not start_date or not end_date:
+            return Response(
+                {'error': 'start_date and end_date are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Create duplicate
+        new_stage = PriceStage.objects.create(
+            tenant=stage.tenant,
+            event=stage.event,
+            name=name,
+            description=stage.description,
+            start_date=start_date,
+            end_date=end_date,
+            percentage_markup=stage.percentage_markup,
+            stage_order=stage.stage_order + 1,
+            is_active=True,
+            configuration=stage.configuration
+        )
+        
+        serializer = PriceStageSerializer(new_stage)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class RowPricingViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing row pricing.
+    Provides CRUD operations for row-specific price modifiers.
+    """
+    
+    serializer_class = RowPricingSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['zone', 'is_active', 'row_number']
+    ordering = ['row_number']
+    
+    def get_queryset(self):
+        """Filter row pricing by tenant."""
+        return RowPricing.objects.filter(
+            tenant=self.request.user.tenant
+        ).select_related('zone', 'zone__event')
+    
+    def get_serializer_class(self):
+        """Use simplified serializer for list actions."""
+        if self.action == 'list':
+            return RowPricingListSerializer
+        return RowPricingSerializer
+    
+    def perform_create(self, serializer):
+        """Set tenant when creating row pricing."""
+        serializer.save(tenant=self.request.user.tenant)
+    
+    @action(detail=False, methods=['post'])
+    def bulk_create(self, request):
+        """Create row pricing for multiple rows at once."""
+        zone_id = request.data.get('zone_id')
+        rows_data = request.data.get('rows', [])
+        
+        if not zone_id or not rows_data:
+            return Response(
+                {'error': 'zone_id and rows data are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            zone = Zone.objects.get(
+                id=zone_id,
+                tenant=request.user.tenant
+            )
+        except Zone.DoesNotExist:
+            return Response(
+                {'error': 'Zone not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        if zone.zone_type != Zone.ZoneType.NUMBERED:
+            return Response(
+                {'error': 'Row pricing can only be applied to numbered zones'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        created_rows = []
+        with transaction.atomic():
+            for row_data in rows_data:
+                row_number = row_data.get('row_number')
+                percentage_markup = row_data.get('percentage_markup', 0)
+                name = row_data.get('name', '')
+                
+                if not row_number:
+                    continue
+                
+                # Skip if row pricing already exists
+                if RowPricing.objects.filter(zone=zone, row_number=row_number).exists():
+                    continue
+                
+                row_pricing = RowPricing.objects.create(
+                    tenant=request.user.tenant,
+                    zone=zone,
+                    row_number=row_number,
+                    percentage_markup=percentage_markup,
+                    name=name,
+                    is_active=True
+                )
+                created_rows.append(row_pricing)
+        
+        serializer = RowPricingSerializer(created_rows, many=True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class PriceHistoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for viewing price history.
+    Provides read-only access to price calculation audit trail.
+    """
+    
+    serializer_class = PriceHistorySerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['event', 'zone', 'price_type', 'calculation_date']
+    ordering = ['-calculation_date', '-created_at']
+    
+    def get_queryset(self):
+        """Filter price history by tenant."""
+        return PriceHistory.objects.filter(
+            tenant=self.request.user.tenant
+        ).select_related('event', 'zone', 'price_stage', 'row_pricing')
+
+
+class PriceCalculationViewSet(viewsets.ViewSet):
+    """
+    ViewSet for price calculations.
+    Provides endpoints for calculating prices with different parameters.
+    """
+    
+    permission_classes = [IsAuthenticated]
+    
+    @action(detail=False, methods=['post'])
+    def calculate(self, request):
+        """Calculate price for a specific seat or zone."""
+        serializer = PriceCalculationRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        data = serializer.validated_data
+        event = data['event']
+        zone = data['zone']
+        row_number = data.get('row_number')
+        seat_number = data.get('seat_number')
+        calculation_date = data.get('calculation_date', timezone.now())
+        
+        # Check tenant access
+        if event.tenant != request.user.tenant:
+            return Response(
+                {'error': 'Access denied'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        service = PricingCalculationService()
+        
+        # Calculate price based on parameters
+        if seat_number and row_number and zone.zone_type == Zone.ZoneType.NUMBERED:
+            try:
+                seat = zone.seats.get(row_number=row_number, seat_number=seat_number)
+                final_price, calculation_details = service.calculate_seat_price(
+                    seat, calculation_date, create_history=True
+                )
+            except Seat.DoesNotExist:
+                return Response(
+                    {'error': f'Seat {seat_number} not found in row {row_number}'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        else:
+            final_price, calculation_details = service.calculate_zone_price(
+                zone, row_number, calculation_date, create_history=True
+            )
+        
+        response_serializer = PriceCalculationResponseSerializer(calculation_details)
+        return Response(response_serializer.data)
+    
+    @action(detail=False, methods=['post'])
+    def bulk_calculate(self, request):
+        """Calculate prices for multiple seats/zones at once."""
+        serializer = BulkPriceCalculationSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        calculations = serializer.validated_data['calculations']
+        service = PricingCalculationService()
+        results = []
+        
+        for calc_data in calculations:
+            event = calc_data['event']
+            zone = calc_data['zone']
+            
+            # Check tenant access
+            if event.tenant != request.user.tenant:
+                results.append({
+                    'error': 'Access denied',
+                    'event_id': str(event.id),
+                    'zone_id': str(zone.id)
+                })
+                continue
+            
+            row_number = calc_data.get('row_number')
+            seat_number = calc_data.get('seat_number')
+            calculation_date = calc_data.get('calculation_date', timezone.now())
+            
+            try:
+                if seat_number and row_number and zone.zone_type == Zone.ZoneType.NUMBERED:
+                    seat = zone.seats.get(row_number=row_number, seat_number=seat_number)
+                    final_price, calculation_details = service.calculate_seat_price(
+                        seat, calculation_date, create_history=False
+                    )
+                else:
+                    final_price, calculation_details = service.calculate_zone_price(
+                        zone, row_number, calculation_date, create_history=False
+                    )
+                
+                calculation_details['event_id'] = str(event.id)
+                calculation_details['zone_id'] = str(zone.id)
+                results.append(calculation_details)
+                
+            except Seat.DoesNotExist:
+                results.append({
+                    'error': f'Seat {seat_number} not found in row {row_number}',
+                    'event_id': str(event.id),
+                    'zone_id': str(zone.id),
+                    'row_number': row_number,
+                    'seat_number': seat_number
+                })
+            except Exception as e:
+                results.append({
+                    'error': str(e),
+                    'event_id': str(event.id),
+                    'zone_id': str(zone.id)
+                })
+        
+        return Response({'results': results})
+    
+    @action(detail=False, methods=['post'])
+    def breakdown(self, request):
+        """Get detailed price breakdown for analysis."""
+        serializer = PriceBreakdownSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        breakdown = serializer.to_representation(serializer.validated_data)
+        
+        if not breakdown:
+            return Response(
+                {'error': 'Event or zone not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        return Response(breakdown)
+    
+    @action(detail=False, methods=['get'])
+    def current_stages(self, request):
+        """Get current price stages for all events."""
+        event_id = request.query_params.get('event_id')
+        
+        if event_id:
+            try:
+                event = Event.objects.get(
+                    id=event_id,
+                    tenant=request.user.tenant
+                )
+                service = PricingCalculationService()
+                current_stage = service.get_current_price_stage(event)
+                
+                if current_stage:
+                    serializer = PriceStageSerializer(current_stage)
+                    return Response(serializer.data)
+                else:
+                    return Response({'message': 'No current price stage'})
+                    
+            except Event.DoesNotExist:
+                return Response(
+                    {'error': 'Event not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        
+        # Get all current stages
+        now = timezone.now()
+        current_stages = PriceStage.objects.filter(
+            tenant=request.user.tenant,
+            is_active=True,
+            start_date__lte=now,
+            end_date__gte=now
+        ).select_related('event')
+        
+        serializer = PriceStageSerializer(current_stages, many=True)
+        return Response(serializer.data)

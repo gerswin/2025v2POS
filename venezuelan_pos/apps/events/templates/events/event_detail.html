@@ -1,0 +1,432 @@
+{% extends 'events/base.html' %}
+{% load static %}
+
+{% block title %}{{ event.name }} - Event Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0">{{ event.name }}</h1>
+                    <p class="text-muted mb-0">Event Details</p>
+                </div>
+                <div>
+                    <a href="{% url 'events:event_edit' event.id %}" class="btn btn-primary me-2">
+                        <i class="fas fa-edit"></i> Edit Event
+                    </a>
+                    <a href="{% url 'events:event_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Events
+                    </a>
+                </div>
+            </div>
+
+            <!-- Event Status Badge -->
+            <div class="mb-4">
+                {% if event.status == 'active' %}
+                    <span class="badge bg-success fs-6">
+                        <i class="fas fa-check-circle"></i> Active
+                    </span>
+                {% elif event.status == 'draft' %}
+                    <span class="badge bg-warning fs-6">
+                        <i class="fas fa-clock"></i> Draft
+                    </span>
+                {% elif event.status == 'closed' %}
+                    <span class="badge bg-secondary fs-6">
+                        <i class="fas fa-lock"></i> Closed
+                    </span>
+                {% elif event.status == 'cancelled' %}
+                    <span class="badge bg-danger fs-6">
+                        <i class="fas fa-times-circle"></i> Cancelled
+                    </span>
+                {% endif %}
+
+                {% if event.is_sales_active %}
+                    <span class="badge bg-info fs-6 ms-2">
+                        <i class="fas fa-shopping-cart"></i> Sales Active
+                    </span>
+                {% endif %}
+            </div>
+
+            <!-- Event Information Cards -->
+            <div class="row">
+                <!-- Basic Information -->
+                <div class="col-lg-8">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-info-circle"></i> Event Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted">Event Name</h6>
+                                    <p class="mb-3">{{ event.name }}</p>
+
+                                    <h6 class="text-muted">Event Type</h6>
+                                    <p class="mb-3">
+                                        {% if event.event_type == 'general_assignment' %}
+                                            <i class="fas fa-users"></i> General Assignment
+                                        {% elif event.event_type == 'numbered_seat' %}
+                                            <i class="fas fa-chair"></i> Numbered Seating
+                                        {% elif event.event_type == 'mixed' %}
+                                            <i class="fas fa-layer-group"></i> Mixed Event
+                                        {% endif %}
+                                    </p>
+
+                                    <h6 class="text-muted">Venue</h6>
+                                    <p class="mb-3">
+                                        <a href="{% url 'events:venue_detail' event.venue.id %}" class="text-decoration-none">
+                                            <i class="fas fa-map-marker-alt"></i> {{ event.venue.name }}
+                                        </a>
+                                        {% if event.venue.city %}
+                                            <br><small class="text-muted">{{ event.venue.city }}{% if event.venue.state %}, {{ event.venue.state }}{% endif %}</small>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted">Start Date & Time</h6>
+                                    <p class="mb-3">
+                                        <i class="fas fa-calendar-alt"></i> {{ event.start_date|date:"F j, Y" }}
+                                        <br><i class="fas fa-clock"></i> {{ event.start_date|time:"g:i A" }}
+                                    </p>
+
+                                    <h6 class="text-muted">End Date & Time</h6>
+                                    <p class="mb-3">
+                                        <i class="fas fa-calendar-alt"></i> {{ event.end_date|date:"F j, Y" }}
+                                        <br><i class="fas fa-clock"></i> {{ event.end_date|time:"g:i A" }}
+                                    </p>
+
+                                    <h6 class="text-muted">Currency</h6>
+                                    <p class="mb-3">
+                                        <i class="fas fa-dollar-sign"></i> {{ event.base_currency }}
+                                        {% if event.currency_conversion_rate != 1.0000 %}
+                                            <small class="text-muted">(Rate: {{ event.currency_conversion_rate }})</small>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {% if event.description %}
+                                <h6 class="text-muted">Description</h6>
+                                <p class="mb-0">{{ event.description|linebreaks }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Sales Information -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-shopping-cart"></i> Sales Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted">Sales Start</h6>
+                                    <p class="mb-3">
+                                        {% if event.sales_start_date %}
+                                            <i class="fas fa-calendar-alt"></i> {{ event.sales_start_date|date:"F j, Y" }}
+                                            <br><i class="fas fa-clock"></i> {{ event.sales_start_date|time:"g:i A" }}
+                                        {% else %}
+                                            <span class="text-muted">Not set</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted">Sales End</h6>
+                                    <p class="mb-3">
+                                        {% if event.sales_end_date %}
+                                            <i class="fas fa-calendar-alt"></i> {{ event.sales_end_date|date:"F j, Y" }}
+                                            <br><i class="fas fa-clock"></i> {{ event.sales_end_date|time:"g:i A" }}
+                                        {% else %}
+                                            <span class="text-muted">Not set</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Zones Section -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-layer-group"></i> Event Zones
+                            </h5>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'events:zone_list' event.id %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-cog"></i> Manage Zones
+                                </a>
+                                <a href="/zones/events/{{ event.id }}/map-editor/" class="btn btn-sm btn-success">
+                                    <i class="fas fa-map"></i> Map Editor
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="zones-container">
+                                <div class="text-center text-muted py-4">
+                                    <i class="fas fa-map fa-3x mb-3 text-primary"></i>
+                                    <h5>Zone Layout & Management</h5>
+                                    <p class="mb-3">Configure and visually arrange your event zones</p>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a href="{% url 'events:zone_list' event.id %}" class="btn btn-primary">
+                                            <i class="fas fa-cog"></i> Manage Zones
+                                        </a>
+                                        <a href="/zones/events/{{ event.id }}/map-editor/" class="btn btn-success">
+                                            <i class="fas fa-map"></i> Visual Map Editor
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Quick Actions -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-bolt"></i> Quick Actions
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                {% if event.status == 'draft' %}
+                                    <a href="{% url 'events:event_activate' event.id %}" class="btn btn-success">
+                                        <i class="fas fa-play"></i> Activate Event
+                                    </a>
+                                {% elif event.status == 'active' %}
+                                    <a href="{% url 'events:event_deactivate' event.id %}" class="btn btn-warning">
+                                        <i class="fas fa-pause"></i> Deactivate Event
+                                    </a>
+                                {% endif %}
+                                
+                                {% if event.status != 'cancelled' %}
+                                    <a href="{% url 'events:event_cancel' event.id %}" class="btn btn-danger" 
+                                       onclick="return confirm('Are you sure you want to cancel this event?')">
+                                        <i class="fas fa-times"></i> Cancel Event
+                                    </a>
+                                {% endif %}
+                                
+                                <a href="{% url 'events:event_edit' event.id %}" class="btn btn-primary">
+                                    <i class="fas fa-edit"></i> Edit Event
+                                </a>
+                                
+                                <a href="{% url 'pricing_web:price_stage_list' event_id=event.id %}" class="btn btn-outline-success">
+                                    <i class="bi bi-currency-dollar"></i> Manage Pricing
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Configuration -->
+                    {% if config %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-cog"></i> Configuration
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <h6 class="text-muted mb-1">Payment Options</h6>
+                                <div class="small">
+                                    {% if config.partial_payments_enabled %}
+                                        <i class="fas fa-check text-success"></i> Partial Payments<br>
+                                    {% endif %}
+                                    {% if config.installment_plans_enabled %}
+                                        <i class="fas fa-check text-success"></i> Installment Plans<br>
+                                    {% endif %}
+                                    {% if config.flexible_payments_enabled %}
+                                        <i class="fas fa-check text-success"></i> Flexible Payments<br>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <h6 class="text-muted mb-1">Notifications</h6>
+                                <div class="small">
+                                    {% if config.email_notifications %}
+                                        <i class="fas fa-check text-success"></i> Email<br>
+                                    {% endif %}
+                                    {% if config.sms_notifications %}
+                                        <i class="fas fa-check text-success"></i> SMS<br>
+                                    {% endif %}
+                                    {% if config.whatsapp_notifications %}
+                                        <i class="fas fa-check text-success"></i> WhatsApp<br>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-0">
+                                <h6 class="text-muted mb-1">Digital Tickets</h6>
+                                <div class="small">
+                                    {% if config.digital_tickets_enabled %}
+                                        <i class="fas fa-check text-success"></i> Digital Tickets<br>
+                                    {% endif %}
+                                    {% if config.qr_codes_enabled %}
+                                        <i class="fas fa-check text-success"></i> QR Codes<br>
+                                    {% endif %}
+                                    {% if config.pdf_tickets_enabled %}
+                                        <i class="fas fa-check text-success"></i> PDF Tickets<br>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Event Statistics -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-chart-bar"></i> Statistics
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center text-muted">
+                                <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                                <p class="small">Statistics will be available once ticket sales begin</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Zones Management Modal -->
+<div class="modal fade" id="zonesModal" tabindex="-1" aria-labelledby="zonesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="zonesModalLabel">
+                    <i class="fas fa-layer-group"></i> Manage Event Zones
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="zones-content">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function loadZones() {
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('zonesModal'));
+    modal.show();
+    
+    // Load zones via API
+    fetch(`/api/v1/api/zones/?event={{ event.id }}`)
+        .then(response => response.json())
+        .then(data => {
+            displayZones(data.results || []);
+        })
+        .catch(error => {
+            console.error('Error loading zones:', error);
+            document.getElementById('zones-content').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Error loading zones. Please try again.
+                </div>
+            `;
+        });
+}
+
+function displayZones(zones) {
+    const container = document.getElementById('zones-content');
+    
+    if (zones.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-layer-group fa-3x mb-3"></i>
+                <h5>No Zones Configured</h5>
+                <p>This event doesn't have any zones configured yet.</p>
+                <button class="btn btn-primary" onclick="createZone()">
+                    <i class="fas fa-plus"></i> Create First Zone
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">${zones.length} Zone(s) Configured</h6>
+            <button class="btn btn-sm btn-primary" onclick="createZone()">
+                <i class="fas fa-plus"></i> Add Zone
+            </button>
+        </div>
+        <div class="row">
+    `;
+    
+    zones.forEach(zone => {
+        const typeIcon = zone.zone_type === 'numbered' ? 'fas fa-chair' : 'fas fa-users';
+        const statusBadge = zone.status === 'active' ? 'bg-success' : 'bg-secondary';
+        
+        html += `
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title mb-0">
+                                <i class="${typeIcon}"></i> ${zone.name}
+                            </h6>
+                            <span class="badge ${statusBadge}">${zone.status}</span>
+                        </div>
+                        <p class="card-text small text-muted mb-2">
+                            ${zone.zone_type === 'numbered' ? 'Numbered Seating' : 'General Admission'}
+                        </p>
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="small text-muted">Capacity</div>
+                                <div class="fw-bold">${zone.capacity}</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="small text-muted">Available</div>
+                                <div class="fw-bold text-success">${zone.available_capacity}</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="small text-muted">Price</div>
+                                <div class="fw-bold">$${zone.base_price}</div>
+                            </div>
+                        </div>
+                        ${zone.zone_type === 'numbered' ? `
+                            <div class="mt-2 small text-muted">
+                                ${zone.rows} rows × ${zone.seats_per_row} seats
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function createZone() {
+    // This would open a zone creation form
+    alert('Zone creation functionality would be implemented here');
+}
+</script>
+{% endblock %}

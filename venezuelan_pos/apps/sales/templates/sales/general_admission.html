@@ -1,0 +1,471 @@
+{% load i18n %}
+
+<!-- Zone Header -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h4>{{ zone.name }}</h4>
+        <p class="text-muted mb-2">{{ zone.description }}</p>
+        <div class="d-flex align-items-center">
+            <span class="badge bg-info me-2">
+                <i class="bi bi-people"></i> {% trans "General Admission" %}
+            </span>
+            <span class="text-muted">
+                {{ available_capacity }}/{{ zone.capacity }} {% trans "tickets available" %}
+            </span>
+        </div>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <div class="pricing-info">
+            <div class="h4 text-success mb-1">${{ zone_price|floatformat:2 }}</div>
+            <small class="text-muted">{% trans "Per ticket" %}</small>
+            {% if pricing_details.current_stage %}
+            <br>
+            <small class="text-info">
+                <i class="bi bi-tag"></i> {{ pricing_details.current_stage.name }}
+                (+{{ pricing_details.current_stage.percentage_markup }}%)
+            </small>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Availability Indicator -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="availability-indicator">
+            <div class="availability-bar">
+                <div class="availability-fill" 
+                     style="width: {{ zone.occupancy_percentage }}%"
+                     data-percentage="{{ zone.occupancy_percentage }}">
+                </div>
+            </div>
+            <div class="availability-text mt-2">
+                <div class="row">
+                    <div class="col-6">
+                        <small class="text-success">
+                            <i class="bi bi-check-circle"></i>
+                            <strong>{{ available_capacity }}</strong> {% trans "Available" %}
+                        </small>
+                    </div>
+                    <div class="col-6 text-end">
+                        <small class="text-muted">
+                            <strong>{{ zone.capacity|add:0|sub:available_capacity }}</strong> {% trans "Sold" %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ticket Selection -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="ticket-selection-card">
+            <h5 class="mb-3">
+                <i class="bi bi-ticket"></i>
+                {% trans "Select Number of Tickets" %}
+            </h5>
+            
+            <div class="quantity-selector">
+                <div class="input-group input-group-lg">
+                    <button class="btn btn-outline-secondary" type="button" onclick="decreaseQuantity()">
+                        <i class="bi bi-dash"></i>
+                    </button>
+                    <input type="number" class="form-control text-center" 
+                           id="ticketQuantity" 
+                           value="1" 
+                           min="1" 
+                           max="{{ available_capacity }}"
+                           onchange="updateTotal()">
+                    <button class="btn btn-outline-secondary" type="button" onclick="increaseQuantity()">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                </div>
+                <small class="text-muted mt-1 d-block">
+                    {% trans "Maximum" %}: {{ available_capacity }} {% trans "tickets" %}
+                </small>
+            </div>
+            
+            <!-- Quick Selection Buttons -->
+            <div class="quick-select mt-3">
+                <small class="text-muted d-block mb-2">{% trans "Quick select:" %}</small>
+                <div class="btn-group" role="group">
+                    {% for qty in "12345"|make_list %}
+                        {% if qty|add:0 <= available_capacity %}
+                        <button type="button" class="btn btn-outline-primary btn-sm" 
+                                onclick="setQuantity({{ qty }})">
+                            {{ qty }}
+                        </button>
+                        {% endif %}
+                    {% endfor %}
+                    {% if available_capacity >= 10 %}
+                    <button type="button" class="btn btn-outline-primary btn-sm" 
+                            onclick="setQuantity(10)">
+                        10
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="pricing-summary">
+            <h6 class="mb-3">{% trans "Pricing Summary" %}</h6>
+            
+            <div class="pricing-breakdown">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>{% trans "Unit Price:" %}</span>
+                    <span>${{ zone_price|floatformat:2 }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>{% trans "Quantity:" %}</span>
+                    <span id="summaryQuantity">1</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between mb-3">
+                    <strong>{% trans "Total:" %}</strong>
+                    <strong class="text-success" id="totalPrice">${{ zone_price|floatformat:2 }}</strong>
+                </div>
+            </div>
+            
+            <div class="d-grid">
+                <button class="btn btn-primary btn-lg" 
+                        id="addToCartBtn"
+                        onclick="addGeneralTicketsToCart()"
+                        {% if available_capacity == 0 %}disabled{% endif %}>
+                    <i class="bi bi-cart-plus"></i>
+                    {% if available_capacity == 0 %}
+                        {% trans "Sold Out" %}
+                    {% else %}
+                        {% trans "Add to Cart" %}
+                    {% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Zone Information -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="zone-info">
+            <h6>{% trans "Zone Information" %}</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-people text-info"></i> {% trans "General admission seating" %}</li>
+                        <li><i class="bi bi-door-open text-info"></i> {% trans "First come, first served" %}</li>
+                        <li><i class="bi bi-clock text-info"></i> {% trans "Entry allowed during event hours" %}</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    {% if pricing_details.price_stages %}
+                    <small class="text-muted">
+                        <strong>{% trans "Pricing Stages:" %}</strong><br>
+                        {% for stage in pricing_details.price_stages %}
+                        <span class="badge bg-light text-dark me-1">
+                            {{ stage.name }}: +{{ stage.percentage_markup }}%
+                        </span>
+                        {% endfor %}
+                    </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.availability-indicator {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+}
+
+.availability-bar {
+    height: 20px;
+    background-color: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.availability-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #28a745 0%, #ffc107 70%, #dc3545 100%);
+    transition: width 0.3s ease;
+    border-radius: 10px;
+}
+
+.ticket-selection-card {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 2rem;
+}
+
+.quantity-selector {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.quantity-selector .form-control {
+    font-size: 1.5rem;
+    font-weight: bold;
+    border-left: none;
+    border-right: none;
+}
+
+.quantity-selector .btn {
+    width: 50px;
+}
+
+.quick-select .btn-group .btn {
+    min-width: 40px;
+}
+
+.pricing-summary {
+    background-color: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    position: sticky;
+    top: 20px;
+}
+
+.pricing-breakdown {
+    font-size: 0.95rem;
+}
+
+.zone-info {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+}
+
+.zone-info ul li {
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .ticket-selection-card,
+    .pricing-summary {
+        margin-bottom: 1rem;
+    }
+    
+    .pricing-summary {
+        position: static;
+    }
+}
+</style>
+
+<script>
+const unitPrice = {{ zone_price }};
+const maxQuantity = {{ available_capacity }};
+let currentQuantity = 1;
+
+document.addEventListener('DOMContentLoaded', function() {
+    updateTotal();
+    
+    // Start real-time availability updates
+    startAvailabilityPolling();
+});
+
+function increaseQuantity() {
+    const quantityInput = document.getElementById('ticketQuantity');
+    const currentValue = parseInt(quantityInput.value);
+    
+    if (currentValue < maxQuantity) {
+        quantityInput.value = currentValue + 1;
+        updateTotal();
+    }
+}
+
+function decreaseQuantity() {
+    const quantityInput = document.getElementById('ticketQuantity');
+    const currentValue = parseInt(quantityInput.value);
+    
+    if (currentValue > 1) {
+        quantityInput.value = currentValue - 1;
+        updateTotal();
+    }
+}
+
+function setQuantity(quantity) {
+    const quantityInput = document.getElementById('ticketQuantity');
+    
+    if (quantity <= maxQuantity && quantity >= 1) {
+        quantityInput.value = quantity;
+        updateTotal();
+    }
+}
+
+function updateTotal() {
+    const quantityInput = document.getElementById('ticketQuantity');
+    const quantity = parseInt(quantityInput.value) || 1;
+    
+    // Validate quantity
+    if (quantity > maxQuantity) {
+        quantityInput.value = maxQuantity;
+        quantity = maxQuantity;
+    } else if (quantity < 1) {
+        quantityInput.value = 1;
+        quantity = 1;
+    }
+    
+    currentQuantity = quantity;
+    const total = unitPrice * quantity;
+    
+    document.getElementById('summaryQuantity').textContent = quantity;
+    document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
+    
+    // Update button state
+    const addButton = document.getElementById('addToCartBtn');
+    if (maxQuantity === 0) {
+        addButton.disabled = true;
+        addButton.innerHTML = '<i class="bi bi-x-circle"></i> Sold Out';
+    } else {
+        addButton.disabled = false;
+        addButton.innerHTML = '<i class="bi bi-cart-plus"></i> Add to Cart';
+    }
+}
+
+function addGeneralTicketsToCart() {
+    if (maxQuantity === 0) {
+        return;
+    }
+    
+    const button = document.getElementById('addToCartBtn');
+    const originalText = button.innerHTML;
+    
+    // Show loading
+    button.disabled = true;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Adding...';
+    
+    fetch('/sales/cart/add/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            zone_id: '{{ zone.id }}',
+            quantity: currentQuantity
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Reset quantity
+            document.getElementById('ticketQuantity').value = 1;
+            updateTotal();
+            
+            // Update cart display in parent window
+            if (window.parent && window.parent.updateCartDisplay) {
+                window.parent.updateCartDisplay();
+            }
+            
+            // Show success message
+            showMessage(data.message, 'success');
+            
+            // Close modal after short delay
+            setTimeout(() => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('zoneModal'));
+                if (modal) {
+                    modal.hide();
+                }
+            }, 1000);
+        } else {
+            showMessage(data.error || 'Error adding tickets to cart', 'error');
+        }
+    })
+    .catch(error => {
+        showMessage('Error adding tickets to cart', 'error');
+    })
+    .finally(() => {
+        button.disabled = false;
+        button.innerHTML = originalText;
+    });
+}
+
+function startAvailabilityPolling() {
+    // Update zone availability every 10 seconds
+    setInterval(() => {
+        fetch(`{% url "sales:ajax_zone_availability" %}?zone_id={{ zone.id }}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.availability) {
+                    const availability = data.availability;
+                    const newMaxQuantity = availability.available_seats;
+                    
+                    // Update availability display
+                    const availabilityFill = document.querySelector('.availability-fill');
+                    const availabilityText = document.querySelector('.availability-text');
+                    
+                    if (availabilityFill && availabilityText) {
+                        const occupancyPercentage = availability.occupancy_percentage;
+                        availabilityFill.style.width = occupancyPercentage + '%';
+                        
+                        availabilityText.innerHTML = `
+                            <div class="row">
+                                <div class="col-6">
+                                    <small class="text-success">
+                                        <i class="bi bi-check-circle"></i>
+                                        <strong>${availability.available_seats}</strong> Available
+                                    </small>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <small class="text-muted">
+                                        <strong>${availability.total_seats - availability.available_seats}</strong> Sold
+                                    </small>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Update max quantity if it changed
+                    if (newMaxQuantity !== maxQuantity) {
+                        maxQuantity = newMaxQuantity;
+                        const quantityInput = document.getElementById('ticketQuantity');
+                        quantityInput.max = maxQuantity;
+                        
+                        // Adjust current quantity if it exceeds new max
+                        if (parseInt(quantityInput.value) > maxQuantity) {
+                            quantityInput.value = Math.max(1, maxQuantity);
+                            updateTotal();
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.log('Error updating zone availability:', error);
+            });
+    }, 10000);
+}
+
+function showMessage(message, type) {
+    // This function should be available from the parent page
+    if (window.parent && window.parent.showMessage) {
+        window.parent.showMessage(message, type);
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>

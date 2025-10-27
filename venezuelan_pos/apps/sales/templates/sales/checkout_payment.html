@@ -1,0 +1,450 @@
+{% extends 'events/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Payment Method" %} - Tiquemax{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'sales:dashboard' %}">{% trans "Sales" %}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'sales:shopping_cart' %}">{% trans "Cart" %}</a></li>
+<li class="breadcrumb-item active">{% trans "Payment" %}</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.checkout-steps {
+    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    color: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.step:last-child {
+    margin-bottom: 0;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 1rem;
+}
+
+.step.active .step-number {
+    background-color: white;
+    color: var(--primary-color);
+}
+
+.step.completed .step-number {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.payment-methods {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 2rem;
+}
+
+.payment-method {
+    border: 2px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.payment-method:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.payment-method.selected {
+    border-color: var(--primary-color);
+    background-color: #e3f2fd;
+}
+
+.payment-method .form-check-input {
+    margin-top: 0.5rem;
+}
+
+.payment-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    margin-right: 1rem;
+}
+
+.order-summary {
+    position: sticky;
+    top: 20px;
+    background: linear-gradient(135deg, #e8f5e8, #f0f8f0);
+    border: 2px solid var(--success-color);
+}
+
+@media (max-width: 768px) {
+    .order-summary {
+        position: static;
+        margin-top: 2rem;
+    }
+    
+    .checkout-steps {
+        padding: 1rem;
+    }
+    
+    .step {
+        font-size: 0.9rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Checkout Steps -->
+<div class="checkout-steps">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="step completed">
+                <div class="step-number">
+                    <i class="bi bi-check"></i>
+                </div>
+                <div>
+                    <strong>{% trans "Review & Customer" %}</strong>
+                    <br>
+                    <small>{% trans "Customer selected" %}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="step active">
+                <div class="step-number">2</div>
+                <div>
+                    <strong>{% trans "Payment" %}</strong>
+                    <br>
+                    <small>{% trans "Choose payment method" %}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="step">
+                <div class="step-number">3</div>
+                <div>
+                    <strong>{% trans "Confirmation" %}</strong>
+                    <br>
+                    <small>{% trans "Review and complete" %}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="step">
+                <div class="step-number">4</div>
+                <div>
+                    <strong>{% trans "Complete" %}</strong>
+                    <br>
+                    <small>{% trans "Get your tickets" %}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="payment-methods">
+            <h4 class="mb-4">
+                <i class="bi bi-credit-card"></i>
+                {% trans "Select Payment Method" %}
+            </h4>
+            
+            <!-- Cash Payment -->
+            <div class="payment-method selected" data-method="cash" onclick="selectPaymentMethod(this)">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="payment-icon">
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1">{% trans "Cash Payment" %}</h5>
+                                <p class="text-muted mb-0">
+                                    {% trans "Pay with cash at the point of sale" %}
+                                </p>
+                                <small class="text-success">
+                                    <i class="bi bi-check-circle"></i> {% trans "Immediate processing" %}
+                                </small>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" 
+                                       name="payment_method" value="cash" checked>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Credit/Debit Card -->
+            <div class="payment-method" data-method="card" onclick="selectPaymentMethod(this)">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="payment-icon">
+                            <i class="bi bi-credit-card"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1">{% trans "Credit/Debit Card" %}</h5>
+                                <p class="text-muted mb-0">
+                                    {% trans "Pay with Visa, Mastercard, or local cards" %}
+                                </p>
+                                <small class="text-info">
+                                    <i class="bi bi-shield-check"></i> {% trans "Secure payment processing" %}
+                                </small>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" 
+                                       name="payment_method" value="card">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bank Transfer -->
+            <div class="payment-method" data-method="transfer" onclick="selectPaymentMethod(this)">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="payment-icon">
+                            <i class="bi bi-bank"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1">{% trans "Bank Transfer" %}</h5>
+                                <p class="text-muted mb-0">
+                                    {% trans "Direct bank transfer with reference number" %}
+                                </p>
+                                <small class="text-warning">
+                                    <i class="bi bi-clock"></i> {% trans "May require verification" %}
+                                </small>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" 
+                                       name="payment_method" value="transfer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- PagoMovil -->
+            <div class="payment-method" data-method="pagomovil" onclick="selectPaymentMethod(this)">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="payment-icon">
+                            <i class="bi bi-phone"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1">{% trans "PagoMovil" %}</h5>
+                                <p class="text-muted mb-0">
+                                    {% trans "Mobile payment through Venezuelan banks" %}
+                                </p>
+                                <small class="text-info">
+                                    <i class="bi bi-smartphone"></i> {% trans "Quick mobile payment" %}
+                                </small>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" 
+                                       name="payment_method" value="pagomovil">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Continue Button -->
+            <div class="text-end mt-4">
+                <a href="{% url 'sales:checkout' %}" class="btn btn-outline-secondary btn-lg me-3">
+                    <i class="bi bi-arrow-left"></i> {% trans "Back" %}
+                </a>
+                <button class="btn btn-primary btn-lg" onclick="proceedToConfirmation()">
+                    {% trans "Continue to Confirmation" %}
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Customer Summary -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-person"></i>
+                    {% trans "Customer" %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6>{{ customer.full_name }}</h6>
+                {% if customer.phone %}
+                <p class="mb-1">
+                    <i class="bi bi-phone"></i> {{ customer.phone }}
+                </p>
+                {% endif %}
+                {% if customer.email %}
+                <p class="mb-0">
+                    <i class="bi bi-envelope"></i> {{ customer.email }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="card order-summary">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-receipt"></i>
+                    {% trans "Order Summary" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>{% trans "Total Amount:" %}</span>
+                    <strong class="text-success fs-4">${{ cart_total|floatformat:2 }}</strong>
+                </div>
+                
+                <hr>
+                
+                <div class="payment-info" id="paymentInfo">
+                    <h6 class="mb-2">{% trans "Payment Details" %}</h6>
+                    <div id="cashInfo">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>{% trans "Payment Method:" %}</small>
+                            <small><strong>{% trans "Cash" %}</strong></small>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>{% trans "Processing:" %}</small>
+                            <small class="text-success">{% trans "Immediate" %}</small>
+                        </div>
+                    </div>
+                    
+                    <div id="cardInfo" class="d-none">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>{% trans "Payment Method:" %}</small>
+                            <small><strong>{% trans "Card" %}</strong></small>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>{% trans "Processing Fee:" %}</small>
+                            <small>{% trans "Included" %}</small>
+                        </div>
+                    </div>
+                    
+                    <div id="transferInfo" class="d-none">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>{% trans "Payment Method:" %}</small>
+                            <small><strong>{% trans "Transfer" %}</strong></small>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>{% trans "Verification:" %}</small>
+                            <small class="text-warning">{% trans "Required" %}</small>
+                        </div>
+                    </div>
+                    
+                    <div id="pagomovilInfo" class="d-none">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>{% trans "Payment Method:" %}</small>
+                            <small><strong>{% trans "PagoMovil" %}</strong></small>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>{% trans "Processing:" %}</small>
+                            <small class="text-info">{% trans "Instant" %}</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Security Notice -->
+                <div class="mt-3 p-2 bg-light rounded">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-check text-success"></i>
+                        {% trans "All payments are secure and encrypted" %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedPaymentMethod = 'cash';
+
+function selectPaymentMethod(element) {
+    // Remove selection from all methods
+    document.querySelectorAll('.payment-method').forEach(method => {
+        method.classList.remove('selected');
+        const radio = method.querySelector('input[type="radio"]');
+        if (radio) radio.checked = false;
+    });
+    
+    // Select current method
+    element.classList.add('selected');
+    const radio = element.querySelector('input[type="radio"]');
+    if (radio) {
+        radio.checked = true;
+        selectedPaymentMethod = radio.value;
+    }
+    
+    // Update payment info
+    updatePaymentInfo();
+}
+
+function updatePaymentInfo() {
+    // Hide all payment info sections
+    document.querySelectorAll('[id$="Info"]').forEach(info => {
+        info.classList.add('d-none');
+    });
+    
+    // Show selected payment info
+    const infoElement = document.getElementById(selectedPaymentMethod + 'Info');
+    if (infoElement) {
+        infoElement.classList.remove('d-none');
+    }
+}
+
+function proceedToConfirmation() {
+    // Store payment method in session and redirect
+    window.location.href = '{% url "sales:checkout_confirm" %}';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    updatePaymentInfo();
+});
+</script>
+{% endblock %}

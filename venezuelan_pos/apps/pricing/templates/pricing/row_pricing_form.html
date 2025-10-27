@@ -1,0 +1,265 @@
+{% extends 'events/base.html' %}
+{% load i18n %}
+
+{% block title %}
+    {% if row_pricing %}
+        {% trans "Edit Row Pricing" %} - {% trans "Row" %} {{ row_pricing.row_number }}
+    {% else %}
+        {% trans "Create Row Pricing" %} - {{ zone.name }}
+    {% endif %} - Tiquemax
+{% endblock %}
+
+{% block breadcrumb_items %}
+    <li class="breadcrumb-item"><a href="{% url 'pricing_web:dashboard' %}">{% trans "Pricing" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'events:event_detail' event_id=zone.event.id %}">{{ zone.event.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'pricing_web:row_pricing_list' zone_id=zone.id %}">{{ zone.name }} - {% trans "Row Pricing" %}</a></li>
+    <li class="breadcrumb-item active">
+        {% if row_pricing %}{% trans "Edit" %}{% else %}{% trans "Create" %}{% endif %}
+    </li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="bi bi-{% if row_pricing %}pencil{% else %}plus-circle{% endif %} me-2"></i>
+                    {% if row_pricing %}
+                        {% trans "Edit Row Pricing" %}
+                    {% else %}
+                        {% trans "Create Row Pricing" %}
+                    {% endif %}
+                </h4>
+                <p class="text-muted mb-0 mt-1">{{ zone.event.name }} - {{ zone.name }}</p>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Zone Information -->
+                    <div class="alert alert-info">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>{% trans "Zone Base Price:" %}</strong> ${{ zone.base_price }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>{% trans "Total Rows:" %}</strong> {{ zone.rows }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row Configuration -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.row_number.id_for_label }}" class="form-label">
+                                {{ form.row_number.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.row_number }}
+                            {% if form.row_number.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.row_number.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                {% trans "Row number must be between 1 and" %} {{ zone.rows }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.percentage_markup.id_for_label }}" class="form-label">
+                                {{ form.percentage_markup.label }} <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                {{ form.percentage_markup }}
+                                <span class="input-group-text">%</span>
+                            </div>
+                            {% if form.percentage_markup.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.percentage_markup.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                {% trans "Percentage increase over zone base price" %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Optional Information -->
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">
+                            {{ form.name.label }}
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.name.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            {% trans "Optional name for this row (e.g., VIP, Premium, Standard)" %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            {{ form.description.label }}
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.description.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Status -->
+                    <div class="mb-4">
+                        <div class="form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                {{ form.is_active.label }}
+                            </label>
+                        </div>
+                        {% if form.is_active.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.is_active.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            {% trans "Only active row pricing will be used for price calculations" %}
+                        </div>
+                    </div>
+
+                    <!-- Price Preview -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-header">
+                            <i class="bi bi-calculator me-2"></i>{% trans "Price Preview" %}
+                        </div>
+                        <div class="card-body">
+                            <div id="pricePreview" class="text-center">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="small text-muted">{% trans "Base Price" %}</div>
+                                        <div class="h5 text-primary">${{ zone.base_price }}</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="small text-muted">{% trans "Markup Amount" %}</div>
+                                        <div class="h5 text-warning" id="markupAmount">$0.00</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="small text-muted">{% trans "Final Price" %}</div>
+                                        <div class="h4 text-success" id="finalPrice">${{ zone.base_price }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Errors -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'pricing_web:row_pricing_list' zone_id=zone.id %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-{% if row_pricing %}check{% else %}plus{% endif %}"></i>
+                            {% if row_pricing %}
+                                {% trans "Update Row Pricing" %}
+                            {% else %}
+                                {% trans "Create Row Pricing" %}
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Card -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i>{% trans "Row Pricing Guidelines" %}
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>{% trans "Best Practices" %}</h6>
+                        <ul class="small">
+                            <li>{% trans "Front rows typically have higher markups" %}</li>
+                            <li>{% trans "Consider sight lines and accessibility" %}</li>
+                            <li>{% trans "Use consistent naming conventions" %}</li>
+                            <li>{% trans "Test pricing with sample calculations" %}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>{% trans "Common Row Markups" %}</h6>
+                        <ul class="small">
+                            <li><strong>{% trans "Front Rows (1-3):" %}</strong> 50% - 100%</li>
+                            <li><strong>{% trans "Premium (4-8):" %}</strong> 25% - 50%</li>
+                            <li><strong>{% trans "Standard (9-15):" %}</strong> 0% - 25%</li>
+                            <li><strong>{% trans "Back Rows:" %}</strong> -10% - 0%</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const markupInput = document.getElementById('{{ form.percentage_markup.id_for_label }}');
+    const markupAmount = document.getElementById('markupAmount');
+    const finalPrice = document.getElementById('finalPrice');
+    
+    const basePrice = parseFloat('{{ zone.base_price }}');
+    
+    function updatePricePreview() {
+        const markup = parseFloat(markupInput.value) || 0;
+        const markupAmountValue = basePrice * (markup / 100);
+        const finalPriceValue = basePrice + markupAmountValue;
+        
+        markupAmount.textContent = `$${markupAmountValue.toFixed(2)}`;
+        finalPrice.textContent = `$${finalPriceValue.toFixed(2)}`;
+        
+        // Update color based on markup
+        if (markup > 50) {
+            finalPrice.className = 'h4 text-danger';
+        } else if (markup > 25) {
+            finalPrice.className = 'h4 text-warning';
+        } else if (markup > 0) {
+            finalPrice.className = 'h4 text-success';
+        } else {
+            finalPrice.className = 'h4 text-primary';
+        }
+    }
+    
+    // Update preview on input change
+    markupInput.addEventListener('input', updatePricePreview);
+    
+    // Initial preview update
+    updatePricePreview();
+    
+    // Row number validation
+    const rowNumberInput = document.getElementById('{{ form.row_number.id_for_label }}');
+    const maxRows = {{ zone.rows }};
+    
+    rowNumberInput.addEventListener('input', function() {
+        const rowNumber = parseInt(this.value);
+        
+        if (rowNumber < 1 || rowNumber > maxRows) {
+            this.setCustomValidity(`{% trans "Row number must be between 1 and" %} ${maxRows}`);
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+});
+</script>
+{% endblock %}

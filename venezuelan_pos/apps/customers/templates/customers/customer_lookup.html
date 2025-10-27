@@ -1,0 +1,157 @@
+{% extends "customers/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Customer Lookup" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{% trans "Customer Lookup" %}</h1>
+                <div>
+                    <a href="{% url 'customers_web:customer_search' %}" class="btn btn-outline-info">
+                        <i class="fas fa-search"></i> {% trans "Advanced Search" %}
+                    </a>
+                    <a href="{% url 'customers_web:customer_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list"></i> {% trans "All Customers" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <!-- Lookup Form -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-id-card"></i> {% trans "Lookup by Identification" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="{{ form.identification.id_for_label }}" class="form-label">
+                                {{ form.identification.label }}
+                            </label>
+                            {{ form.identification }}
+                            {% if form.identification.help_text %}
+                                <div class="form-text">{{ form.identification.help_text }}</div>
+                            {% endif %}
+                            {% if form.identification.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.identification.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> {% trans "Lookup Customer" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Lookup Result -->
+            {% if customer %}
+                <div class="card border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-check-circle"></i> {% trans "Customer Found" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h4 class="mb-3">{{ customer.full_name }}</h4>
+                                
+                                <div class="customer-quick-info">
+                                    <div class="row">
+                                        <div class="col-sm-4"><strong>{% trans "Email" %}:</strong></div>
+                                        <div class="col-sm-8">
+                                            {% if customer.email %}
+                                                <a href="mailto:{{ customer.email }}">{{ customer.email }}</a>
+                                            {% else %}
+                                                <span class="text-muted">{% trans "Not provided" %}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-4"><strong>{% trans "Phone" %}:</strong></div>
+                                        <div class="col-sm-8">
+                                            {% if customer.phone %}
+                                                <a href="tel:{{ customer.phone }}">{{ customer.phone }}</a>
+                                            {% else %}
+                                                <span class="text-muted">{% trans "Not provided" %}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-4"><strong>{% trans "ID" %}:</strong></div>
+                                        <div class="col-sm-8">
+                                            <code>{{ customer.identification }}</code>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-4"><strong>{% trans "Status" %}:</strong></div>
+                                        <div class="col-sm-8">
+                                            <span class="customer-status {% if customer.is_active %}active{% else %}inactive{% endif %}">
+                                                {% if customer.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'customers_web:customer_detail' customer.pk %}" 
+                                       class="btn btn-primary">
+                                        <i class="fas fa-eye"></i> {% trans "View Details" %}
+                                    </a>
+                                    <a href="{% url 'customers_web:customer_edit' customer.pk %}" 
+                                       class="btn btn-outline-secondary">
+                                        <i class="fas fa-edit"></i> {% trans "Edit Customer" %}
+                                    </a>
+                                    <a href="{% url 'customers_web:customer_preferences' customer.pk %}" 
+                                       class="btn btn-outline-info">
+                                        <i class="fas fa-cog"></i> {% trans "Preferences" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Information Card -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5><i class="fas fa-info-circle text-info"></i> {% trans "About Customer Lookup" %}</h5>
+                    <p class="mb-3">
+                        {% trans "Use this tool to quickly find customers by their Venezuelan identification number (cédula)." %}
+                    </p>
+                    
+                    <h6>{% trans "Supported Formats" %}:</h6>
+                    <ul class="mb-3">
+                        <li><code>V-12345678</code> - {% trans "Venezuelan citizen" %}</li>
+                        <li><code>E-12345678</code> - {% trans "Foreign resident" %}</li>
+                        <li><code>v-1234567</code> - {% trans "Case insensitive, minimum 7 digits" %}</li>
+                    </ul>
+
+                    <div class="alert alert-light">
+                        <i class="fas fa-lightbulb"></i>
+                        <strong>{% trans "Tip" %}:</strong>
+                        {% trans "For broader searches including name, phone, or email, use the" %}
+                        <a href="{% url 'customers_web:customer_search' %}">{% trans "Advanced Search" %}</a>
+                        {% trans "feature." %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

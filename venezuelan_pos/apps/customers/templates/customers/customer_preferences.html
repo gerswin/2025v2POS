@@ -1,0 +1,236 @@
+{% extends "customers/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Customer Preferences" %} - {{ customer.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{% trans "Communication Preferences" %}</h1>
+                <div>
+                    <a href="{% url 'customers_web:customer_detail' customer.pk %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> {% trans "Back to Customer" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Customer Info -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="mb-1">{{ customer.full_name }}</h5>
+                            <p class="text-muted mb-0">{{ customer.primary_contact }}</p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <span class="customer-status {% if customer.is_active %}active{% else %}inactive{% endif %}">
+                                {% if customer.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preferences Form -->
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="preferences-grid">
+                            <!-- Communication Channels -->
+                            <div class="preference-section">
+                                <h6>
+                                    <i class="fas fa-broadcast-tower"></i> {% trans "Communication Channels" %}
+                                </h6>
+                                <p class="text-muted small mb-3">
+                                    {% trans "Select which communication methods the customer allows" %}
+                                </p>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.email_enabled }}
+                                        <label class="form-check-label" for="{{ form.email_enabled.id_for_label }}">
+                                            <i class="fas fa-envelope text-primary"></i> {{ form.email_enabled.label }}
+                                            {% if not customer.email %}
+                                                <small class="text-warning">({% trans "No email provided" %})</small>
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.sms_enabled }}
+                                        <label class="form-check-label" for="{{ form.sms_enabled.id_for_label }}">
+                                            <i class="fas fa-sms text-success"></i> {{ form.sms_enabled.label }}
+                                            {% if not customer.phone %}
+                                                <small class="text-warning">({% trans "No phone provided" %})</small>
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.whatsapp_enabled }}
+                                        <label class="form-check-label" for="{{ form.whatsapp_enabled.id_for_label }}">
+                                            <i class="fab fa-whatsapp text-info"></i> {{ form.whatsapp_enabled.label }}
+                                            {% if not customer.phone %}
+                                                <small class="text-warning">({% trans "No phone provided" %})</small>
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.phone_enabled }}
+                                        <label class="form-check-label" for="{{ form.phone_enabled.id_for_label }}">
+                                            <i class="fas fa-phone text-warning"></i> {{ form.phone_enabled.label }}
+                                            {% if not customer.phone %}
+                                                <small class="text-warning">({% trans "No phone provided" %})</small>
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Notification Types -->
+                            <div class="preference-section">
+                                <h6>
+                                    <i class="fas fa-bell"></i> {% trans "Notification Types" %}
+                                </h6>
+                                <p class="text-muted small mb-3">
+                                    {% trans "Select which types of notifications to send" %}
+                                </p>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.purchase_confirmations }}
+                                        <label class="form-check-label" for="{{ form.purchase_confirmations.id_for_label }}">
+                                            <i class="fas fa-shopping-cart text-primary"></i> {{ form.purchase_confirmations.label }}
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.payment_reminders }}
+                                        <label class="form-check-label" for="{{ form.payment_reminders.id_for_label }}">
+                                            <i class="fas fa-credit-card text-success"></i> {{ form.payment_reminders.label }}
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.event_reminders }}
+                                        <label class="form-check-label" for="{{ form.event_reminders.id_for_label }}">
+                                            <i class="fas fa-calendar text-info"></i> {{ form.event_reminders.label }}
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.promotional_messages }}
+                                        <label class="form-check-label" for="{{ form.promotional_messages.id_for_label }}">
+                                            <i class="fas fa-bullhorn text-warning"></i> {{ form.promotional_messages.label }}
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.system_updates }}
+                                        <label class="form-check-label" for="{{ form.system_updates.id_for_label }}">
+                                            <i class="fas fa-cog text-secondary"></i> {{ form.system_updates.label }}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Contact Preferences -->
+                            <div class="preference-section">
+                                <h6>
+                                    <i class="fas fa-clock"></i> {% trans "Contact Preferences" %}
+                                </h6>
+                                <p class="text-muted small mb-3">
+                                    {% trans "When and how to contact the customer" %}
+                                </p>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.preferred_contact_time_start.id_for_label }}" class="form-label">
+                                        {{ form.preferred_contact_time_start.label }}
+                                    </label>
+                                    {{ form.preferred_contact_time_start }}
+                                    {% if form.preferred_contact_time_start.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.preferred_contact_time_start.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.preferred_contact_time_end.id_for_label }}" class="form-label">
+                                        {{ form.preferred_contact_time_end.label }}
+                                    </label>
+                                    {{ form.preferred_contact_time_end }}
+                                    {% if form.preferred_contact_time_end.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.preferred_contact_time_end.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.preferred_language.id_for_label }}" class="form-label">
+                                        {{ form.preferred_language.label }}
+                                    </label>
+                                    {{ form.preferred_language }}
+                                    {% if form.preferred_language.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.preferred_language.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <a href="{% url 'customers_web:customer_detail' customer.pk %}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-times"></i> {% trans "Cancel" %}
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save"></i> {% trans "Save Preferences" %}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,651 @@
+{% extends 'events/base.html' %}
+{% load static %}
+
+{% block title %}{{ zone.name }} - Table Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0">Table Management</h1>
+                    <p class="text-muted mb-0">{{ zone.name }} - {{ zone.event.name }}</p>
+                </div>
+                <div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTableModal">
+                        <i class="fas fa-plus"></i> Create Table
+                    </button>
+                    <a href="{% url 'events:seat_management' zone.id %}" class="btn btn-outline-info">
+                        <i class="fas fa-chair"></i> Seat Management
+                    </a>
+                    <a href="{% url 'events:event_detail' zone.event.id %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Event
+                    </a>
+                </div>
+            </div>
+
+            <!-- Zone Info -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="small text-muted">Zone Type</div>
+                            <div class="fw-bold">
+                                <i class="fas fa-chair"></i> Numbered Seating
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="small text-muted">Total Capacity</div>
+                            <div class="fw-bold">{{ zone.capacity }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="small text-muted">Base Price</div>
+                            <div class="fw-bold">${{ zone.base_price }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="small text-muted">Tables</div>
+                            <div class="fw-bold" id="tableCount">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tables Container -->
+            <div id="tables-container">
+                <div class="text-center py-5">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading tables...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Table Modal -->
+<div class="modal fade" id="createTableModal" tabindex="-1" aria-labelledby="createTableModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createTableModalLabel">
+                    <i class="fas fa-plus"></i> Create New Table
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="createTableForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="tableName" class="form-label">Table Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="tableName" name="name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="tableDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="tableDescription" name="description" rows="2"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="saleMode" class="form-label">Sale Mode</label>
+                        <select class="form-select" id="saleMode" name="sale_mode">
+                            <option value="individual_allowed">Individual Seats Allowed</option>
+                            <option value="complete_only">Complete Table Only</option>
+                        </select>
+                        <div class="form-text">
+                            Complete table only means all seats must be purchased together.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="displayOrder" class="form-label">Display Order</label>
+                        <input type="number" class="form-control" id="displayOrder" name="display_order" value="0" min="0">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tableStatus" class="form-label">Status</label>
+                        <select class="form-select" id="tableStatus" name="status">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Create Table
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Table Modal -->
+<div class="modal fade" id="editTableModal" tabindex="-1" aria-labelledby="editTableModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTableModalLabel">
+                    <i class="fas fa-edit"></i> Edit Table
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editTableForm">
+                <div class="modal-body" id="editTableContent">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Table
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Seats Modal -->
+<div class="modal fade" id="assignSeatsModal" tabindex="-1" aria-labelledby="assignSeatsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignSeatsModalLabel">
+                    <i class="fas fa-chair"></i> Assign Seats to Table
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <h6>Available Seats</h6>
+                    <div id="availableSeats" class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                        <div class="text-center">
+                            <div class="spinner-border spinner-border-sm" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6>Selected Seats</h6>
+                    <div id="selectedSeats" class="border rounded p-3 bg-light" style="min-height: 100px;">
+                        <p class="text-muted mb-0">No seats selected</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmAssignSeats">
+                    <i class="fas fa-check"></i> Assign Seats
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const zoneId = '{{ zone.id }}';
+let tables = [];
+let availableSeats = [];
+let selectedSeatIds = new Set();
+let currentTableId = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadTables();
+    setupCreateTableForm();
+    setupAssignSeatsModal();
+});
+
+function loadTables() {
+    fetch(`/api/v1/api/tables/?zone=${zoneId}`)
+        .then(response => response.json())
+        .then(data => {
+            tables = data.results || [];
+            displayTables(tables);
+            document.getElementById('tableCount').textContent = tables.length;
+        })
+        .catch(error => {
+            console.error('Error loading tables:', error);
+            document.getElementById('tables-container').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Error loading tables. Please refresh the page.
+                </div>
+            `;
+        });
+}
+
+function displayTables(tables) {
+    const container = document.getElementById('tables-container');
+    
+    if (tables.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-5">
+                <i class="fas fa-table fa-4x text-muted mb-4"></i>
+                <h4 class="text-muted">No Tables Configured</h4>
+                <p class="text-muted mb-4">This zone doesn't have any tables configured yet.</p>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTableModal">
+                    <i class="fas fa-plus"></i> Create First Table
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">${tables.length} Table(s) Configured</h5>
+        </div>
+        <div class="row">
+    `;
+    
+    tables.forEach(table => {
+        const statusBadge = table.status === 'active' ? 'bg-success' : 'bg-secondary';
+        const saleModeIcon = table.sale_mode === 'complete_only' ? 'fas fa-lock' : 'fas fa-unlock';
+        const availabilityPercent = table.seat_count > 0 ? (table.available_seats_count / table.seat_count * 100) : 0;
+        
+        html += `
+            <div class="col-lg-6 col-xl-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="card-title mb-0">
+                            <i class="fas fa-table"></i> ${table.name}
+                        </h6>
+                        <span class="badge ${statusBadge}">${table.status}</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text small text-muted mb-3">
+                            <i class="${saleModeIcon}"></i> 
+                            ${table.sale_mode === 'complete_only' ? 'Complete Table Only' : 'Individual Seats Allowed'}
+                            ${table.description ? ' - ' + table.description : ''}
+                        </p>
+                        
+                        <div class="row text-center mb-3">
+                            <div class="col-4">
+                                <div class="small text-muted">Seats</div>
+                                <div class="fw-bold">${table.seat_count}</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="small text-muted">Available</div>
+                                <div class="fw-bold text-success">${table.available_seats_count}</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="small text-muted">Total Price</div>
+                                <div class="fw-bold">$${parseFloat(table.total_price || 0).toFixed(2)}</div>
+                            </div>
+                        </div>
+
+                        ${table.seat_count > 0 ? `
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between small text-muted mb-1">
+                                    <span>Availability</span>
+                                    <span>${availabilityPercent.toFixed(1)}%</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         style="width: ${availabilityPercent}%" 
+                                         aria-valuenow="${availabilityPercent}" 
+                                         aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-sm btn-outline-primary" onclick="editTable('${table.id}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-info" onclick="assignSeats('${table.id}', '${table.name}')">
+                                <i class="fas fa-chair"></i> Seats
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteTable('${table.id}', '${table.name}')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function setupCreateTableForm() {
+    const form = document.getElementById('createTableForm');
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        createTable();
+    });
+}
+
+function createTable() {
+    const form = document.getElementById('createTableForm');
+    const formData = new FormData(form);
+    
+    const data = {
+        zone: zoneId,
+        name: formData.get('name'),
+        description: formData.get('description'),
+        sale_mode: formData.get('sale_mode'),
+        display_order: formData.get('display_order'),
+        status: formData.get('status')
+    };
+
+    fetch('/api/v1/api/tables/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.id) {
+            bootstrap.Modal.getInstance(document.getElementById('createTableModal')).hide();
+            form.reset();
+            loadTables();
+            showAlert('success', 'Table created successfully!');
+        } else {
+            showAlert('danger', 'Error creating table: ' + JSON.stringify(data));
+        }
+    })
+    .catch(error => {
+        console.error('Error creating table:', error);
+        showAlert('danger', 'Error creating table. Please try again.');
+    });
+}
+
+function editTable(tableId) {
+    const table = tables.find(t => t.id === tableId);
+    if (!table) return;
+
+    const content = `
+        <div class="mb-3">
+            <label for="editTableName" class="form-label">Table Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="editTableName" name="name" value="${table.name}" required>
+        </div>
+        
+        <div class="mb-3">
+            <label for="editTableDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="editTableDescription" name="description" rows="2">${table.description || ''}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="editSaleMode" class="form-label">Sale Mode</label>
+            <select class="form-select" id="editSaleMode" name="sale_mode">
+                <option value="individual_allowed" ${table.sale_mode === 'individual_allowed' ? 'selected' : ''}>Individual Seats Allowed</option>
+                <option value="complete_only" ${table.sale_mode === 'complete_only' ? 'selected' : ''}>Complete Table Only</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="editDisplayOrder" class="form-label">Display Order</label>
+            <input type="number" class="form-control" id="editDisplayOrder" name="display_order" value="${table.display_order}" min="0">
+        </div>
+
+        <div class="mb-3">
+            <label for="editTableStatus" class="form-label">Status</label>
+            <select class="form-select" id="editTableStatus" name="status">
+                <option value="active" ${table.status === 'active' ? 'selected' : ''}>Active</option>
+                <option value="inactive" ${table.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+            </select>
+        </div>
+    `;
+
+    document.getElementById('editTableContent').innerHTML = content;
+    
+    const editForm = document.getElementById('editTableForm');
+    editForm.onsubmit = function(e) {
+        e.preventDefault();
+        updateTable(tableId);
+    };
+    
+    const modal = new bootstrap.Modal(document.getElementById('editTableModal'));
+    modal.show();
+}
+
+function updateTable(tableId) {
+    const form = document.getElementById('editTableForm');
+    const formData = new FormData(form);
+    
+    const data = {
+        name: formData.get('name'),
+        description: formData.get('description'),
+        sale_mode: formData.get('sale_mode'),
+        display_order: formData.get('display_order'),
+        status: formData.get('status')
+    };
+
+    fetch(`/api/v1/api/tables/${tableId}/`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.id) {
+            bootstrap.Modal.getInstance(document.getElementById('editTableModal')).hide();
+            loadTables();
+            showAlert('success', 'Table updated successfully!');
+        } else {
+            showAlert('danger', 'Error updating table');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating table:', error);
+        showAlert('danger', 'Error updating table');
+    });
+}
+
+function assignSeats(tableId, tableName) {
+    currentTableId = tableId;
+    document.getElementById('assignSeatsModalLabel').innerHTML = `
+        <i class="fas fa-chair"></i> Assign Seats to ${tableName}
+    `;
+    
+    loadAvailableSeats();
+    
+    const modal = new bootstrap.Modal(document.getElementById('assignSeatsModal'));
+    modal.show();
+}
+
+function setupAssignSeatsModal() {
+    document.getElementById('confirmAssignSeats').addEventListener('click', function() {
+        if (selectedSeatIds.size === 0) {
+            alert('Please select seats to assign');
+            return;
+        }
+        
+        assignSeatsToTable();
+    });
+}
+
+function loadAvailableSeats() {
+    fetch(`/api/v1/api/seats/?zone=${zoneId}`)
+        .then(response => response.json())
+        .then(data => {
+            availableSeats = data.results || [];
+            displayAvailableSeats();
+        })
+        .catch(error => {
+            console.error('Error loading seats:', error);
+            document.getElementById('availableSeats').innerHTML = `
+                <div class="alert alert-danger">Error loading seats</div>
+            `;
+        });
+}
+
+function displayAvailableSeats() {
+    const container = document.getElementById('availableSeats');
+    
+    // Group seats by row
+    const seatsByRow = {};
+    availableSeats.forEach(seat => {
+        if (!seatsByRow[seat.row_number]) {
+            seatsByRow[seat.row_number] = [];
+        }
+        seatsByRow[seat.row_number].push(seat);
+    });
+
+    let html = '';
+    Object.keys(seatsByRow).sort((a, b) => parseInt(a) - parseInt(b)).forEach(rowNumber => {
+        const rowSeats = seatsByRow[rowNumber].sort((a, b) => a.seat_number - b.seat_number);
+        
+        html += `<div class="mb-2">`;
+        html += `<strong>Row ${rowNumber}:</strong> `;
+        
+        rowSeats.forEach(seat => {
+            const isSelected = selectedSeatIds.has(seat.id);
+            const isAvailable = seat.status === 'available';
+            const buttonClass = isSelected ? 'btn-primary' : (isAvailable ? 'btn-outline-secondary' : 'btn-secondary');
+            const disabled = !isAvailable ? 'disabled' : '';
+            
+            html += `
+                <button class="btn btn-sm ${buttonClass} me-1 mb-1" 
+                        onclick="toggleSeatSelection('${seat.id}')"
+                        ${disabled}
+                        title="Row ${seat.row_number}, Seat ${seat.seat_number} - ${seat.status}">
+                    ${seat.seat_number}
+                </button>
+            `;
+        });
+        
+        html += `</div>`;
+    });
+
+    container.innerHTML = html;
+    updateSelectedSeatsDisplay();
+}
+
+function toggleSeatSelection(seatId) {
+    if (selectedSeatIds.has(seatId)) {
+        selectedSeatIds.delete(seatId);
+    } else {
+        selectedSeatIds.add(seatId);
+    }
+    
+    displayAvailableSeats();
+}
+
+function updateSelectedSeatsDisplay() {
+    const container = document.getElementById('selectedSeats');
+    
+    if (selectedSeatIds.size === 0) {
+        container.innerHTML = '<p class="text-muted mb-0">No seats selected</p>';
+        return;
+    }
+    
+    const selectedSeats = availableSeats.filter(seat => selectedSeatIds.has(seat.id));
+    const html = selectedSeats.map(seat => 
+        `<span class="badge bg-primary me-1 mb-1">Row ${seat.row_number}, Seat ${seat.seat_number}</span>`
+    ).join('');
+    
+    container.innerHTML = html;
+}
+
+function assignSeatsToTable() {
+    const seatIds = Array.from(selectedSeatIds);
+    
+    fetch(`/api/v1/api/tables/${currentTableId}/add_seats/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ seat_ids: seatIds })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.added_seats !== undefined) {
+            bootstrap.Modal.getInstance(document.getElementById('assignSeatsModal')).hide();
+            selectedSeatIds.clear();
+            loadTables();
+            showAlert('success', `Assigned ${data.added_seats} seats to table`);
+        } else {
+            showAlert('danger', 'Error assigning seats: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error assigning seats:', error);
+        showAlert('danger', 'Error assigning seats');
+    });
+}
+
+function deleteTable(tableId, tableName) {
+    if (confirm(`Are you sure you want to delete the table "${tableName}"? This will also remove all seat assignments.`)) {
+        fetch(`/api/v1/api/tables/${tableId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                loadTables();
+                showAlert('success', 'Table deleted successfully!');
+            } else {
+                showAlert('danger', 'Error deleting table');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting table:', error);
+            showAlert('danger', 'Error deleting table');
+        });
+    }
+}
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Fix accessibility issues with modals
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle modal focus issues
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.addEventListener('hidden.bs.modal', function() {
+            // Remove focus from any buttons inside the modal
+            const focusedElement = this.querySelector(':focus');
+            if (focusedElement) {
+                focusedElement.blur();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

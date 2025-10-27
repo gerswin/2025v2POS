@@ -1,0 +1,319 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Login" %} - Tiquemax</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .login-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+            overflow: hidden;
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        .login-image {
+            background: linear-gradient(135deg, var(--primary-color), #0056b3);
+            color: white;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .login-form {
+            padding: 3rem;
+        }
+        
+        .brand-logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .brand-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .brand-subtitle {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 2rem;
+        }
+        
+        .feature-list li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .feature-list i {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+        }
+        
+        .alert {
+            border: none;
+            border-radius: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .login-image {
+                padding: 2rem;
+            }
+            
+            .login-form {
+                padding: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="login-container row g-0">
+                    <!-- Left Side - Branding -->
+                    <div class="col-lg-6 login-image">
+                        <div>
+                            <div class="brand-logo">
+                                <i class="bi bi-ticket-perforated"></i>
+                            </div>
+                            <div class="brand-title">Tiquemax</div>
+                            <div class="brand-subtitle">{% trans "Event Management System" %}</div>
+                            
+                            <ul class="feature-list">
+                                <li>
+                                    <i class="bi bi-building"></i>
+                                    {% trans "Venue Management" %}
+                                </li>
+                                <li>
+                                    <i class="bi bi-calendar-event"></i>
+                                    {% trans "Event Administration" %}
+                                </li>
+                                <li>
+                                    <i class="bi bi-ticket"></i>
+                                    {% trans "Ticket Sales" %}
+                                </li>
+                                <li>
+                                    <i class="bi bi-graph-up"></i>
+                                    {% trans "Reports and Analytics" %}
+                                </li>
+                                <li>
+                                    <i class="bi bi-shield-check"></i>
+                                    {% trans "Secure Multi-tenant" %}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Side - Login Form -->
+                    <div class="col-lg-6 login-form">
+                        <!-- Language Selector -->
+                        <div class="text-center mb-3">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown">
+                                    <i class="bi bi-translate me-1"></i>
+                                    {% get_current_language as LANGUAGE_CODE %}
+                                    {% if LANGUAGE_CODE == 'es' %}Español{% else %}English{% endif %}
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <form action="{% url 'set_language' %}" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <input name="next" type="hidden" value="{{ request.get_full_path }}" />
+                                            <button type="submit" name="language" value="es" class="dropdown-item {% if LANGUAGE_CODE == 'es' %}active{% endif %}">
+                                                <i class="bi bi-check2 me-2"></i>Español
+                                            </button>
+                                        </form>
+                                    </li>
+                                    <li>
+                                        <form action="{% url 'set_language' %}" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <input name="next" type="hidden" value="{{ request.get_full_path }}" />
+                                            <button type="submit" name="language" value="en" class="dropdown-item {% if LANGUAGE_CODE == 'en' %}active{% endif %}">
+                                                <i class="bi bi-check2 me-2"></i>English
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mb-4">
+                            <h2 class="fw-bold text-dark">{% trans "Login" %}</h2>
+                            <p class="text-muted">{% trans "Access your administration panel" %}</p>
+                        </div>
+                        
+                        <!-- Messages -->
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <!-- Login Form -->
+                        <form method="post" novalidate>
+                            {% csrf_token %}
+                            
+                            {% if next %}
+                                <input type="hidden" name="next" value="{{ next }}">
+                            {% endif %}
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.username.id_for_label }}" class="form-label">
+                                    <i class="bi bi-person me-2"></i>{% trans "Username" %}
+                                </label>
+                                {{ form.username }}
+                                {% if form.username.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.username.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.password.id_for_label }}" class="form-label">
+                                    <i class="bi bi-lock me-2"></i>{% trans "Password" %}
+                                </label>
+                                {{ form.password }}
+                                {% if form.password.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.password.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    {{ form.remember_me }}
+                                    <label class="form-check-label" for="{{ form.remember_me.id_for_label }}">
+                                        {% trans "Remember me" %}
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Form Errors -->
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.non_field_errors.0 }}
+                                </div>
+                            {% endif %}
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>
+                                    {% trans "Login" %}
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <!-- Demo Credentials -->
+                        <div class="mt-4 p-3 bg-light rounded">
+                            <h6 class="fw-bold mb-2">
+                                <i class="bi bi-info-circle me-2"></i>
+                                {% trans "Test Credentials" %}
+                            </h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">
+                                        <strong>Eventos Caracas:</strong><br>
+                                        {% trans "Username" %}: <code>carlos.admin</code><br>
+                                        {% trans "Password" %}: <code>carlos123</code>
+                                    </small>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">
+                                        <strong>System Admin:</strong><br>
+                                        {% trans "Username" %}: <code>admin</code><br>
+                                        {% trans "Password" %}: <code>admin123</code>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Footer -->
+                        <div class="text-center mt-4">
+                            <small class="text-muted">
+                                © 2025 Tiquemax. {% trans "All rights reserved" %}.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+        
+        // Focus on username field
+        document.addEventListener('DOMContentLoaded', function() {
+            const usernameField = document.querySelector('input[name="username"]');
+            if (usernameField) {
+                usernameField.focus();
+            }
+        });
+    </script>
+</body>
+</html>

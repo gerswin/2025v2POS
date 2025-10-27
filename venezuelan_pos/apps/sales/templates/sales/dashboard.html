@@ -1,0 +1,213 @@
+{% extends 'events/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Sales Dashboard" %} - Tiquemax{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active">{% trans "Sales" %}</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">{% trans "Sales Dashboard" %}</h1>
+    <div>
+        <a href="{% url 'sales:transaction_list' %}" class="btn btn-outline-primary me-2">
+            <i class="bi bi-list-ul"></i> {% trans "All Transactions" %}
+        </a>
+        <a href="{% url 'sales:reservation_list' %}" class="btn btn-outline-warning">
+            <i class="bi bi-clock"></i> {% trans "Reservations" %}
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <div class="stats-number">{{ stats.today_sales }}</div>
+                <div>{% trans "Today's Sales" %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <div class="stats-number">${{ stats.today_revenue|floatformat:2 }}</div>
+                <div>{% trans "Today's Revenue" %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <div class="stats-number">{{ stats.pending_transactions }}</div>
+                <div>{% trans "Pending Transactions" %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <div class="stats-number">{{ stats.active_reservations }}</div>
+                <div>{% trans "Active Reservations" %}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Active Events -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-event"></i>
+                    {% trans "Active Events" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if active_events %}
+                    <div class="list-group list-group-flush">
+                        {% for event in active_events %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ event.name }}</h6>
+                                <small class="text-muted">
+                                    <i class="bi bi-building"></i> {{ event.venue.name }}
+                                    <br>
+                                    <i class="bi bi-calendar"></i> {{ event.start_date|date:"M d, Y H:i" }}
+                                </small>
+                            </div>
+                            <div>
+                                <a href="{% url 'sales:seat_selection' event_id=event.id %}" 
+                                   class="btn btn-primary btn-sm">
+                                    <i class="bi bi-ticket"></i> {% trans "Sell Tickets" %}
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-calendar-x display-4"></i>
+                        <p class="mt-2">{% trans "No active events available" %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-receipt"></i>
+                    {% trans "Recent Transactions" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_transactions %}
+                    <div class="list-group list-group-flush">
+                        {% for transaction in recent_transactions %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">
+                                    {% if transaction.fiscal_series %}
+                                        {{ transaction.fiscal_series }}
+                                    {% else %}
+                                        #{{ transaction.id|slice:":8" }}
+                                    {% endif %}
+                                </h6>
+                                <small class="text-muted">
+                                    {{ transaction.customer.full_name }} - {{ transaction.event.name }}
+                                    <br>
+                                    <i class="bi bi-clock"></i> {{ transaction.created_at|date:"M d, H:i" }}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-{% if transaction.status == 'completed' %}success{% elif transaction.status == 'pending' %}warning{% else %}secondary{% endif %}">
+                                    {{ transaction.get_status_display }}
+                                </span>
+                                <br>
+                                <small class="text-muted">${{ transaction.total_amount|floatformat:2 }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'sales:transaction_list' %}" class="btn btn-outline-primary btn-sm">
+                            {% trans "View All Transactions" %}
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-receipt display-4"></i>
+                        <p class="mt-2">{% trans "No recent transactions" %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Expiring Reservations Alert -->
+{% if expiring_reservations %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <h5 class="alert-heading">
+                <i class="bi bi-exclamation-triangle"></i>
+                {% trans "Expiring Reservations" %}
+            </h5>
+            <p class="mb-2">{% trans "The following reservations will expire within 1 hour:" %}</p>
+            <div class="row">
+                {% for reservation in expiring_reservations %}
+                <div class="col-md-6 mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ reservation.transaction.customer.full_name }}</strong>
+                            <br>
+                            <small>
+                                {{ reservation.zone.name }}
+                                {% if reservation.seat %}
+                                    - {{ reservation.seat.seat_label }}
+                                {% else %}
+                                    ({{ reservation.quantity }} tickets)
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-danger">
+                                <i class="bi bi-clock"></i>
+                                {{ reservation.reserved_until|date:"H:i" }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <hr>
+            <a href="{% url 'sales:reservation_list' %}" class="btn btn-warning btn-sm">
+                {% trans "Manage Reservations" %}
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh dashboard every 30 seconds
+    setInterval(function() {
+        // Only refresh if user is still on the page
+        if (document.visibilityState === 'visible') {
+            location.reload();
+        }
+    }, 30000);
+});
+</script>
+{% endblock %}

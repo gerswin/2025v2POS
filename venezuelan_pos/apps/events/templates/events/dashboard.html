@@ -1,0 +1,293 @@
+{% extends 'events/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Dashboard" %} - Tiquemax{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">{% trans "Dashboard" %}</h1>
+    <div class="text-muted">
+        <i class="bi bi-calendar"></i>
+        {{ today|date:"l, d F Y" }}
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <div class="stats-number">{{ stats.total_venues }}</div>
+                <div>{% trans "Total Venues" %}</div>
+                <small class="opacity-75">
+                    <i class="bi bi-arrow-up"></i>
+                    {{ stats.active_venues }} {% trans "active" %}
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card" style="background: linear-gradient(135deg, #28a745, #20c997); color: white;">
+            <div class="card-body text-center">
+                <div class="stats-number">{{ stats.total_events }}</div>
+                <div>{% trans "Total Events" %}</div>
+                <small class="opacity-75">
+                    <i class="bi bi-arrow-up"></i>
+                    {{ stats.active_events }} {% trans "active" %}
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card" style="background: linear-gradient(135deg, #ffc107, #fd7e14); color: white;">
+            <div class="card-body text-center">
+                <div class="stats-number">{{ stats.upcoming_events }}</div>
+                <div>{% trans "Upcoming Events" %}</div>
+                <small class="opacity-75">
+                    <i class="bi bi-calendar-plus"></i>
+                    {% trans "This month" %}
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card" style="background: linear-gradient(135deg, #dc3545, #e83e8c); color: white;">
+            <div class="card-body text-center">
+                <div class="stats-number">{{ stats.draft_events }}</div>
+                <div>{% trans "Draft Events" %}</div>
+                <small class="opacity-75">
+                    <i class="bi bi-pencil"></i>
+                    {% trans "Pending" %}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Events -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-event me-2"></i>
+                    {% trans "Recent Events" %}
+                </h5>
+                <a href="{% url 'events:event_list' %}" class="btn btn-sm btn-outline-light">
+                    {% trans "View All" %}
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_events %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Event" %}</th>
+                                    <th>{% trans "Venue" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in recent_events %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ event.name }}</div>
+                                        <small class="text-muted">{{ event.event_type|title }}</small>
+                                    </td>
+                                    <td>
+                                        <div>{{ event.venue.name }}</div>
+                                        <small class="text-muted">{{ event.venue.city }}</small>
+                                    </td>
+                                    <td>
+                                        <div>{{ event.start_date|date:"d M Y" }}</div>
+                                        <small class="text-muted">{{ event.start_date|time:"H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        {% if event.status == 'active' %}
+                                            <span class="badge bg-success">{% trans "Active" %}</span>
+                                        {% elif event.status == 'draft' %}
+                                            <span class="badge bg-warning">{% trans "Draft" %}</span>
+                                        {% elif event.status == 'closed' %}
+                                            <span class="badge bg-secondary">{% trans "Closed" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{% trans "Cancelled" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'events:event_detail' event.id %}" 
+                                               class="btn btn-outline-primary" title="Ver">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{% url 'events:event_edit' event.id %}" 
+                                               class="btn btn-outline-secondary" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="/zones/events/{{ event.id }}/map-editor/" 
+                                               class="btn btn-outline-success" title="Editor de Mapas">
+                                                <i class="fas fa-map"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-calendar-x display-4 text-muted"></i>
+                        <p class="text-muted mt-2">{% trans "No recent events" %}</p>
+                        <a href="{% url 'events:event_create' %}" class="btn btn-primary">
+                            <i class="bi bi-plus"></i> {% trans "Create First Event" %}
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions & Venues -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning me-2"></i>
+                    {% trans "Quick Actions" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'events:event_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        {% trans "Create Event" %}
+                    </a>
+                    <a href="{% url 'events:venue_create' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-building-add me-2"></i>
+                        {% trans "Add Venue" %}
+                    </a>
+                    <a href="#" class="btn btn-outline-secondary">
+                        <i class="bi bi-graph-up me-2"></i>
+                        {% trans "View Reports" %}
+                    </a>
+                    <a href="#" class="btn btn-outline-info">
+                        <i class="bi bi-gear me-2"></i>
+                        {% trans "Settings" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Editor Feature -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-map me-2"></i>
+                    {% trans "Map Editor" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text small text-muted mb-3">
+                    {% trans "Visually organize your event zones with our interactive map editor." %}
+                </p>
+                <div class="d-grid gap-2">
+                    {% if recent_events %}
+                        {% for event in recent_events|slice:":2" %}
+                        <a href="/zones/events/{{ event.id }}/map-editor/" class="btn btn-sm btn-success">
+                            <i class="fas fa-map me-1"></i>
+                            {% trans "Map" %}: {{ event.name|truncatechars:20 }}
+                        </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted py-2">
+                            <i class="fas fa-info-circle"></i>
+                            <small>{% trans "Create an event to use the map editor" %}</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Venues -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-building me-2"></i>
+                    {% trans "Top Venues" %}
+                </h5>
+                <a href="{% url 'events:venue_list' %}" class="btn btn-sm btn-outline-light">
+                    {% trans "View All" %}
+                </a>
+            </div>
+            <div class="card-body">
+                {% if top_venues %}
+                    {% for venue in top_venues %}
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="bi bi-building"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="fw-bold">{{ venue.name }}</div>
+                            <small class="text-muted">
+                                {{ venue.city }} • {{ venue.capacity|default:"N/A" }} cap.
+                            </small>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <span class="badge bg-light text-dark">{{ venue.events_count }} {% trans "events" %}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="bi bi-building-x display-6 text-muted"></i>
+                        <p class="text-muted mt-2 mb-0">{% trans "No venues registered" %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-activity me-2"></i>
+                    {% trans "Recent Activity" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                 style="width: 32px; height: 32px;">
+                                <i class="bi bi-plus" style="font-size: 0.8rem;"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="fw-bold">{% trans "System initialized" %}</div>
+                            <small class="text-muted">{% trans "Welcome to Tiquemax" %}</small>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <small class="text-muted">{% trans "Today" %}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

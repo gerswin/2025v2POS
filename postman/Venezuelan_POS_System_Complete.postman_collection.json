@@ -1,0 +1,547 @@
+{
+  "info": {
+    "name": "Venezuelan POS System - Complete API",
+    "description": "Complete API collection for the Venezuelan POS System with test users and all endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "6f835c9d-03b2-4939-ae09-612411bd9a04",
+    "version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    }
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Login - System Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login",
+                ""
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.access);",
+                  "    pm.test('Login successful', () => {",
+                  "        pm.expect(response.access).to.be.a('string');",
+                  "    });",
+                  "} else {",
+                  "    pm.test('Login failed', () => {",
+                  "        pm.expect.fail('Login request failed');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - Carlos Admin (Eventos Caracas)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"carlos.admin\",\n  \"password\": \"carlos123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login",
+                ""
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.access);",
+                  "    pm.test('Login successful', () => {",
+                  "        pm.expect(response.access).to.be.a('string');",
+                  "        pm.expect(response.user.role).to.eql('tenant_admin');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - Maria Operator (Eventos Caracas)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"maria.operator\",\n  \"password\": \"maria123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login",
+                ""
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.access);",
+                  "    pm.test('Login successful', () => {",
+                  "        pm.expect(response.access).to.be.a('string');",
+                  "        pm.expect(response.user.role).to.eql('event_operator');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/profile/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "profile",
+                ""
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏢 Venues",
+      "item": [
+        {
+          "name": "List All Venues",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/venues/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "venues",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Active Venues",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/venues/active/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "venues",
+                "active",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Venues",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/venues/?search=teatro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "venues",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "teatro"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter Venues by City",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/venues/?city=Caracas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "venues",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "Caracas"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create New Venue",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Venue\",\n  \"address\": \"Test Address 123\",\n  \"city\": \"Caracas\",\n  \"state\": \"Distrito Capital\",\n  \"country\": \"Venezuela\",\n  \"capacity\": 500,\n  \"venue_type\": \"physical\",\n  \"contact_phone\": \"+58-212-555-9999\",\n  \"contact_email\": \"test@venue.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/venues/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "venues",
+                ""
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎭 Events",
+      "item": [
+        {
+          "name": "List All Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/events/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "events",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Active Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/events/active/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "events",
+                "active",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Upcoming Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/events/upcoming/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "events",
+                "upcoming",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Events with Active Sales",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/events/sales_active/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "events",
+                "sales_active",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/events/?search=concierto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "events",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "concierto"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create New Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Event\",\n  \"description\": \"A test event for API testing\",\n  \"event_type\": \"general_assignment\",\n  \"venue\": \"VENUE_UUID_HERE\",\n  \"start_date\": \"2025-12-31T20:00:00-04:00\",\n  \"end_date\": \"2025-12-31T23:00:00-04:00\",\n  \"sales_start_date\": \"2025-11-01T00:00:00-04:00\",\n  \"sales_end_date\": \"2025-12-31T18:00:00-04:00\",\n  \"event_configuration\": {\n    \"partial_payments_enabled\": true,\n    \"installment_plans_enabled\": true,\n    \"max_installments\": 3,\n    \"min_down_payment_percentage\": \"25.00\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/events/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "events",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Activate Event",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/events/EVENT_UUID_HERE/activate/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "events",
+                "EVENT_UUID_HERE",
+                "activate",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Deactivate Event",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/events/EVENT_UUID_HERE/deactivate/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "events",
+                "EVENT_UUID_HERE",
+                "deactivate",
+                ""
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔧 System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "API Schema",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/schema/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "schema",
+                ""
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

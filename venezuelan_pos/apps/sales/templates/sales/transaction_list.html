@@ -1,0 +1,385 @@
+{% extends 'events/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Transactions" %} - Tiquemax{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'sales:dashboard' %}">{% trans "Sales" %}</a></li>
+<li class="breadcrumb-item active">{% trans "Transactions" %}</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.filters-card {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.transaction-row {
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.transaction-row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.status-indicator {
+    width: 4px;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    border-radius: 0.375rem 0 0 0.375rem;
+}
+
+.status-indicator.completed { background-color: var(--success-color); }
+.status-indicator.pending { background-color: var(--warning-color); }
+.status-indicator.reserved { background-color: var(--info-color); }
+.status-indicator.cancelled { background-color: var(--danger-color); }
+
+.transaction-card {
+    position: relative;
+    border-left: 4px solid transparent;
+    margin-bottom: 1rem;
+}
+
+.transaction-card.completed { border-left-color: var(--success-color); }
+.transaction-card.pending { border-left-color: var(--warning-color); }
+.transaction-card.reserved { border-left-color: var(--info-color); }
+.transaction-card.cancelled { border-left-color: var(--danger-color); }
+
+.quick-stats {
+    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .filters-card {
+        padding: 1rem;
+    }
+    
+    .transaction-card .row {
+        text-align: center;
+    }
+    
+    .transaction-card .col-md-3 {
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="bi bi-receipt"></i>
+        {% trans "Transactions" %}
+    </h1>
+    <div>
+        <a href="{% url 'sales:dashboard' %}" class="btn btn-outline-primary me-2">
+            <i class="bi bi-speedometer2"></i> {% trans "Dashboard" %}
+        </a>
+        <a href="{% url 'sales:reservation_list' %}" class="btn btn-outline-warning">
+            <i class="bi bi-clock"></i> {% trans "Reservations" %}
+        </a>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="quick-stats">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stat-item">
+                <span class="stat-number">{{ total_transactions }}</span>
+                <small>{% trans "Total Transactions" %}</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-item">
+                <span class="stat-number">
+                    {{ transactions|length }}
+                </span>
+                <small>{% trans "Filtered Results" %}</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-item">
+                <span class="stat-number">
+                    {% widthratio transactions|length total_transactions 100 %}%
+                </span>
+                <small>{% trans "Match Rate" %}</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-item">
+                <span class="stat-number">
+                    {{ page_obj.paginator.num_pages }}
+                </span>
+                <small>{% trans "Pages" %}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filters-card">
+    <form method="get" class="row g-3">
+        <div class="col-md-3">
+            <label for="search" class="form-label">{% trans "Search" %}</label>
+            <input type="text" class="form-control" id="search" name="search" 
+                   value="{{ request.GET.search }}" 
+                   placeholder="{% trans 'Fiscal series, customer name, email...' %}">
+        </div>
+        <div class="col-md-2">
+            <label for="status" class="form-label">{% trans "Status" %}</label>
+            <select class="form-select" id="status" name="status">
+                <option value="">{% trans "All Statuses" %}</option>
+                <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>
+                    {% trans "Completed" %}
+                </option>
+                <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>
+                    {% trans "Pending" %}
+                </option>
+                <option value="reserved" {% if request.GET.status == 'reserved' %}selected{% endif %}>
+                    {% trans "Reserved" %}
+                </option>
+                <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>
+                    {% trans "Cancelled" %}
+                </option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label for="event" class="form-label">{% trans "Event" %}</label>
+            <select class="form-select" id="event" name="event">
+                <option value="">{% trans "All Events" %}</option>
+                {% for event in events_for_filter %}
+                <option value="{{ event.id }}" {% if request.GET.event == event.id|stringformat:"s" %}selected{% endif %}>
+                    {{ event.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label for="date_from" class="form-label">{% trans "From Date" %}</label>
+            <input type="date" class="form-control" id="date_from" name="date_from" 
+                   value="{{ request.GET.date_from }}">
+        </div>
+        <div class="col-md-2">
+            <label for="date_to" class="form-label">{% trans "To Date" %}</label>
+            <input type="date" class="form-control" id="date_to" name="date_to" 
+                   value="{{ request.GET.date_to }}">
+        </div>
+        <div class="col-md-1">
+            <label class="form-label">&nbsp;</label>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </div>
+    </form>
+    
+    {% if request.GET %}
+    <div class="mt-3">
+        <a href="{% url 'sales:transaction_list' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-x-circle"></i> {% trans "Clear Filters" %}
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Transactions List -->
+{% if transactions %}
+<div class="transactions-list">
+    {% for transaction in transactions %}
+    <div class="card transaction-card {{ transaction.status }}" 
+         onclick="window.location.href='{% url 'sales:transaction_detail' transaction_id=transaction.id %}'">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <div class="transaction-id">
+                        <h6 class="mb-1">
+                            {% if transaction.fiscal_series %}
+                                <i class="bi bi-receipt"></i> {{ transaction.fiscal_series }}
+                            {% else %}
+                                <i class="bi bi-hash"></i> {{ transaction.id|slice:":8" }}
+                            {% endif %}
+                        </h6>
+                        <small class="text-muted">
+                            <i class="bi bi-clock"></i> {{ transaction.created_at|date:"M d, H:i" }}
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="customer-info">
+                        <h6 class="mb-1">{{ transaction.customer.full_name }}</h6>
+                        <small class="text-muted">
+                            {% if transaction.customer.email %}
+                                <i class="bi bi-envelope"></i> {{ transaction.customer.email }}
+                            {% elif transaction.customer.phone %}
+                                <i class="bi bi-phone"></i> {{ transaction.customer.phone }}
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="event-info">
+                        <h6 class="mb-1">{{ transaction.event.name }}</h6>
+                        <small class="text-muted">
+                            <i class="bi bi-ticket"></i> {{ transaction.ticket_count }} {% trans "tickets" %}
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="amount-info text-md-end">
+                        <div class="h5 text-success mb-1">
+                            ${{ transaction.total_amount|floatformat:2 }}
+                        </div>
+                        <small class="text-muted">{{ transaction.currency }}</small>
+                    </div>
+                </div>
+                <div class="col-md-1 text-md-end">
+                    <span class="badge bg-{% if transaction.status == 'completed' %}success{% elif transaction.status == 'pending' %}warning{% elif transaction.status == 'reserved' %}info{% else %}secondary{% endif %} fs-6">
+                        {{ transaction.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="{% trans 'Transactions pagination' %}">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">
+                <i class="bi bi-chevron-double-left"></i>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <li class="page-item active">
+            <span class="page-link">{{ num }}</span>
+        </li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <li class="page-item">
+            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}">
+                <i class="bi bi-chevron-double-right"></i>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+
+<div class="text-center text-muted">
+    {% trans "Showing" %} {{ page_obj.start_index }} - {{ page_obj.end_index }} 
+    {% trans "of" %} {{ page_obj.paginator.count }} {% trans "transactions" %}
+</div>
+{% endif %}
+
+{% else %}
+<!-- Empty State -->
+<div class="text-center py-5">
+    <i class="bi bi-receipt display-1 text-muted"></i>
+    <h3 class="mt-3">{% trans "No transactions found" %}</h3>
+    <p class="text-muted">
+        {% if request.GET %}
+            {% trans "Try adjusting your search filters or" %}
+            <a href="{% url 'sales:transaction_list' %}">{% trans "clear all filters" %}</a>
+        {% else %}
+            {% trans "No transactions have been created yet." %}
+        {% endif %}
+    </p>
+    <a href="{% url 'sales:dashboard' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> {% trans "Start Selling" %}
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit form on filter change
+    const filterForm = document.querySelector('.filters-card form');
+    const filterInputs = filterForm.querySelectorAll('select, input[type="date"]');
+    
+    filterInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            if (this.name !== 'search') {
+                filterForm.submit();
+            }
+        });
+    });
+    
+    // Search input with debounce
+    const searchInput = document.getElementById('search');
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            if (this.value.length >= 3 || this.value.length === 0) {
+                filterForm.submit();
+            }
+        }, 500);
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + F to focus search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+            e.preventDefault();
+            searchInput.focus();
+            searchInput.select();
+        }
+        
+        // Escape to clear search
+        if (e.key === 'Escape' && document.activeElement === searchInput) {
+            searchInput.value = '';
+            filterForm.submit();
+        }
+    });
+});
+</script>
+{% endblock %}

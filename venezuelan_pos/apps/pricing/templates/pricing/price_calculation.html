@@ -1,0 +1,523 @@
+{% extends 'events/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Price Calculator" %} - Tiquemax{% endblock %}
+
+{% block breadcrumb_items %}
+    <li class="breadcrumb-item"><a href="{% url 'pricing_web:dashboard' %}">{% trans "Pricing" %}</a></li>
+    <li class="breadcrumb-item active">{% trans "Price Calculator" %}</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="bi bi-calculator me-2"></i>
+        {% trans "Price Calculator" %}
+    </h1>
+    <a href="{% url 'pricing_web:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> {% trans "Back to Dashboard" %}
+    </a>
+</div>
+
+<div class="row">
+    <!-- Calculation Form -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-gear me-2"></i>{% trans "Calculation Parameters" %}
+            </div>
+            <div class="card-body">
+                <form method="post" id="calculationForm" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Event Selection -->
+                    <div class="mb-3">
+                        <label for="{{ form.event.id_for_label }}" class="form-label">
+                            {{ form.event.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.event }}
+                        {% if form.event.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.event.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Zone Selection -->
+                    <div class="mb-3">
+                        <label for="{{ form.zone.id_for_label }}" class="form-label">
+                            {{ form.zone.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.zone }}
+                        {% if form.zone.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.zone.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            {% trans "Select an event first to see available zones" %}
+                        </div>
+                    </div>
+
+                    <!-- Row and Seat Selection -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.row_number.id_for_label }}" class="form-label">
+                                {{ form.row_number.label }}
+                            </label>
+                            {{ form.row_number }}
+                            {% if form.row_number.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.row_number.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.seat_number.id_for_label }}" class="form-label">
+                                {{ form.seat_number.label }}
+                            </label>
+                            {{ form.seat_number }}
+                            {% if form.seat_number.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.seat_number.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Calculation Date -->
+                    <div class="mb-3">
+                        <label for="{{ form.calculation_date.id_for_label }}" class="form-label">
+                            {{ form.calculation_date.label }}
+                        </label>
+                        {{ form.calculation_date }}
+                        {% if form.calculation_date.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.calculation_date.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            {% trans "Leave empty to use current date and time" %}
+                        </div>
+                    </div>
+
+                    <!-- Form Errors -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Actions -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-calculator"></i> {% trans "Calculate Price" %}
+                        </button>
+                        <button type="button" class="btn btn-outline-info" id="realTimeBtn">
+                            <i class="bi bi-arrow-clockwise"></i> {% trans "Enable Real-time Calculation" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Calculation Presets -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <i class="bi bi-lightning me-2"></i>{% trans "Quick Calculations" %}
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="setQuickCalc('zone')">
+                            <i class="bi bi-square"></i><br>
+                            <small>{% trans "Zone Base Price" %}</small>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-outline-success btn-sm w-100" onclick="setQuickCalc('front')">
+                            <i class="bi bi-star"></i><br>
+                            <small>{% trans "Front Row" %}</small>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-outline-warning btn-sm w-100" onclick="setQuickCalc('middle')">
+                            <i class="bi bi-circle"></i><br>
+                            <small>{% trans "Middle Row" %}</small>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-outline-info btn-sm w-100" onclick="setQuickCalc('back')">
+                            <i class="bi bi-triangle"></i><br>
+                            <small>{% trans "Back Row" %}</small>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calculation Results -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-receipt me-2"></i>{% trans "Calculation Results" %}
+            </div>
+            <div class="card-body">
+                {% if calculation_result %}
+                    <!-- Final Price Display -->
+                    <div class="text-center mb-4">
+                        <div class="display-4 text-success">${{ calculation_result.final_price }}</div>
+                        <div class="text-muted">{% trans "Final Price" %}</div>
+                    </div>
+
+                    <!-- Price Breakdown -->
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title">{% trans "Price Breakdown" %}</h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="small text-muted">{% trans "Base Price" %}</div>
+                                    <div class="h6">${{ calculation_result.base_price }}</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">{% trans "Total Markup" %}</div>
+                                    <div class="h6 text-primary">+${{ calculation_result.total_markup_amount }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Zone Information -->
+                    <div class="mb-3">
+                        <h6>{% trans "Zone Information" %}</h6>
+                        <p class="mb-1"><strong>{% trans "Zone:" %}</strong> {{ calculation_result.zone_name }}</p>
+                        <p class="mb-1"><strong>{% trans "Type:" %}</strong> {{ calculation_result.zone_type }}</p>
+                        {% if calculation_result.seat_label %}
+                            <p class="mb-1"><strong>{% trans "Seat:" %}</strong> {{ calculation_result.seat_label }}</p>
+                        {% endif %}
+                        <p class="mb-0"><strong>{% trans "Calculation Date:" %}</strong> {{ calculation_result.calculation_date }}</p>
+                    </div>
+
+                    <!-- Price Stages Applied -->
+                    {% if calculation_result.stages %}
+                        <div class="mb-3">
+                            <h6>{% trans "Price Stages Applied" %}</h6>
+                            {% for stage in calculation_result.stages %}
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <strong>{{ stage.name }}</strong>
+                                        {% if stage.is_current %}
+                                            <span class="badge bg-success ms-2">{% trans "Current" %}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-primary">+{{ stage.percentage_markup }}%</span>
+                                        <span class="text-success ms-2">+${{ stage.markup_amount }}</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Row Pricing Applied -->
+                    {% if calculation_result.row_pricing %}
+                        <div class="mb-3">
+                            <h6>{% trans "Row Pricing Applied" %}</h6>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{% trans "Row" %} {{ calculation_result.row_number }}</strong>
+                                    {% if calculation_result.row_pricing.name %}
+                                        - {{ calculation_result.row_pricing.name }}
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <span class="badge bg-warning">+{{ calculation_result.row_pricing.percentage_markup }}%</span>
+                                    <span class="text-success ms-2">+${{ calculation_result.row_pricing.markup_amount }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Seat Modifier Applied -->
+                    {% if calculation_result.seat_modifier %}
+                        <div class="mb-3">
+                            <h6>{% trans "Seat Modifier Applied" %}</h6>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ calculation_result.seat_label }}</strong>
+                                </div>
+                                <div>
+                                    <span class="badge bg-info">{{ calculation_result.seat_modifier.modifier }}%</span>
+                                    <span class="text-success ms-2">${{ calculation_result.seat_modifier.amount }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Actions -->
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-primary" onclick="copyResults()">
+                            <i class="bi bi-clipboard"></i> {% trans "Copy Results" %}
+                        </button>
+                        <button type="button" class="btn btn-outline-success" onclick="saveCalculation()">
+                            <i class="bi bi-save"></i> {% trans "Save Calculation" %}
+                        </button>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-calculator display-1"></i>
+                        <h4 class="mt-3">{% trans "No Calculation Yet" %}</h4>
+                        <p>{% trans "Fill in the form and click 'Calculate Price' to see results here." %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Calculation History -->
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock-history me-2"></i>{% trans "Recent Calculations" %}</span>
+                <a href="{% url 'pricing_web:price_history' %}" class="btn btn-sm btn-outline-primary">
+                    {% trans "View All" %}
+                </a>
+            </div>
+            <div class="card-body">
+                <div id="calculationHistory">
+                    <div class="text-center text-muted">
+                        <i class="bi bi-clock-history"></i>
+                        <p class="mb-0">{% trans "No recent calculations" %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let realTimeEnabled = false;
+let calculationHistory = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    const eventSelect = document.getElementById('{{ form.event.id_for_label }}');
+    const zoneSelect = document.getElementById('{{ form.zone.id_for_label }}');
+    const realTimeBtn = document.getElementById('realTimeBtn');
+    const form = document.getElementById('calculationForm');
+    
+    // Load zones when event changes
+    eventSelect.addEventListener('change', function() {
+        const eventId = this.value;
+        if (eventId) {
+            loadZones(eventId);
+        } else {
+            zoneSelect.innerHTML = '<option value="">{% trans "Select an event first" %}</option>';
+        }
+    });
+    
+    // Real-time calculation toggle
+    realTimeBtn.addEventListener('click', function() {
+        realTimeEnabled = !realTimeEnabled;
+        if (realTimeEnabled) {
+            this.innerHTML = '<i class="bi bi-pause"></i> {% trans "Disable Real-time" %}';
+            this.className = 'btn btn-warning';
+            enableRealTimeCalculation();
+        } else {
+            this.innerHTML = '<i class="bi bi-arrow-clockwise"></i> {% trans "Enable Real-time Calculation" %}';
+            this.className = 'btn btn-outline-info';
+            disableRealTimeCalculation();
+        }
+    });
+    
+    // Load initial zones if event is selected
+    if (eventSelect.value) {
+        loadZones(eventSelect.value);
+    }
+});
+
+function loadZones(eventId) {
+    fetch(`{% url 'pricing_web:ajax_get_zones' %}?event_id=${eventId}`)
+        .then(response => response.json())
+        .then(data => {
+            const zoneSelect = document.getElementById('{{ form.zone.id_for_label }}');
+            zoneSelect.innerHTML = '<option value="">{% trans "Select a zone" %}</option>';
+            
+            data.zones.forEach(zone => {
+                const option = document.createElement('option');
+                option.value = zone.id;
+                option.textContent = `${zone.name} (${zone.zone_type}) - $${zone.base_price}`;
+                zoneSelect.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading zones:', error);
+        });
+}
+
+function enableRealTimeCalculation() {
+    const inputs = document.querySelectorAll('#calculationForm input, #calculationForm select');
+    inputs.forEach(input => {
+        input.addEventListener('input', debounce(performRealTimeCalculation, 500));
+        input.addEventListener('change', performRealTimeCalculation);
+    });
+}
+
+function disableRealTimeCalculation() {
+    const inputs = document.querySelectorAll('#calculationForm input, #calculationForm select');
+    inputs.forEach(input => {
+        input.removeEventListener('input', performRealTimeCalculation);
+        input.removeEventListener('change', performRealTimeCalculation);
+    });
+}
+
+function performRealTimeCalculation() {
+    if (!realTimeEnabled) return;
+    
+    const formData = new FormData(document.getElementById('calculationForm'));
+    const data = Object.fromEntries(formData.entries());
+    
+    // Check if we have minimum required data
+    if (!data.event || !data.zone) return;
+    
+    fetch('{% url "pricing_web:ajax_calculate_price" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            event_id: data.event,
+            zone_id: data.zone,
+            row_number: data.row_number || null,
+            seat_number: data.seat_number || null,
+            calculation_date: data.calculation_date || null
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateResultsDisplay(data.calculation);
+            addToHistory(data.calculation);
+        }
+    })
+    .catch(error => {
+        console.error('Real-time calculation error:', error);
+    });
+}
+
+function updateResultsDisplay(calculation) {
+    // This would update the results display with the calculation data
+    // Implementation would mirror the server-side template rendering
+    console.log('Updating results:', calculation);
+}
+
+function addToHistory(calculation) {
+    calculationHistory.unshift(calculation);
+    if (calculationHistory.length > 5) {
+        calculationHistory.pop();
+    }
+    updateHistoryDisplay();
+}
+
+function updateHistoryDisplay() {
+    const historyContainer = document.getElementById('calculationHistory');
+    if (calculationHistory.length === 0) {
+        historyContainer.innerHTML = `
+            <div class="text-center text-muted">
+                <i class="bi bi-clock-history"></i>
+                <p class="mb-0">{% trans "No recent calculations" %}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let historyHtml = '';
+    calculationHistory.forEach((calc, index) => {
+        historyHtml += `
+            <div class="d-flex justify-content-between align-items-center mb-2 ${index > 0 ? 'border-top pt-2' : ''}">
+                <div>
+                    <small class="text-muted">${calc.zone_name}</small>
+                    ${calc.seat_label ? `<br><small>${calc.seat_label}</small>` : ''}
+                </div>
+                <div class="text-end">
+                    <div class="text-success">$${calc.final_price}</div>
+                </div>
+            </div>
+        `;
+    });
+    
+    historyContainer.innerHTML = historyHtml;
+}
+
+function setQuickCalc(type) {
+    const zoneSelect = document.getElementById('{{ form.zone.id_for_label }}');
+    const rowInput = document.getElementById('{{ form.row_number.id_for_label }}');
+    const seatInput = document.getElementById('{{ form.seat_number.id_for_label }}');
+    
+    if (!zoneSelect.value) {
+        alert('{% trans "Please select a zone first" %}');
+        return;
+    }
+    
+    // Clear previous values
+    rowInput.value = '';
+    seatInput.value = '';
+    
+    switch (type) {
+        case 'zone':
+            // Zone base price - no row/seat
+            break;
+        case 'front':
+            rowInput.value = '1';
+            seatInput.value = '1';
+            break;
+        case 'middle':
+            rowInput.value = '10';
+            seatInput.value = '10';
+            break;
+        case 'back':
+            rowInput.value = '20';
+            seatInput.value = '20';
+            break;
+    }
+    
+    if (realTimeEnabled) {
+        performRealTimeCalculation();
+    }
+}
+
+function copyResults() {
+    {% if calculation_result %}
+    const results = `
+Zone: {{ calculation_result.zone_name }}
+Final Price: ${{ calculation_result.final_price }}
+Base Price: ${{ calculation_result.base_price }}
+Total Markup: +${{ calculation_result.total_markup_amount }}
+Calculation Date: {{ calculation_result.calculation_date }}
+    `.trim();
+    
+    navigator.clipboard.writeText(results).then(() => {
+        alert('{% trans "Results copied to clipboard" %}');
+    });
+    {% endif %}
+}
+
+function saveCalculation() {
+    // This would save the calculation to the user's saved calculations
+    alert('{% trans "Calculation saved" %}');
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+</script>
+{% endblock %}

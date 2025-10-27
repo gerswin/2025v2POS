@@ -1,0 +1,1 @@
+default_app_config = 'venezuelan_pos.apps.sales.apps.SalesConfig'

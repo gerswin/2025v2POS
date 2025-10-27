@@ -1,0 +1,782 @@
+{% extends 'events/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Seat Selection" %} - {{ event.name }} - Tiquemax{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'sales:dashboard' %}">{% trans "Sales" %}</a></li>
+<li class="breadcrumb-item active">{% trans "Seat Selection" %}</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.zone-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.zone-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-color: var(--primary-color);
+}
+
+.zone-card.sold-out {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.zone-card.sold-out:hover {
+    transform: none;
+    border-color: transparent;
+}
+
+.occupancy-bar {
+    height: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.occupancy-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.occupancy-fill.low { background-color: #28a745; }
+.occupancy-fill.medium { background-color: #ffc107; }
+.occupancy-fill.high { background-color: #fd7e14; }
+.occupancy-fill.full { background-color: #dc3545; }
+
+.cart-sidebar {
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+
+.cart-item {
+    border-left: 4px solid var(--primary-color);
+    background-color: #f8f9fa;
+    margin-bottom: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+}
+
+.event-header {
+    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    color: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.zone-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.zone-price {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: var(--success-color);
+}
+
+@media (max-width: 768px) {
+    .cart-sidebar {
+        position: static;
+        max-height: none;
+        margin-top: 2rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Event Header -->
+<div class="event-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="h2 mb-2">{{ event.name }}</h1>
+            <p class="mb-1">
+                <i class="bi bi-building"></i> {{ event.venue.name }}
+            </p>
+            <p class="mb-0">
+                <i class="bi bi-calendar"></i> {{ event.start_date|date:"l, F d, Y" }}
+                <i class="bi bi-clock ms-3"></i> {{ event.start_date|date:"H:i" }}
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <div class="badge bg-success fs-6 px-3 py-2">
+                <i class="bi bi-check-circle"></i> {% trans "Sales Active" %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Zone Selection -->
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>{% trans "Select Zone" %}</h3>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="gridView">
+                    <i class="bi bi-grid-3x3-gap"></i> {% trans "Grid" %}
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="listView">
+                    <i class="bi bi-list"></i> {% trans "List" %}
+                </button>
+            </div>
+        </div>
+
+        <!-- Zone Grid -->
+        <div id="zoneGrid" class="row">
+            {% for zone in zones %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card zone-card h-100 {% if zone.is_sold_out %}sold-out{% endif %}" 
+                     data-zone-id="{{ zone.id }}"
+                     {% if not zone.is_sold_out %}onclick="selectZone('{{ zone.id }}', '{{ zone.zone_type }}')"{% endif %}>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">{{ zone.name }}</h5>
+                            <span class="badge bg-{% if zone.zone_type == 'numbered' %}primary{% else %}info{% endif %}">
+                                {% if zone.zone_type == 'numbered' %}
+                                    <i class="bi bi-grid-3x3"></i> {% trans "Numbered" %}
+                                {% else %}
+                                    <i class="bi bi-people"></i> {% trans "General" %}
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        {% if zone.description %}
+                        <p class="card-text text-muted small">{{ zone.description }}</p>
+                        {% endif %}
+                        
+                        <div class="zone-stats">
+                            <div>
+                                <small class="text-muted">{% trans "Available" %}</small>
+                                <br>
+                                <strong>{{ zone.available_seats }}/{{ zone.total_seats }}</strong>
+                            </div>
+                            <div class="text-end">
+                                <div class="zone-price">${{ zone.base_price|floatformat:2 }}</div>
+                                <small class="text-muted">{% trans "from" %}</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Occupancy Bar -->
+                        <div class="occupancy-bar mt-2">
+                            <div class="occupancy-fill {% if zone.occupancy_percentage < 25 %}low{% elif zone.occupancy_percentage < 50 %}medium{% elif zone.occupancy_percentage < 90 %}high{% else %}full{% endif %}"
+                                style="width: {{ zone.occupancy_percentage }}%">
+                            </div>
+                        </div>
+                        <small class="text-muted">{{ zone.occupancy_percentage|floatformat:0 }}% {% trans "occupied" %}</small>
+                        
+                        {% if zone.is_sold_out %}
+                        <div class="text-center mt-2">
+                            <span class="badge bg-danger">
+                                <i class="bi bi-x-circle"></i> {% trans "Sold Out" %}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Zone List View (Hidden by default) -->
+        <div id="zoneList" class="d-none">
+            <div class="list-group">
+                {% for zone in zones %}
+                <div class="list-group-item list-group-item-action {% if zone.is_sold_out %}disabled{% endif %}"
+                     {% if not zone.is_sold_out %}onclick="selectZone('{{ zone.id }}', '{{ zone.zone_type }}')"{% endif %}>
+                    <div class="d-flex w-100 justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">{{ zone.name }}</h5>
+                            <p class="mb-1 text-muted">{{ zone.description }}</p>
+                            <small>
+                                <span class="badge bg-{% if zone.zone_type == 'numbered' %}primary{% else %}info{% endif %} me-2">
+                                    {% if zone.zone_type == 'numbered' %}{% trans "Numbered Seats" %}{% else %}{% trans "General Admission" %}{% endif %}
+                                </span>
+                                {{ zone.available_seats }}/{{ zone.total_seats }} {% trans "available" %}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <div class="zone-price">${{ zone.base_price|floatformat:2 }}</div>
+                            {% if zone.is_sold_out %}
+                                <span class="badge bg-danger">{% trans "Sold Out" %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Shopping Cart Sidebar -->
+    <div class="col-md-4">
+        <div class="cart-sidebar">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-cart"></i>
+                        {% trans "Shopping Cart" %}
+                        <span class="badge bg-light text-dark ms-2" id="cartCount">{{ cart_count }}</span>
+                    </h5>
+                </div>
+                <div class="card-body" id="cartContent">
+                    {% if cart_items %}
+                        {% for item in cart_items %}
+                        <div class="cart-item" data-item-key="{{ item.item_key }}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ item.zone_name }}</h6>
+                                    {% if item.seat_label %}
+                                        <small class="text-muted">{{ item.seat_label }}</small>
+                                    {% else %}
+                                        <small class="text-muted">{{ item.quantity }} {% trans "tickets" %}</small>
+                                    {% endif %}
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold">${{ item.total_price }}</div>
+                                    <button class="btn btn-sm btn-outline-danger" 
+                                            onclick="removeFromCart('{{ item.item_key }}')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <strong>{% trans "Total:" %}</strong>
+                            <strong class="fs-5" id="cartTotal">${{ cart_total|floatformat:2 }}</strong>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'sales:checkout' %}" class="btn btn-primary">
+                                <i class="bi bi-credit-card"></i> {% trans "Proceed to Checkout" %}
+                            </a>
+                            <button class="btn btn-outline-secondary" onclick="clearCart()">
+                                <i class="bi bi-trash"></i> {% trans "Clear Cart" %}
+                            </button>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-cart display-4"></i>
+                            <p class="mt-2">{% trans "Your cart is empty" %}</p>
+                            <small>{% trans "Select seats or zones to add tickets" %}</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Zone Selection Modal -->
+<div class="modal fade" id="zoneModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="zoneModalTitle">{% trans "Select Seats" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="zoneModalBody">
+                <!-- Zone content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentEventId = '{{ event.id }}';
+let cartUpdateInterval;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize view toggle
+    document.getElementById('gridView').addEventListener('click', function() {
+        showGridView();
+    });
+    
+    document.getElementById('listView').addEventListener('click', function() {
+        showListView();
+    });
+    
+    // Start cart update polling
+    startCartPolling();
+});
+
+function showGridView() {
+    document.getElementById('zoneGrid').classList.remove('d-none');
+    document.getElementById('zoneList').classList.add('d-none');
+    document.getElementById('gridView').classList.add('active');
+    document.getElementById('listView').classList.remove('active');
+}
+
+function showListView() {
+    document.getElementById('zoneGrid').classList.add('d-none');
+    document.getElementById('zoneList').classList.remove('d-none');
+    document.getElementById('listView').classList.add('active');
+    document.getElementById('gridView').classList.remove('active');
+}
+
+function selectZone(zoneId, zoneType) {
+    console.log('🎯 selectZone called with:', zoneId, zoneType);
+    
+    // Load zone content in modal
+    const modal = new bootstrap.Modal(document.getElementById('zoneModal'));
+    const modalBody = document.getElementById('zoneModalBody');
+    
+    // Store zone ID immediately for fallback
+    document.body.setAttribute('data-current-zone-id', zoneId);
+    modalBody.setAttribute('data-zone-id', zoneId);
+    console.log('🎯 Zone ID set immediately:', zoneId);
+    
+    // Show loading
+    modalBody.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading zone details...</p>
+        </div>
+    `;
+    
+    modal.show();
+    
+    // Load zone content
+    fetch(`/sales/events/${currentEventId}/zones/${zoneId}/seats/`)
+        .then(response => response.text())
+        .then(html => {
+            modalBody.innerHTML = html;
+            
+            // Ensure zone ID is set after content loads
+            document.body.setAttribute('data-current-zone-id', zoneId);
+            modalBody.setAttribute('data-zone-id', zoneId);
+            console.log('🎯 Zone ID confirmed after content load:', zoneId);
+            
+            // Trigger any initialization scripts in the loaded content
+            const scripts = modalBody.querySelectorAll('script');
+            scripts.forEach(script => {
+                if (script.innerHTML) {
+                    try {
+                        eval(script.innerHTML);
+                    } catch (e) {
+                        console.log('Script execution error:', e);
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error loading zone content:', error);
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Error loading zone details. Please try again.
+                </div>
+            `;
+        });
+}
+
+function removeFromCart(itemKey) {
+    fetch('{% url "sales:remove_from_cart" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            item_key: itemKey
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateCartDisplay();
+            showMessage('Item removed from cart', 'success');
+        } else {
+            showMessage(data.error || 'Error removing item', 'error');
+        }
+    })
+    .catch(error => {
+        showMessage('Error removing item from cart', 'error');
+    });
+}
+
+function clearCart() {
+    if (confirm('Are you sure you want to clear your cart?')) {
+        fetch('{% url "sales:clear_cart" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateCartDisplay();
+                showMessage('Cart cleared', 'success');
+            }
+        })
+        .catch(error => {
+            showMessage('Error clearing cart', 'error');
+        });
+    }
+}
+
+function updateCartDisplay() {
+    console.log('🔄 Updating cart display...');
+    
+    fetch('{% url "sales:ajax_cart_update" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('✅ Cart data received:', data);
+                
+                // Update cart count
+                const cartCountElement = document.getElementById('cartCount');
+                if (cartCountElement) {
+                    cartCountElement.textContent = data.cart_count;
+                }
+                
+                // Update cart total
+                const cartTotalElement = document.getElementById('cartTotal');
+                if (cartTotalElement) {
+                    cartTotalElement.textContent = '$' + parseFloat(data.cart_total).toFixed(2);
+                }
+                
+                // Update cart content dynamically
+                const cartContent = document.getElementById('cartContent');
+                if (cartContent) {
+                    if (data.cart_count === 0) {
+                        // Empty cart
+                        cartContent.innerHTML = `
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-cart display-4"></i>
+                                <p class="mt-2">Your cart is empty</p>
+                                <small>Select seats or zones to add tickets</small>
+                            </div>
+                        `;
+                    } else {
+                        // Cart has items - build the HTML dynamically
+                        let cartHTML = '';
+                        
+                        if (data.cart_items && data.cart_items.length > 0) {
+                            data.cart_items.forEach(item => {
+                                cartHTML += `
+                                    <div class="cart-item" data-item-key="${item.item_key}">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">${item.zone_name}</h6>
+                                                ${item.seat_label ? 
+                                                    `<small class="text-muted">${item.seat_label}</small>` : 
+                                                    `<small class="text-muted">${item.quantity} tickets</small>`
+                                                }
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="fw-bold">$${parseFloat(item.total_price).toFixed(2)}</div>
+                                                <button class="btn btn-sm btn-outline-danger" 
+                                                        onclick="removeFromCart('${item.item_key}')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                        }
+                        
+                        // Add total and checkout buttons
+                        cartHTML += `
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <strong>Total:</strong>
+                                <strong class="fs-5">$${parseFloat(data.cart_total).toFixed(2)}</strong>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'sales:checkout' %}" class="btn btn-primary">
+                                    <i class="bi bi-credit-card"></i> Proceed to Checkout
+                                </a>
+                                <button class="btn btn-outline-secondary" onclick="clearCart()">
+                                    <i class="bi bi-trash"></i> Clear Cart
+                                </button>
+                            </div>
+                        `;
+                        
+                        cartContent.innerHTML = cartHTML;
+                    }
+                }
+                
+                console.log('✅ Cart display updated successfully');
+            } else {
+                console.error('❌ Cart update failed:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('❌ Error updating cart display:', error);
+        });
+}
+
+function startCartPolling() {
+    // Update cart every 10 seconds
+    cartUpdateInterval = setInterval(updateCartDisplay, 10000);
+}
+
+function showMessage(message, type) {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const icon = type === 'success' ? 'check-circle' : 'exclamation-triangle';
+    
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            <i class="bi bi-${icon}"></i> ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    // Insert at the top of the content
+    const content = document.querySelector('.main-content');
+    content.insertAdjacentHTML('afterbegin', alertHtml);
+    
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+        const alert = content.querySelector('.alert');
+        if (alert) {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }
+    }, 3000);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Global variables for seat selection (accessible from modal content)
+window.selectedSeats = new Set();
+window.seatPrices = {};
+
+// Global functions for seat selection (accessible from modal content)
+window.toggleSeat = function(seatElement) {
+    const seatId = seatElement.dataset.seatId;
+    const status = seatElement.dataset.status;
+    
+    // Only allow selection of available seats
+    if (status !== 'available') {
+        return;
+    }
+    
+    if (window.selectedSeats.has(seatId)) {
+        // Deselect seat
+        window.selectedSeats.delete(seatId);
+        seatElement.classList.remove('selected');
+    } else {
+        // Select seat
+        window.selectedSeats.add(seatId);
+        seatElement.classList.add('selected');
+    }
+    
+    updateSelectionDisplay();
+};
+
+window.updateSelectionDisplay = function() {
+    const summaryDiv = document.getElementById('selectionSummary');
+    const totalDiv = document.getElementById('selectionTotal');
+    const seatsList = document.getElementById('selectedSeatsList');
+    const totalPrice = document.getElementById('totalPrice');
+    
+    if (!summaryDiv || !totalDiv || !seatsList || !totalPrice) {
+        return; // Elements not found, probably not in seat map view
+    }
+    
+    if (window.selectedSeats.size === 0) {
+        summaryDiv.classList.add('d-none');
+        totalDiv.classList.add('d-none');
+        return;
+    }
+    
+    // Show summary
+    summaryDiv.classList.remove('d-none');
+    totalDiv.classList.remove('d-none');
+    
+    // Update seats list
+    seatsList.innerHTML = '';
+    let total = 0;
+    
+    window.selectedSeats.forEach(seatId => {
+        const seatElement = document.querySelector(`[data-seat-id="${seatId}"]`);
+        if (!seatElement) return;
+        
+        const row = seatElement.dataset.row;
+        const seat = seatElement.dataset.seat;
+        let price = window.seatPrices[seatId];
+        
+        // If price is not in global variable, try to get it from the seat element
+        if (!price || price === 0) {
+            price = parseFloat(seatElement.dataset.price) || 0;
+            if (price > 0) {
+                window.seatPrices[seatId] = price; // Cache it for next time
+            }
+        }
+        
+        console.log(`🎫 Seat ${row}${seat} (ID: ${seatId}): $${price}`);
+        total += price;
+        
+        const seatTag = document.createElement('div');
+        seatTag.className = 'selected-seat-tag';
+        seatTag.innerHTML = `
+            Row ${row}, Seat ${seat} ($${price.toFixed(2)})
+            <button class="btn-close btn-close-white" style="font-size: 0.7rem;" 
+                    onclick="deselectSeat('${seatId}')"></button>
+        `;
+        seatsList.appendChild(seatTag);
+    });
+    
+    totalPrice.textContent = total.toFixed(2);
+};
+
+window.deselectSeat = function(seatId) {
+    window.selectedSeats.delete(seatId);
+    const seatElement = document.querySelector(`[data-seat-id="${seatId}"]`);
+    if (seatElement) {
+        seatElement.classList.remove('selected');
+    }
+    updateSelectionDisplay();
+};
+
+window.addSelectedSeatsToCart = function() {
+    if (window.selectedSeats.size === 0) {
+        return;
+    }
+    
+    const button = document.getElementById('addToCartBtn');
+    if (!button) return;
+    
+    const originalText = button.innerHTML;
+    
+    // Show loading
+    button.disabled = true;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Adding...';
+    
+    // Get zone ID from multiple sources
+    let zoneId = null;
+    
+    // Method 1: From body attribute set by modal content
+    zoneId = document.body.getAttribute('data-current-zone-id');
+    console.log('🔍 Zone ID from body attribute:', zoneId);
+    
+    // Method 2: From URL path
+    if (!zoneId) {
+        const urlParts = window.location.pathname.split('/');
+        const zoneIndex = urlParts.indexOf('zones');
+        if (zoneIndex !== -1 && urlParts[zoneIndex + 1]) {
+            zoneId = urlParts[zoneIndex + 1];
+            console.log('🔍 Zone ID from URL:', zoneId);
+        }
+    }
+    
+    // Method 3: From modal URL if it was loaded via fetch
+    if (!zoneId) {
+        const modalBody = document.getElementById('zoneModalBody');
+        if (modalBody && modalBody.dataset.zoneId) {
+            zoneId = modalBody.dataset.zoneId;
+            console.log('🔍 Zone ID from modal data:', zoneId);
+        }
+    }
+    
+    // Method 4: From any seat element
+    if (!zoneId) {
+        const firstSeat = document.querySelector('.seat[data-seat-id]');
+        if (firstSeat) {
+            // Try to extract zone ID from seat ID or other attributes
+            const seatId = firstSeat.dataset.seatId;
+            console.log('🔍 Trying to derive zone ID from seat:', seatId);
+            // This would need backend support to work properly
+        }
+    }
+    
+    if (!zoneId) {
+        console.error('❌ Could not determine zone ID from any source');
+        showMessage('Error: Could not determine zone ID. Please try selecting the zone again.', 'error');
+        button.disabled = false;
+        button.innerHTML = originalText;
+        return;
+    }
+    
+    console.log('✅ Using zone ID:', zoneId);
+    
+    fetch('/sales/cart/add/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            zone_id: zoneId,
+            seat_ids: Array.from(window.selectedSeats)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Clear selection
+            window.selectedSeats.clear();
+            document.querySelectorAll('.seat.selected').forEach(seat => {
+                seat.classList.remove('selected');
+            });
+            updateSelectionDisplay();
+            
+            // Update cart display
+            updateCartDisplay();
+            
+            // Show success message
+            showMessage(data.message, 'success');
+            
+            // Close modal after short delay
+            setTimeout(() => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('zoneModal'));
+                if (modal) {
+                    modal.hide();
+                }
+            }, 1000);
+        } else {
+            showMessage(data.error || 'Error adding seats to cart', 'error');
+        }
+    })
+    .catch(error => {
+        showMessage('Error adding seats to cart', 'error');
+    })
+    .finally(() => {
+        button.disabled = false;
+        button.innerHTML = originalText;
+    });
+};
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+    if (cartUpdateInterval) {
+        clearInterval(cartUpdateInterval);
+    }
+});
+</script>
+{% endblock %}

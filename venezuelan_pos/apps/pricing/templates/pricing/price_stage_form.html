@@ -1,0 +1,258 @@
+{% extends 'events/base.html' %}
+{% load i18n %}
+
+{% block title %}
+    {% if stage %}
+        {% trans "Edit Price Stage" %} - {{ stage.name }}
+    {% else %}
+        {% trans "Create Price Stage" %} - {{ event.name }}
+    {% endif %} - Tiquemax
+{% endblock %}
+
+{% block breadcrumb_items %}
+    <li class="breadcrumb-item"><a href="{% url 'pricing_web:dashboard' %}">{% trans "Pricing" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'events:event_detail' event_id=event.id %}">{{ event.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'pricing_web:price_stage_list' event_id=event.id %}">{% trans "Price Stages" %}</a></li>
+    <li class="breadcrumb-item active">
+        {% if stage %}{% trans "Edit" %}{% else %}{% trans "Create" %}{% endif %}
+    </li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="bi bi-{% if stage %}pencil{% else %}plus-circle{% endif %} me-2"></i>
+                    {% if stage %}
+                        {% trans "Edit Price Stage" %}
+                    {% else %}
+                        {% trans "Create Price Stage" %}
+                    {% endif %}
+                </h4>
+                <p class="text-muted mb-0 mt-1">{{ event.name }}</p>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Basic Information -->
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                {{ form.name.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.name.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                {% trans "Examples: Early Bird, Regular, Last Minute" %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.stage_order.id_for_label }}" class="form-label">
+                                {{ form.stage_order.label }}
+                            </label>
+                            {{ form.stage_order }}
+                            {% if form.stage_order.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.stage_order.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            {{ form.description.label }}
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.description.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Date Range -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.start_date.id_for_label }}" class="form-label">
+                                {{ form.start_date.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.start_date }}
+                            {% if form.start_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.start_date.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.end_date.id_for_label }}" class="form-label">
+                                {{ form.end_date.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.end_date }}
+                            {% if form.end_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.end_date.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Pricing Configuration -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.percentage_markup.id_for_label }}" class="form-label">
+                                {{ form.percentage_markup.label }} <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                {{ form.percentage_markup }}
+                                <span class="input-group-text">%</span>
+                            </div>
+                            {% if form.percentage_markup.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.percentage_markup.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                {% trans "Percentage increase over base price (0 = no increase)" %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Price Preview" %}</label>
+                            <div class="card bg-light">
+                                <div class="card-body py-2">
+                                    <div id="pricePreview" class="text-center">
+                                        <div class="small text-muted">{% trans "Enter markup to see preview" %}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="mb-4">
+                        <div class="form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                {{ form.is_active.label }}
+                            </label>
+                        </div>
+                        {% if form.is_active.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.is_active.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            {% trans "Only active price stages will be used for price calculations" %}
+                        </div>
+                    </div>
+
+                    <!-- Form Errors -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'pricing_web:price_stage_list' event_id=event.id %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-{% if stage %}check{% else %}plus{% endif %}"></i>
+                            {% if stage %}
+                                {% trans "Update Price Stage" %}
+                            {% else %}
+                                {% trans "Create Price Stage" %}
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Card -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i>{% trans "Price Stage Guidelines" %}
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>{% trans "Best Practices" %}</h6>
+                        <ul class="small">
+                            <li>{% trans "Use clear, descriptive names" %}</li>
+                            <li>{% trans "Ensure date ranges don't overlap" %}</li>
+                            <li>{% trans "Order stages chronologically" %}</li>
+                            <li>{% trans "Consider customer purchasing behavior" %}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>{% trans "Common Markup Examples" %}</h6>
+                        <ul class="small">
+                            <li><strong>{% trans "Early Bird:" %}</strong> -10% to 0%</li>
+                            <li><strong>{% trans "Regular:" %}</strong> 0% to 15%</li>
+                            <li><strong>{% trans "Last Minute:" %}</strong> 20% to 50%</li>
+                            <li><strong>{% trans "Premium:" %}</strong> 25% to 100%</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const markupInput = document.getElementById('{{ form.percentage_markup.id_for_label }}');
+    const pricePreview = document.getElementById('pricePreview');
+    
+    // Sample base price for preview (you can make this dynamic)
+    const sampleBasePrice = 100.00;
+    
+    function updatePricePreview() {
+        const markup = parseFloat(markupInput.value) || 0;
+        const finalPrice = sampleBasePrice * (1 + markup / 100);
+        
+        pricePreview.innerHTML = `
+            <div class="small text-muted">{% trans "Example with $100 base price:" %}</div>
+            <div class="h5 mb-0 text-primary">$${finalPrice.toFixed(2)}</div>
+            <div class="small text-muted">(+$${(finalPrice - sampleBasePrice).toFixed(2)})</div>
+        `;
+    }
+    
+    // Update preview on input change
+    markupInput.addEventListener('input', updatePricePreview);
+    
+    // Initial preview update
+    updatePricePreview();
+    
+    // Date validation
+    const startDateInput = document.getElementById('{{ form.start_date.id_for_label }}');
+    const endDateInput = document.getElementById('{{ form.end_date.id_for_label }}');
+    
+    function validateDates() {
+        const startDate = new Date(startDateInput.value);
+        const endDate = new Date(endDateInput.value);
+        
+        if (startDate && endDate && startDate >= endDate) {
+            endDateInput.setCustomValidity('{% trans "End date must be after start date" %}');
+        } else {
+            endDateInput.setCustomValidity('');
+        }
+    }
+    
+    startDateInput.addEventListener('change', validateDates);
+    endDateInput.addEventListener('change', validateDates);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,1494 @@
+{
+	"info": {
+		"_postman_id": "venezuelan-pos-system-api",
+		"name": "Tiquemax API",
+		"description": "Comprehensive API collection for Tiquemax - Multi-tenant event ticket sales with fiscal compliance",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "venezuelan-pos-team"
+	},
+	"item": [
+		{
+			"name": "🔐 Authentication",
+			"item": [
+				{
+					"name": "Login - Get JWT Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('access_token', response.access);",
+									"    pm.environment.set('refresh_token', response.refresh);",
+									"    console.log('✅ Tokens saved to environment');",
+									"} else {",
+									"    console.log('❌ Login failed');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/login/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('access_token', response.access);",
+									"    console.log('✅ Access token refreshed');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/refresh/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"refresh",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/logout/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"logout",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🏢 Tenant Management",
+			"item": [
+				{
+					"name": "List Tenants",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/tenants/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tenants",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Tenant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('tenant_id', response.id);",
+									"    console.log('✅ Tenant created with ID:', response.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Demo Event Company\",\n    \"configuration\": {\n        \"timezone\": \"America/Caracas\",\n        \"currency\": \"USD\",\n        \"fiscal_enabled\": true\n    },\n    \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tenants/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tenants",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tenant Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/tenants/{{tenant_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tenants",
+								"{{tenant_id}}",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🎫 Event Management",
+			"item": [
+				{
+					"name": "List Events",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/events/?status=active",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"events",
+								""
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "active"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Event - General Admission",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('event_id', response.id);",
+									"    console.log('✅ Event created with ID:', response.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Concierto de Rock 2025\",\n    \"event_type\": \"general_assignment\",\n    \"start_date\": \"2025-12-15T20:00:00-04:00\",\n    \"end_date\": \"2025-12-15T23:00:00-04:00\",\n    \"venue\": {\n        \"name\": \"Teatro Teresa Carreño\",\n        \"address\": \"Caracas, Venezuela\",\n        \"capacity\": 2500\n    },\n    \"configuration\": {\n        \"partial_payments_enabled\": true,\n        \"notifications_enabled\": true,\n        \"currency_rate\": 36.50\n    },\n    \"status\": \"draft\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/events/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"events",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Event - Numbered Seating",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Obra de Teatro Premium\",\n    \"event_type\": \"numbered_seat\",\n    \"start_date\": \"2025-11-20T19:30:00-04:00\",\n    \"end_date\": \"2025-11-20T22:00:00-04:00\",\n    \"venue\": {\n        \"name\": \"Teatro Nacional\",\n        \"address\": \"Caracas, Venezuela\",\n        \"capacity\": 800\n    },\n    \"configuration\": {\n        \"partial_payments_enabled\": false,\n        \"notifications_enabled\": true,\n        \"currency_rate\": 36.50\n    },\n    \"status\": \"draft\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/events/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"events",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Event Status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/events/{{event_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"events",
+								"{{event_id}}",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🎯 Zone & Seating Management",
+			"item": [
+				{
+					"name": "Create General Zone",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('zone_id', response.id);",
+									"    console.log('✅ Zone created with ID:', response.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"event_id\": \"{{event_id}}\",\n    \"name\": \"Platea General\",\n    \"zone_type\": \"general\",\n    \"capacity\": 500,\n    \"base_price\": 25.00,\n    \"configuration\": {\n        \"multi_entry_allowed\": false,\n        \"max_entries\": 1\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/zones/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"zones",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Numbered Zone",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"event_id\": \"{{event_id}}\",\n    \"name\": \"VIP Premium\",\n    \"zone_type\": \"numbered\",\n    \"capacity\": 100,\n    \"rows\": 10,\n    \"seats_per_row\": 10,\n    \"base_price\": 75.00,\n    \"configuration\": {\n        \"table_mode\": \"individual\",\n        \"row_pricing_enabled\": true\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/zones/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"zones",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Zone Availability",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/zones/{{zone_id}}/availability/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"zones",
+								"{{zone_id}}",
+								"availability",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Seats in Zone",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/zones/{{zone_id}}/seats/?status=available",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"zones",
+								"{{zone_id}}",
+								"seats",
+								""
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "available"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "💰 Pricing Management",
+			"item": [
+				{
+					"name": "Create Price Stage",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"event_id\": \"{{event_id}}\",\n    \"name\": \"Early Bird\",\n    \"start_date\": \"2025-10-01T00:00:00-04:00\",\n    \"end_date\": \"2025-11-01T23:59:59-04:00\",\n    \"percentage_markup\": -15.0,\n    \"sequence_order\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/pricing/stages/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pricing",
+								"stages",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Row Pricing",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"zone_id\": \"{{zone_id}}\",\n    \"row_number\": 1,\n    \"percentage_markup\": 25.0,\n    \"description\": \"Primera fila - Vista premium\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/pricing/rows/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pricing",
+								"rows",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Calculate Ticket Price",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"zone_id\": \"{{zone_id}}\",\n    \"seat_id\": \"seat-uuid-here\",\n    \"purchase_date\": \"2025-10-15T10:00:00-04:00\",\n    \"quantity\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/pricing/calculate/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pricing",
+								"calculate",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🛒 Sales & Transactions",
+			"item": [
+				{
+					"name": "Create Transaction - Full Payment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('transaction_id', response.id);",
+									"    pm.environment.set('fiscal_series', response.fiscal_series);",
+									"    console.log('✅ Transaction created:', response.fiscal_series);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"event_id\": \"{{event_id}}\",\n    \"customer_data\": {\n        \"name\": \"Juan\",\n        \"surname\": \"Pérez\",\n        \"phone\": \"+58-412-1234567\",\n        \"email\": \"juan.perez@email.com\",\n        \"identification\": \"V-12345678\"\n    },\n    \"items\": [\n        {\n            \"zone_id\": \"{{zone_id}}\",\n            \"seat_id\": null,\n            \"quantity\": 2,\n            \"unit_price\": 25.00\n        }\n    ],\n    \"payment_type\": \"full\",\n    \"payment_method\": \"cash\",\n    \"idempotency_key\": \"{{$randomUUID}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/sales/transactions/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sales",
+								"transactions",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Transaction - Partial Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"event_id\": \"{{event_id}}\",\n    \"customer_data\": {\n        \"name\": \"María\",\n        \"surname\": \"González\",\n        \"phone\": \"+58-414-9876543\",\n        \"email\": \"maria.gonzalez@email.com\",\n        \"identification\": \"V-87654321\"\n    },\n    \"items\": [\n        {\n            \"zone_id\": \"{{zone_id}}\",\n            \"seat_id\": null,\n            \"quantity\": 1,\n            \"unit_price\": 75.00\n        }\n    ],\n    \"payment_type\": \"installment\",\n    \"payment_plan\": {\n        \"type\": \"installment\",\n        \"installments\": 3,\n        \"initial_payment\": 25.00\n    },\n    \"payment_method\": \"card\",\n    \"idempotency_key\": \"{{$randomUUID}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/sales/transactions/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sales",
+								"transactions",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Transaction Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/sales/transactions/{{transaction_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sales",
+								"transactions",
+								"{{transaction_id}}",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Transactions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/sales/transactions/?event_id={{event_id}}&status=completed",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sales",
+								"transactions",
+								""
+							],
+							"query": [
+								{
+									"key": "event_id",
+									"value": "{{event_id}}"
+								},
+								{
+									"key": "status",
+									"value": "completed"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "💳 Payment Processing",
+			"item": [
+				{
+					"name": "Process Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"transaction_id\": \"{{transaction_id}}\",\n    \"amount\": 25.00,\n    \"payment_method\": \"cash\",\n    \"reference_number\": \"CASH-{{$timestamp}}\",\n    \"metadata\": {\n        \"operator_id\": \"user-uuid\",\n        \"terminal_id\": \"POS-001\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/payments/process/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"payments",
+								"process",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Process Card Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"transaction_id\": \"{{transaction_id}}\",\n    \"amount\": 50.00,\n    \"payment_method\": \"card\",\n    \"reference_number\": \"CARD-{{$timestamp}}\",\n    \"metadata\": {\n        \"card_last_four\": \"1234\",\n        \"card_type\": \"visa\",\n        \"authorization_code\": \"AUTH123\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/payments/process/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"payments",
+								"process",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Payment History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/payments/{{transaction_id}}/history/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"payments",
+								"{{transaction_id}}",
+								"history",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🎟️ Ticket Validation",
+			"item": [
+				{
+					"name": "Validate Ticket by QR Code",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"qr_code\": \"encrypted-qr-data-here\",\n    \"validation_type\": \"entry\",\n    \"validator_id\": \"scanner-001\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tickets/validate/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tickets",
+								"validate",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Ticket by Series",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fiscal_series\": \"{{fiscal_series}}\",\n    \"validation_type\": \"entry\",\n    \"validator_id\": \"manual-check\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tickets/validate/series/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tickets",
+								"validate",
+								"series",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Ticket Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/tickets/{{fiscal_series}}/status/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tickets",
+								"{{fiscal_series}}",
+								"status",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📊 Reports & Analytics",
+			"item": [
+				{
+					"name": "Sales Report by Period",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/reports/sales/?start_date=2025-10-01&end_date=2025-10-31&format=json",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"reports",
+								"sales",
+								""
+							],
+							"query": [
+								{
+									"key": "start_date",
+									"value": "2025-10-01"
+								},
+								{
+									"key": "end_date",
+									"value": "2025-10-31"
+								},
+								{
+									"key": "format",
+									"value": "json"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Event Sales Report",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/reports/events/{{event_id}}/sales/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"reports",
+								"events",
+								"{{event_id}}",
+								"sales",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Occupancy Heat Map",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/analytics/events/{{event_id}}/heatmap/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"analytics",
+								"events",
+								"{{event_id}}",
+								"heatmap",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Zone Performance Analytics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/analytics/zones/performance/?event_id={{event_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"analytics",
+								"zones",
+								"performance",
+								""
+							],
+							"query": [
+								{
+									"key": "event_id",
+									"value": "{{event_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📋 Fiscal Compliance",
+			"item": [
+				{
+					"name": "Generate X-Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"report_date\": \"2025-10-25\",\n    \"operator_id\": \"user-uuid\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/fiscal/x-report/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"fiscal",
+								"x-report",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Z-Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"report_date\": \"2025-10-25\",\n    \"operator_id\": \"user-uuid\",\n    \"close_fiscal_day\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/fiscal/z-report/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"fiscal",
+								"z-report",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Fiscal Series Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/fiscal/series/status/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"fiscal",
+								"series",
+								"status",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📱 Offline Sync",
+			"item": [
+				{
+					"name": "Request Offline Block",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('offline_block_id', response.block_id);",
+									"    pm.environment.set('offline_series_start', response.series_start);",
+									"    pm.environment.set('offline_series_end', response.series_end);",
+									"    console.log('✅ Offline block assigned:', response.series_start, '-', response.series_end);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"terminal_id\": \"POS-001\",\n    \"operator_id\": \"user-uuid\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/offline/request-block/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"offline",
+								"request-block",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sync Offline Sales",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"block_id\": \"{{offline_block_id}}\",\n    \"transactions\": [\n        {\n            \"fiscal_series\": \"{{offline_series_start}}\",\n            \"event_id\": \"{{event_id}}\",\n            \"customer_data\": {\n                \"name\": \"Cliente\",\n                \"surname\": \"Offline\",\n                \"phone\": \"+58-412-0000000\"\n            },\n            \"items\": [\n                {\n                    \"zone_id\": \"{{zone_id}}\",\n                    \"quantity\": 1,\n                    \"unit_price\": 25.00\n                }\n            ],\n            \"total_amount\": 25.00,\n            \"payment_method\": \"cash\",\n            \"created_at\": \"2025-10-25T14:30:00-04:00\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/offline/sync/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"offline",
+								"sync",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Sync Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/offline/sync/status/{{offline_block_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"offline",
+								"sync",
+								"status",
+								"{{offline_block_id}}",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🔍 System Health & Monitoring",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API Schema",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/schema/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"schema",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "System Metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/metrics/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"metrics",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto-refresh token if expired",
+					"const accessToken = pm.environment.get('access_token');",
+					"const refreshToken = pm.environment.get('refresh_token');",
+					"",
+					"if (!accessToken && refreshToken) {",
+					"    console.log('🔄 Access token missing, attempting refresh...');",
+					"    ",
+					"    pm.sendRequest({",
+					"        url: pm.environment.get('base_url') + '/api/v1/auth/refresh/',",
+					"        method: 'POST',",
+					"        header: {",
+					"            'Content-Type': 'application/json'",
+					"        },",
+					"        body: {",
+					"            mode: 'raw',",
+					"            raw: JSON.stringify({",
+					"                refresh: refreshToken",
+					"            })",
+					"        }",
+					"    }, function (err, response) {",
+					"        if (response.code === 200) {",
+					"            const data = response.json();",
+					"            pm.environment.set('access_token', data.access);",
+					"            console.log('✅ Token refreshed successfully');",
+					"        } else {",
+					"            console.log('❌ Token refresh failed, please login again');",
+					"        }",
+					"    });",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global response logging",
+					"console.log('📡 Response Status:', pm.response.code);",
+					"console.log('⏱️ Response Time:', pm.response.responseTime + 'ms');",
+					"",
+					"// Handle common error responses",
+					"if (pm.response.code === 401) {",
+					"    console.log('🔐 Authentication required or token expired');",
+					"} else if (pm.response.code === 403) {",
+					"    console.log('🚫 Access forbidden - check permissions');",
+					"} else if (pm.response.code >= 400) {",
+					"    console.log('❌ Request failed:', pm.response.json());",
+					"} else if (pm.response.code >= 200 && pm.response.code < 300) {",
+					"    console.log('✅ Request successful');",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000",
+			"type": "string"
+		},
+		{
+			"key": "username",
+			"value": "admin",
+			"type": "string"
+		},
+		{
+			"key": "password",
+			"value": "admin123",
+			"type": "string"
+		}
+	]
+}

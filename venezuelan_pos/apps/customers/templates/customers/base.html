@@ -1,0 +1,186 @@
+{% extends "events/base.html" %}
+{% load i18n %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.customer-card {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #fff;
+}
+
+.customer-card:hover {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.customer-status {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 0.25rem;
+}
+
+.customer-status.active {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.customer-status.inactive {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.contact-info {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.search-results {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.customer-quick-info {
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.preferences-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.preference-section {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+}
+
+.preference-section h6 {
+    margin-bottom: 0.75rem;
+    color: #495057;
+    font-weight: 600;
+}
+
+.stats-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.stats-card h3 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.stats-card p {
+    margin: 0;
+    opacity: 0.9;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+// Customer search functionality
+function searchCustomers(query) {
+    if (query.length < 2) {
+        document.getElementById('search-results').innerHTML = '';
+        return;
+    }
+    
+    fetch('{% url "customers_web:customer_search" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: 'query=' + encodeURIComponent(query)
+    })
+    .then(response => response.json())
+    .then(data => {
+        const resultsDiv = document.getElementById('search-results');
+        if (data.success && data.results.length > 0) {
+            let html = '<div class="list-group">';
+            data.results.forEach(customer => {
+                html += `
+                    <a href="/customers/customers/${customer.id}/" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">${customer.name}</h6>
+                            <small>${customer.identification}</small>
+                        </div>
+                        <p class="mb-1">${customer.primary_contact}</p>
+                    </a>
+                `;
+            });
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        } else {
+            resultsDiv.innerHTML = '<div class="alert alert-info">{% trans "No customers found" %}</div>';
+        }
+    })
+    .catch(error => {
+        console.error('Search error:', error);
+        document.getElementById('search-results').innerHTML = 
+            '<div class="alert alert-danger">{% trans "Search error occurred" %}</div>';
+    });
+}
+
+// Quick customer lookup
+function quickLookup(query) {
+    if (!query.trim()) return;
+    
+    fetch(`{% url "customers_web:customer_quick_lookup" %}?q=${encodeURIComponent(query)}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Handle successful lookup
+            displayCustomerInfo(data.customer);
+        } else {
+            alert('{% trans "Customer not found" %}');
+        }
+    })
+    .catch(error => {
+        console.error('Lookup error:', error);
+        alert('{% trans "Lookup error occurred" %}');
+    });
+}
+
+function displayCustomerInfo(customer) {
+    // This function can be customized based on where it's used
+    console.log('Customer found:', customer);
+}
+
+// Form validation helpers
+function validateCustomerForm() {
+    const name = document.getElementById('id_name').value.trim();
+    const surname = document.getElementById('id_surname').value.trim();
+    const phone = document.getElementById('id_phone').value.trim();
+    const email = document.getElementById('id_email').value.trim();
+    
+    if (!name || !surname) {
+        alert('{% trans "Name and surname are required" %}');
+        return false;
+    }
+    
+    if (!phone && !email) {
+        alert('{% trans "At least phone or email is required" %}');
+        return false;
+    }
+    
+    return true;
+}
+</script>
+{% endblock %}

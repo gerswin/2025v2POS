@@ -1,0 +1,234 @@
+{% extends 'events/base.html' %}
+{% load i18n %}
+{% load pricing_tags %}
+
+{% block title %}{% trans "Price Stages" %} - {{ event.name }} - Tiquemax{% endblock %}
+
+{% block breadcrumb_items %}
+    <li class="breadcrumb-item"><a href="{% url 'pricing_web:dashboard' %}">{% trans "Pricing" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'events:event_detail' event_id=event.id %}">{{ event.name }}</a></li>
+    <li class="breadcrumb-item active">{% trans "Price Stages" %}</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">
+            <i class="bi bi-layers me-2"></i>
+            {% trans "Price Stages" %}
+        </h1>
+        <p class="text-muted mb-0">{{ event.name }}</p>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'pricing_web:price_stage_create' event_id=event.id %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> {% trans "Add Price Stage" %}
+        </a>
+        <a href="{% url 'events:event_detail' event_id=event.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Event" %}
+        </a>
+    </div>
+</div>
+
+<!-- Current Stage Indicator -->
+{% if current_stage %}
+<div class="alert alert-success d-flex align-items-center mb-4">
+    <i class="bi bi-check-circle-fill me-3" style="font-size: 1.5rem;"></i>
+    <div>
+        <h5 class="alert-heading mb-1">{% trans "Current Active Stage" %}</h5>
+        <p class="mb-0">
+            <strong>{{ current_stage.name }}</strong> 
+            (+{{ current_stage.percentage_markup }}% markup)
+            - {% trans "Active until" %} {{ current_stage.end_date|date:"M d, Y H:i" }}
+        </p>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning d-flex align-items-center mb-4">
+    <i class="bi bi-exclamation-triangle-fill me-3" style="font-size: 1.5rem;"></i>
+    <div>
+        <h5 class="alert-heading mb-1">{% trans "No Active Price Stage" %}</h5>
+        <p class="mb-0">{% trans "There is no price stage currently active for this event." %}</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Price Stages List -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list me-2"></i>{% trans "All Price Stages" %}</span>
+        <span class="badge bg-primary">{{ stages|length }} {% trans "stages" %}</span>
+    </div>
+    <div class="card-body">
+        {% if stages %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Order" %}</th>
+                            <th>{% trans "Name" %}</th>
+                            <th>{% trans "Period" %}</th>
+                            <th>{% trans "Markup" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Stage Status" %}</th>
+                            <th class="text-center">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stage in stages %}
+                        <tr {% if stage.is_current %}class="table-success"{% elif stage.is_upcoming %}class="table-warning"{% elif stage.is_past %}class="table-light"{% endif %}>
+                            <td>
+                                <span class="badge bg-secondary">{{ stage.stage_order }}</span>
+                            </td>
+                            <td>
+                                <strong>{{ stage.name }}</strong>
+                                {% if stage.description %}
+                                    <br><small class="text-muted">{{ stage.description|truncatechars:50 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="small">
+                                    <div><strong>{% trans "Start:" %}</strong> {{ stage.start_date|date:"M d, Y H:i" }}</div>
+                                    <div><strong>{% trans "End:" %}</strong> {{ stage.end_date|date:"M d, Y H:i" }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">+{{ stage.percentage_markup }}%</span>
+                            </td>
+                            <td>
+                                {% if stage.is_active %}
+                                    <span class="badge bg-success">{% trans "Active" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if stage.is_current %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-play-fill"></i> {% trans "Current" %}
+                                    </span>
+                                {% elif stage.is_upcoming %}
+                                    <span class="badge bg-warning">
+                                        <i class="bi bi-clock"></i> {% trans "Upcoming" %}
+                                    </span>
+                                {% elif stage.is_past %}
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-check"></i> {% trans "Past" %}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark">{% trans "Scheduled" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'pricing_web:price_stage_edit' stage_id=stage.id %}" 
+                                       class="btn btn-outline-primary" title="{% trans 'Edit' %}">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" 
+                                            onclick="confirmDelete('{{ stage.id }}', '{{ stage.name }}')"
+                                            title="{% trans 'Delete' %}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-layers display-1"></i>
+                <h4 class="mt-3">{% trans "No Price Stages" %}</h4>
+                <p>{% trans "This event doesn't have any price stages configured yet." %}</p>
+                <a href="{% url 'pricing_web:price_stage_create' event_id=event.id %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> {% trans "Create First Price Stage" %}
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Timeline Visualization -->
+{% if stages %}
+<div class="card mt-4">
+    <div class="card-header">
+        <i class="bi bi-calendar-range me-2"></i>{% trans "Price Stage Timeline" %}
+    </div>
+    <div class="card-body">
+        <div class="timeline-container" style="position: relative; height: 100px; overflow-x: auto;">
+            {% for stage in stages %}
+                {% if stage.is_active %}
+                <div class="timeline-stage" 
+                     style="position: absolute; 
+                            left: {{ forloop.counter0|multiply:150 }}px; 
+                            width: 140px; 
+                            height: 80px; 
+                            border: 2px solid {% if stage.is_current %}#198754{% elif stage.is_upcoming %}#ffc107{% else %}#6c757d{% endif %}; 
+                            border-radius: 8px; 
+                            padding: 8px; 
+                            background: {% if stage.is_current %}#d1e7dd{% elif stage.is_upcoming %}#fff3cd{% else %}#f8f9fa{% endif %};">
+                    <div class="small">
+                        <strong>{{ stage.name }}</strong><br>
+                        <span class="badge bg-primary">+{{ stage.percentage_markup }}%</span><br>
+                        <small>{{ stage.start_date|date:"M d" }} - {{ stage.end_date|date:"M d" }}</small>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% trans "Confirm Delete" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>{% trans "Are you sure you want to delete the price stage" %} "<span id="stageName"></span>"?</p>
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {% trans "This action cannot be undone." %}
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    {% trans "Cancel" %}
+                </button>
+                <form id="deleteForm" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> {% trans "Delete" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(stageId, stageName) {
+    document.getElementById('stageName').textContent = stageName;
+    document.getElementById('deleteForm').action = `/pricing/stages/${stageId}/delete/`;
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+// Auto-refresh current stage indicator every minute
+setInterval(function() {
+    const currentStageAlert = document.querySelector('.alert-success, .alert-warning');
+    if (currentStageAlert) {
+        // Only refresh if we're showing current stage info
+        location.reload();
+    }
+}, 60000);
+</script>
+{% endblock %}
