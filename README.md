@@ -137,10 +137,6 @@ python manage.py test
 
 # Tests específicos
 python manage.py test venezuelan_pos.apps.sales
-
-# Validación del sistema
-python test_system.py
-python validate_i18n_complete.py
 ```
 
 ## 🌍 Internacionalización
@@ -229,7 +225,6 @@ python manage.py cache_stats
 
 - **Especificaciones**: `.kiro/specs/venezuelan-pos-system/`
 - **API**: Colección Postman en `/postman/`
-- **Guías**: Archivos `.md` en la raíz del proyecto
 
 ## 🤝 Contribución
 
@@ -242,13 +237,6 @@ python manage.py cache_stats
 ## 📄 Licencia
 
 Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
-
-## 🆘 Soporte
-
-Para soporte y preguntas:
-- Crear un issue en GitHub
-- Revisar la documentación en `/docs/`
-- Consultar los archivos de guía en la raíz del proyecto
 
 ---
 

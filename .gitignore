@@ -159,11 +159,19 @@ logs/
 # Local development
 cookies.txt
 
-# Test files (keeping some important ones)
+# Test files and temporary scripts
 test_*.py
-!test_system.py
-!test_api_endpoints.py
-!test_web_interfaces.py
+debug_*.py
+fix_*.py
+check_*.py
+create_*.py
+export_*.py
+validate_*.py
+update_*.py
+complete_*.py
+clean_*.py
+final_*.py
+seat_*.py
 
 # Temporary files
 *.tmp
