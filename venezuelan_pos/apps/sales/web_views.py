@@ -252,12 +252,16 @@ def zone_seat_map(request, event_id, zone_id):
         pricing_service = PricingCalculationService()
         zone_price, pricing_details = pricing_service.calculate_zone_price(zone)
         
+        # Calculate sold tickets
+        sold_count = zone.capacity - zone.available_capacity
+        
         context = {
             'event': event,
             'zone': zone,
             'zone_price': zone_price,
             'pricing_details': serialize_pricing_details(pricing_details),
             'available_capacity': zone.available_capacity,
+            'sold_count': sold_count,
         }
         
         return render(request, 'sales/general_admission.html', context)
