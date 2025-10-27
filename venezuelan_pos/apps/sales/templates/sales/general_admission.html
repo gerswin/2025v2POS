@@ -1,31 +1,37 @@
 {% load i18n %}
 {% load static %}
 
-<!-- Zone Header -->
-<div class="row mb-4">
-    <div class="col-md-8">
-        <h4>{{ zone.name }}</h4>
-        <p class="text-muted mb-2">{{ zone.description }}</p>
-        <div class="d-flex align-items-center">
-            <span class="badge bg-info me-2">
-                <i class="bi bi-people"></i> {% trans "General Admission" %}
-            </span>
-            <span class="text-muted">
-                {{ available_capacity }}/{{ zone.capacity }} {% trans "tickets available" %}
-            </span>
+<!-- Zone Header with Modern Design -->
+<div class="row mb-4 g-3">
+    <div class="col-12 col-md-8">
+        <div class="mb-3">
+            <h4 class="mb-2" style="color: var(--secondary-900); font-weight: var(--font-weight-bold);">{{ zone.name }}</h4>
+            <p class="text-muted mb-3">{{ zone.description }}</p>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="table-badge badge-info">
+                    <i class="bi bi-people"></i> {% trans "General Admission" %}
+                </span>
+                <span class="text-muted d-flex align-items-center gap-1">
+                    <i class="bi bi-ticket-perforated"></i>
+                    <strong>{{ available_capacity }}</strong>/{{ zone.capacity }} {% trans "tickets available" %}
+                </span>
+            </div>
         </div>
     </div>
-    <div class="col-md-4 text-md-end">
-        <div class="pricing-info">
-            <div class="h4 text-success mb-1">${{ zone_price|floatformat:2 }}</div>
-            <small class="text-muted">{% trans "Per ticket" %}</small>
-            {% if pricing_details.current_stage %}
-            <br>
-            <small class="text-info">
-                <i class="bi bi-tag"></i> {{ pricing_details.current_stage.name }}
-                (+{{ pricing_details.current_stage.percentage_markup }}%)
-            </small>
-            {% endif %}
+    <div class="col-12 col-md-4">
+        <div class="text-md-end">
+            <div style="background-color: var(--success-light); padding: var(--spacing-md); border-radius: var(--border-radius-lg); border: 1px solid var(--success);">
+                <div class="h3 mb-1" style="color: var(--success); font-weight: var(--font-weight-bold);">
+                    ${{ zone_price|floatformat:2 }}
+                </div>
+                <small class="text-muted d-block mb-2">{% trans "Per ticket" %}</small>
+                {% if pricing_details.current_stage %}
+                <small class="d-flex align-items-center gap-1 justify-content-md-end" style="color: var(--info);">
+                    <i class="bi bi-tag-fill"></i>
+                    <span>{{ pricing_details.current_stage.name }} (+{{ pricing_details.current_stage.percentage_markup }}%)</span>
+                </small>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
@@ -132,16 +138,18 @@
             </div>
             
             <div class="d-grid">
-                <button class="btn btn-primary btn-lg" 
+                <button class="btn btn-modern btn-primary-modern btn-lg-modern"
                         id="addToCartBtn"
                         onclick="addGeneralTicketsToCart()"
                         {% if available_capacity == 0 %}disabled{% endif %}>
                     <i class="bi bi-cart-plus"></i>
-                    {% if available_capacity == 0 %}
-                        {% trans "Sold Out" %}
-                    {% else %}
-                        {% trans "Add to Cart" %}
-                    {% endif %}
+                    <span>
+                        {% if available_capacity == 0 %}
+                            {% trans "Sold Out" %}
+                        {% else %}
+                            {% trans "Add to Cart" %}
+                        {% endif %}
+                    </span>
                 </button>
             </div>
         </div>
@@ -179,87 +187,142 @@
 </div>
 
 <style>
+/* General Admission Styles using Design System */
 .availability-indicator {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 0.5rem;
-    padding: 1.5rem;
+    background-color: var(--surface-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-all);
+}
+
+.availability-indicator:hover {
+    box-shadow: var(--shadow-md);
 }
 
 .availability-bar {
-    height: 20px;
-    background-color: #e9ecef;
-    border-radius: 10px;
+    height: 24px;
+    background-color: var(--surface-tertiary);
+    border-radius: var(--border-radius-full);
     overflow: hidden;
     position: relative;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .availability-fill {
     height: 100%;
-    background: linear-gradient(90deg, #28a745 0%, #ffc107 70%, #dc3545 100%);
-    transition: width 0.3s ease;
-    border-radius: 10px;
+    background: linear-gradient(90deg, var(--success) 0%, var(--warning) 70%, var(--danger) 100%);
+    transition: width var(--transition-slow);
+    border-radius: var(--border-radius-full);
+    position: relative;
+}
+
+.availability-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 100%);
 }
 
 .ticket-selection-card {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 0.5rem;
-    padding: 2rem;
+    background-color: var(--surface-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-all);
+}
+
+.ticket-selection-card:hover {
+    box-shadow: var(--shadow-md);
 }
 
 .quantity-selector {
-    max-width: 200px;
+    max-width: 220px;
     margin: 0 auto;
 }
 
 .quantity-selector .form-control {
-    font-size: 1.5rem;
-    font-weight: bold;
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
     border-left: none;
     border-right: none;
+    color: var(--primary-600);
 }
 
 .quantity-selector .btn {
-    width: 50px;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-xl);
+    border-color: var(--border-color);
+    transition: var(--transition-all);
+}
+
+.quantity-selector .btn:hover {
+    background-color: var(--primary-50);
+    border-color: var(--primary-500);
+    color: var(--primary-600);
+    transform: scale(1.05);
 }
 
 .quick-select .btn-group .btn {
-    min-width: 40px;
+    min-width: 48px;
+    min-height: 48px;
+    font-weight: var(--font-weight-semibold);
 }
 
 .pricing-summary {
-    background-color: #e3f2fd;
-    border: 1px solid #bbdefb;
-    border-radius: 0.5rem;
-    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--primary-50) 0%, var(--info-light) 100%);
+    border: 2px solid var(--primary-200);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
     position: sticky;
     top: 20px;
+    box-shadow: var(--shadow-lg);
 }
 
 .pricing-breakdown {
-    font-size: 0.95rem;
+    font-size: var(--font-size-base);
 }
 
 .zone-info {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 0.5rem;
-    padding: 1.5rem;
+    background-color: var(--surface-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
 }
 
 .zone-info ul li {
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--spacing-sm);
+    padding: var(--spacing-xs) 0;
 }
 
+.zone-info ul li i {
+    margin-right: var(--spacing-sm);
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
     .ticket-selection-card,
     .pricing-summary {
-        margin-bottom: 1rem;
+        margin-bottom: var(--spacing-md);
     }
-    
+
     .pricing-summary {
         position: static;
+    }
+
+    .quantity-selector .btn {
+        width: 50px;
+        height: 50px;
     }
 }
 </style>

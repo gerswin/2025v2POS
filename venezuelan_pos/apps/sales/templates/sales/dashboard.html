@@ -8,90 +8,128 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0">{% trans "Sales Dashboard" %}</h1>
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
     <div>
-        <a href="{% url 'sales_web:transaction_list' %}" class="btn btn-outline-primary me-2">
-            <i class="bi bi-list-ul"></i> {% trans "All Transactions" %}
+        <h1 class="h3 mb-1">{% trans "Sales Dashboard" %}</h1>
+        <p class="text-muted mb-0">{% trans "Real-time sales overview and active events" %}</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'sales_web:transaction_list' %}" class="btn btn-modern btn-outline-modern">
+            <i class="bi bi-list-ul"></i>
+            <span>{% trans "All Transactions" %}</span>
         </a>
-        <a href="{% url 'sales_web:reservation_list' %}" class="btn btn-outline-warning">
-            <i class="bi bi-clock"></i> {% trans "Reservations" %}
+        <a href="{% url 'sales_web:reservation_list' %}" class="btn btn-modern btn-warning-modern">
+            <i class="bi bi-clock"></i>
+            <span>{% trans "Reservations" %}</span>
         </a>
     </div>
 </div>
 
-<!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card stats-card">
-            <div class="card-body text-center">
-                <div class="stats-number">{{ stats.today_sales }}</div>
-                <div>{% trans "Today's Sales" %}</div>
+<!-- Statistics Cards with Modern Design -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-card-icon">
+                <i class="bi bi-cart-check"></i>
+            </div>
+            <div class="stat-card-content">
+                <p class="stat-label">{% trans "Today's Sales" %}</p>
+                <h3 class="stat-value">{{ stats.today_sales }}</h3>
+                <span class="stat-change positive">
+                    <i class="bi bi-arrow-up"></i>
+                    {% trans "Tickets sold" %}
+                </span>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card stats-card">
-            <div class="card-body text-center">
-                <div class="stats-number">${{ stats.today_revenue|floatformat:2 }}</div>
-                <div>{% trans "Today's Revenue" %}</div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-card-icon success">
+                <i class="bi bi-currency-dollar"></i>
+            </div>
+            <div class="stat-card-content">
+                <p class="stat-label">{% trans "Today's Revenue" %}</p>
+                <h3 class="stat-value">${{ stats.today_revenue|floatformat:2 }}</h3>
+                <span class="stat-change positive">
+                    <i class="bi bi-arrow-up"></i>
+                    {% trans "Total income" %}
+                </span>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card stats-card">
-            <div class="card-body text-center">
-                <div class="stats-number">{{ stats.pending_transactions }}</div>
-                <div>{% trans "Pending Transactions" %}</div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-card-icon warning">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div class="stat-card-content">
+                <p class="stat-label">{% trans "Pending" %}</p>
+                <h3 class="stat-value">{{ stats.pending_transactions }}</h3>
+                <span class="stat-change">
+                    {% trans "Awaiting payment" %}
+                </span>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card stats-card">
-            <div class="card-body text-center">
-                <div class="stats-number">{{ stats.active_reservations }}</div>
-                <div>{% trans "Active Reservations" %}</div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-card-icon" style="background-color: var(--info-light); color: var(--info);">
+                <i class="bi bi-bookmark-check"></i>
+            </div>
+            <div class="stat-card-content">
+                <p class="stat-label">{% trans "Active Reservations" %}</p>
+                <h3 class="stat-value">{{ stats.active_reservations }}</h3>
+                <span class="stat-change">
+                    {% trans "Reserved seats" %}
+                </span>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row">
+<div class="row g-3">
     <!-- Active Events -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
+    <div class="col-12 col-lg-6">
+        <div class="card-modern">
+            <div class="card-header-modern">
+                <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-calendar-event"></i>
-                    {% trans "Active Events" %}
-                </h5>
+                    <h5 class="mb-0">{% trans "Active Events" %}</h5>
+                </div>
             </div>
-            <div class="card-body">
+            <div class="card-body-modern">
                 {% if active_events %}
-                    <div class="list-group list-group-flush">
+                    <div class="d-flex flex-column gap-3">
                         {% for event in active_events %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-1">{{ event.name }}</h6>
-                                <small class="text-muted">
-                                    <i class="bi bi-building"></i> {{ event.venue.name }}
-                                    <br>
-                                    <i class="bi bi-calendar"></i> {{ event.start_date|date:"M d, Y H:i" }}
-                                </small>
+                        <div class="d-flex justify-content-between align-items-start p-3 rounded-md border" style="border: 1px solid var(--border-color); border-radius: var(--border-radius-md); transition: var(--transition-all);" onmouseover="this.style.backgroundColor='var(--surface-secondary)'" onmouseout="this.style.backgroundColor='transparent'">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-2 fw-semibold">{{ event.name }}</h6>
+                                <div class="d-flex flex-column gap-1 text-muted small">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-building"></i>
+                                        <span>{{ event.venue.name }}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-calendar"></i>
+                                        <span>{{ event.start_date|date:"M d, Y H:i" }}</span>
+                                    </div>
+                                </div>
                             </div>
                             <div>
-                                <a href="{% url 'sales_web:seat_selection' event_id=event.id %}" 
-                                   class="btn btn-primary btn-sm">
-                                    <i class="bi bi-ticket"></i> {% trans "Sell Tickets" %}
+                                <a href="{% url 'sales_web:seat_selection' event_id=event.id %}"
+                                   class="btn btn-modern btn-primary-modern btn-sm-modern">
+                                    <i class="bi bi-ticket"></i>
+                                    <span>{% trans "Sell" %}</span>
                                 </a>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="text-center text-muted py-4">
-                        <i class="bi bi-calendar-x display-4"></i>
-                        <p class="mt-2">{% trans "No active events available" %}</p>
+                    <div class="text-center py-5" style="color: var(--secondary-500);">
+                        <i class="bi bi-calendar-x" style="font-size: 3rem; opacity: 0.5;"></i>
+                        <p class="mt-3 mb-0">{% trans "No active events available" %}</p>
+                        <small class="text-muted">{% trans "Create an event to start selling tickets" %}</small>
                     </div>
                 {% endif %}
             </div>
@@ -99,52 +137,57 @@
     </div>
 
     <!-- Recent Transactions -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
+    <div class="col-12 col-lg-6">
+        <div class="card-modern">
+            <div class="card-header-modern">
+                <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-receipt"></i>
-                    {% trans "Recent Transactions" %}
-                </h5>
+                    <h5 class="mb-0">{% trans "Recent Transactions" %}</h5>
+                </div>
             </div>
-            <div class="card-body">
+            <div class="card-body-modern">
                 {% if recent_transactions %}
-                    <div class="list-group list-group-flush">
+                    <div class="d-flex flex-column gap-3">
                         {% for transaction in recent_transactions %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-1">
+                        <div class="d-flex justify-content-between align-items-start p-3 rounded-md border" style="border: 1px solid var(--border-color); border-radius: var(--border-radius-md); transition: var(--transition-all);" onmouseover="this.style.backgroundColor='var(--surface-secondary)'" onmouseout="this.style.backgroundColor='transparent'">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-2 fw-semibold">
                                     {% if transaction.fiscal_series %}
                                         {{ transaction.fiscal_series }}
                                     {% else %}
                                         #{{ transaction.id|slice:":8" }}
                                     {% endif %}
                                 </h6>
-                                <small class="text-muted">
-                                    {{ transaction.customer.full_name }} - {{ transaction.event.name }}
-                                    <br>
-                                    <i class="bi bi-clock"></i> {{ transaction.created_at|date:"M d, H:i" }}
-                                </small>
+                                <div class="d-flex flex-column gap-1 text-muted small">
+                                    <div>{{ transaction.customer.full_name }}</div>
+                                    <div>{{ transaction.event.name }}</div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-clock"></i>
+                                        <span>{{ transaction.created_at|date:"M d, H:i" }}</span>
+                                    </div>
+                                </div>
                             </div>
                             <div class="text-end">
-                                <span class="badge bg-{% if transaction.status == 'completed' %}success{% elif transaction.status == 'pending' %}warning{% else %}secondary{% endif %}">
+                                <span class="table-badge badge-{% if transaction.status == 'completed' %}success{% elif transaction.status == 'pending' %}warning{% else %}secondary{% endif %}">
                                     {{ transaction.get_status_display }}
                                 </span>
-                                <br>
-                                <small class="text-muted">${{ transaction.total_amount|floatformat:2 }}</small>
+                                <div class="mt-2 fw-semibold" style="color: var(--secondary-800);">
+                                    ${{ transaction.total_amount|floatformat:2 }}
+                                </div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                     <div class="text-center mt-3">
-                        <a href="{% url 'sales_web:transaction_list' %}" class="btn btn-outline-primary btn-sm">
+                        <a href="{% url 'sales_web:transaction_list' %}" class="btn btn-modern btn-outline-modern btn-sm-modern">
                             {% trans "View All Transactions" %}
                         </a>
                     </div>
                 {% else %}
-                    <div class="text-center text-muted py-4">
-                        <i class="bi bi-receipt display-4"></i>
-                        <p class="mt-2">{% trans "No recent transactions" %}</p>
+                    <div class="text-center py-5" style="color: var(--secondary-500);">
+                        <i class="bi bi-receipt" style="font-size: 3rem; opacity: 0.5;"></i>
+                        <p class="mt-3 mb-0">{% trans "No recent transactions" %}</p>
+                        <small class="text-muted">{% trans "Transactions will appear here once sales begin" %}</small>
                     </div>
                 {% endif %}
             </div>
@@ -156,42 +199,47 @@
 {% if expiring_reservations %}
 <div class="row mt-4">
     <div class="col-12">
-        <div class="alert alert-warning">
-            <h5 class="alert-heading">
-                <i class="bi bi-exclamation-triangle"></i>
-                {% trans "Expiring Reservations" %}
-            </h5>
-            <p class="mb-2">{% trans "The following reservations will expire within 1 hour:" %}</p>
-            <div class="row">
-                {% for reservation in expiring_reservations %}
-                <div class="col-md-6 mb-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>{{ reservation.transaction.customer.full_name }}</strong>
-                            <br>
-                            <small>
-                                {{ reservation.zone.name }}
-                                {% if reservation.seat %}
-                                    - {{ reservation.seat.seat_label }}
-                                {% else %}
-                                    ({{ reservation.quantity }} tickets)
-                                {% endif %}
-                            </small>
-                        </div>
-                        <div class="text-end">
-                            <small class="text-danger">
-                                <i class="bi bi-clock"></i>
-                                {{ reservation.reserved_until|date:"H:i" }}
-                            </small>
+        <div class="alert alert-warning d-flex align-items-start gap-3" style="border-left: 4px solid var(--warning); background-color: var(--warning-light); border-radius: var(--border-radius-lg);">
+            <div>
+                <i class="bi bi-exclamation-triangle-fill" style="font-size: 1.5rem; color: var(--warning);"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h5 class="alert-heading fw-semibold mb-2">
+                    {% trans "Expiring Reservations" %}
+                </h5>
+                <p class="mb-3 small">{% trans "The following reservations will expire within 1 hour:" %}</p>
+                <div class="row g-3">
+                    {% for reservation in expiring_reservations %}
+                    <div class="col-12 col-md-6">
+                        <div class="d-flex justify-content-between align-items-start p-3 rounded" style="background-color: white; border: 1px solid var(--warning);">
+                            <div>
+                                <div class="fw-semibold mb-1">{{ reservation.transaction.customer.full_name }}</div>
+                                <small class="text-muted">
+                                    {{ reservation.zone.name }}
+                                    {% if reservation.seat %}
+                                        - {{ reservation.seat.seat_label }}
+                                    {% else %}
+                                        ({{ reservation.quantity }} tickets)
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-danger d-flex align-items-center gap-1">
+                                    <i class="bi bi-clock-fill"></i>
+                                    {{ reservation.reserved_until|date:"H:i" }}
+                                </small>
+                            </div>
                         </div>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
+                <div class="mt-3">
+                    <a href="{% url 'sales_web:reservation_list' %}" class="btn btn-modern btn-warning-modern btn-sm-modern">
+                        <i class="bi bi-list-check"></i>
+                        <span>{% trans "Manage Reservations" %}</span>
+                    </a>
+                </div>
             </div>
-            <hr>
-            <a href="{% url 'sales_web:reservation_list' %}" class="btn btn-warning btn-sm">
-                {% trans "Manage Reservations" %}
-            </a>
         </div>
     </div>
 </div>
@@ -201,13 +249,39 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Auto-refresh dashboard every 30 seconds
-    setInterval(function() {
-        // Only refresh if user is still on the page
+    // Auto-refresh dashboard every 30 seconds with notification
+    let refreshInterval;
+    let timeUntilRefresh = 30;
+
+    function startRefreshTimer() {
+        refreshInterval = setInterval(function() {
+            // Only refresh if user is still on the page
+            if (document.visibilityState === 'visible') {
+                TiquemaxPOS.notifications.info(
+                    '{% trans "Refreshing dashboard data..." %}',
+                    2000
+                );
+                setTimeout(() => location.reload(), 500);
+            }
+        }, 30000);
+    }
+
+    startRefreshTimer();
+
+    // Show notification when page loads
+    TiquemaxPOS.notifications.success(
+        '{% trans "Dashboard loaded successfully" %}',
+        3000
+    );
+
+    // Handle visibility change
+    document.addEventListener('visibilitychange', function() {
         if (document.visibilityState === 'visible') {
-            location.reload();
+            startRefreshTimer();
+        } else {
+            clearInterval(refreshInterval);
         }
-    }, 30000);
+    });
 });
 </script>
 {% endblock %}

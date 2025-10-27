@@ -4,64 +4,78 @@
 {% block title %}{% trans "Dashboard" %} - Tiquemax{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0">{% trans "Dashboard" %}</h1>
-    <div class="text-muted">
-        <i class="bi bi-calendar"></i>
-        {{ today|date:"l, d F Y" }}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+    <div>
+        <h1 class="h3 mb-1">{% trans "Dashboard" %}</h1>
+        <p class="text-muted mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-calendar"></i>
+            <span>{{ today|date:"l, d F Y" }}</span>
+        </p>
     </div>
 </div>
 
-<!-- Stats Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="card stats-card">
-            <div class="card-body text-center">
-                <div class="stats-number">{{ stats.total_venues }}</div>
-                <div>{% trans "Total Venues" %}</div>
-                <small class="opacity-75">
-                    <i class="bi bi-arrow-up"></i>
+<!-- Stats Cards with Modern Design -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-card-icon">
+                <i class="bi bi-building"></i>
+            </div>
+            <div class="stat-card-content">
+                <p class="stat-label">{% trans "Total Venues" %}</p>
+                <h3 class="stat-value">{{ stats.total_venues }}</h3>
+                <span class="stat-change positive">
+                    <i class="bi bi-check-circle"></i>
                     {{ stats.active_venues }} {% trans "active" %}
-                </small>
+                </span>
             </div>
         </div>
     </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="card" style="background: linear-gradient(135deg, #28a745, #20c997); color: white;">
-            <div class="card-body text-center">
-                <div class="stats-number">{{ stats.total_events }}</div>
-                <div>{% trans "Total Events" %}</div>
-                <small class="opacity-75">
+
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-card-icon success">
+                <i class="bi bi-calendar-event"></i>
+            </div>
+            <div class="stat-card-content">
+                <p class="stat-label">{% trans "Total Events" %}</p>
+                <h3 class="stat-value">{{ stats.total_events }}</h3>
+                <span class="stat-change positive">
                     <i class="bi bi-arrow-up"></i>
                     {{ stats.active_events }} {% trans "active" %}
-                </small>
+                </span>
             </div>
         </div>
     </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="card" style="background: linear-gradient(135deg, #ffc107, #fd7e14); color: white;">
-            <div class="card-body text-center">
-                <div class="stats-number">{{ stats.upcoming_events }}</div>
-                <div>{% trans "Upcoming Events" %}</div>
-                <small class="opacity-75">
-                    <i class="bi bi-calendar-plus"></i>
+
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-card-icon warning">
+                <i class="bi bi-calendar-plus"></i>
+            </div>
+            <div class="stat-card-content">
+                <p class="stat-label">{% trans "Upcoming Events" %}</p>
+                <h3 class="stat-value">{{ stats.upcoming_events }}</h3>
+                <span class="stat-change">
+                    <i class="bi bi-calendar-check"></i>
                     {% trans "This month" %}
-                </small>
+                </span>
             </div>
         </div>
     </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="card" style="background: linear-gradient(135deg, #dc3545, #e83e8c); color: white;">
-            <div class="card-body text-center">
-                <div class="stats-number">{{ stats.draft_events }}</div>
-                <div>{% trans "Draft Events" %}</div>
-                <small class="opacity-75">
+
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-card-icon danger">
+                <i class="bi bi-file-earmark-text"></i>
+            </div>
+            <div class="stat-card-content">
+                <p class="stat-label">{% trans "Draft Events" %}</p>
+                <h3 class="stat-value">{{ stats.draft_events }}</h3>
+                <span class="stat-change">
                     <i class="bi bi-pencil"></i>
                     {% trans "Pending" %}
-                </small>
+                </span>
             </div>
         </div>
     </div>
@@ -69,21 +83,21 @@
 
 <div class="row">
     <!-- Recent Events -->
-    <div class="col-lg-8 mb-4">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-calendar-event me-2"></i>
-                    {% trans "Recent Events" %}
-                </h5>
-                <a href="{% url 'events:event_list' %}" class="btn btn-sm btn-outline-light">
+    <div class="col-12 col-lg-8 mb-4">
+        <div class="card-modern">
+            <div class="card-header-modern d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-calendar-event"></i>
+                    <h5 class="mb-0">{% trans "Recent Events" %}</h5>
+                </div>
+                <a href="{% url 'events:event_list' %}" class="btn btn-modern btn-sm-modern btn-outline-modern">
                     {% trans "View All" %}
                 </a>
             </div>
-            <div class="card-body">
+            <div class="card-body-modern">
                 {% if recent_events %}
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table-modern">
                             <thead>
                                 <tr>
                                     <th>{% trans "Event" %}</th>
@@ -97,7 +111,7 @@
                                 {% for event in recent_events %}
                                 <tr>
                                     <td>
-                                        <div class="fw-bold">{{ event.name }}</div>
+                                        <div class="fw-semibold">{{ event.name }}</div>
                                         <small class="text-muted">{{ event.event_type|title }}</small>
                                     </td>
                                     <td>
@@ -110,28 +124,34 @@
                                     </td>
                                     <td>
                                         {% if event.status == 'active' %}
-                                            <span class="badge bg-success">{% trans "Active" %}</span>
+                                            <span class="table-badge badge-success">{% trans "Active" %}</span>
                                         {% elif event.status == 'draft' %}
-                                            <span class="badge bg-warning">{% trans "Draft" %}</span>
+                                            <span class="table-badge badge-warning">{% trans "Draft" %}</span>
                                         {% elif event.status == 'closed' %}
-                                            <span class="badge bg-secondary">{% trans "Closed" %}</span>
+                                            <span class="table-badge badge-secondary">{% trans "Closed" %}</span>
                                         {% else %}
-                                            <span class="badge bg-danger">{% trans "Cancelled" %}</span>
+                                            <span class="table-badge badge-danger">{% trans "Cancelled" %}</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="{% url 'events:event_detail' event.id %}" 
-                                               class="btn btn-outline-primary" title="Ver">
+                                        <div class="d-flex gap-1">
+                                            <a href="{% url 'events:event_detail' event.id %}"
+                                               class="btn btn-modern btn-sm-modern btn-icon-modern"
+                                               style="background-color: var(--info-light); color: var(--info); border: none;"
+                                               title="{% trans 'View' %}">
                                                 <i class="bi bi-eye"></i>
                                             </a>
-                                            <a href="{% url 'events:event_edit' event.id %}" 
-                                               class="btn btn-outline-secondary" title="Editar">
+                                            <a href="{% url 'events:event_edit' event.id %}"
+                                               class="btn btn-modern btn-sm-modern btn-icon-modern"
+                                               style="background-color: var(--secondary-100); color: var(--secondary-700); border: none;"
+                                               title="{% trans 'Edit' %}">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <a href="/zones/events/{{ event.id }}/map-editor/" 
-                                               class="btn btn-outline-success" title="Editor de Mapas">
-                                                <i class="fas fa-map"></i>
+                                            <a href="/zones/events/{{ event.id }}/map-editor/"
+                                               class="btn btn-modern btn-sm-modern btn-icon-modern"
+                                               style="background-color: var(--success-light); color: var(--success); border: none;"
+                                               title="{% trans 'Map Editor' %}">
+                                                <i class="bi bi-map"></i>
                                             </a>
                                         </div>
                                     </td>
@@ -141,11 +161,12 @@
                         </table>
                     </div>
                 {% else %}
-                    <div class="text-center py-4">
-                        <i class="bi bi-calendar-x display-4 text-muted"></i>
-                        <p class="text-muted mt-2">{% trans "No recent events" %}</p>
-                        <a href="{% url 'events:event_create' %}" class="btn btn-primary">
-                            <i class="bi bi-plus"></i> {% trans "Create First Event" %}
+                    <div class="text-center py-5" style="color: var(--secondary-500);">
+                        <i class="bi bi-calendar-x" style="font-size: 3rem; opacity: 0.5;"></i>
+                        <p class="mt-3 mb-3">{% trans "No recent events" %}</p>
+                        <a href="{% url 'events:event_create' %}" class="btn btn-modern btn-primary-modern">
+                            <i class="bi bi-plus-circle"></i>
+                            <span>{% trans "Create First Event" %}</span>
                         </a>
                     </div>
                 {% endif %}
@@ -154,61 +175,61 @@
     </div>
 
     <!-- Quick Actions & Venues -->
-    <div class="col-lg-4">
+    <div class="col-12 col-lg-4">
         <!-- Quick Actions -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-lightning me-2"></i>
-                    {% trans "Quick Actions" %}
-                </h5>
+        <div class="card-modern mb-4">
+            <div class="card-header-modern">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-lightning-fill"></i>
+                    <h5 class="mb-0">{% trans "Quick Actions" %}</h5>
+                </div>
             </div>
-            <div class="card-body">
+            <div class="card-body-modern">
                 <div class="d-grid gap-2">
-                    <a href="{% url 'events:event_create' %}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle me-2"></i>
-                        {% trans "Create Event" %}
+                    <a href="{% url 'events:event_create' %}" class="btn btn-modern btn-primary-modern">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>{% trans "Create Event" %}</span>
                     </a>
-                    <a href="{% url 'events:venue_create' %}" class="btn btn-outline-primary">
-                        <i class="bi bi-building-add me-2"></i>
-                        {% trans "Add Venue" %}
+                    <a href="{% url 'events:venue_create' %}" class="btn btn-modern btn-outline-modern">
+                        <i class="bi bi-building-add"></i>
+                        <span>{% trans "Add Venue" %}</span>
                     </a>
-                    <a href="#" class="btn btn-outline-secondary">
-                        <i class="bi bi-graph-up me-2"></i>
-                        {% trans "View Reports" %}
+                    <a href="#" class="btn btn-modern btn-secondary-modern">
+                        <i class="bi bi-graph-up"></i>
+                        <span>{% trans "View Reports" %}</span>
                     </a>
-                    <a href="#" class="btn btn-outline-info">
-                        <i class="bi bi-gear me-2"></i>
-                        {% trans "Settings" %}
+                    <a href="#" class="btn btn-modern" style="background-color: var(--info-light); color: var(--info); border: 1px solid var(--info);">
+                        <i class="bi bi-gear"></i>
+                        <span>{% trans "Settings" %}</span>
                     </a>
                 </div>
             </div>
         </div>
 
         <!-- Map Editor Feature -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-map me-2"></i>
-                    {% trans "Map Editor" %}
-                </h5>
+        <div class="card-modern mb-4">
+            <div class="card-header-modern">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-map"></i>
+                    <h5 class="mb-0">{% trans "Map Editor" %}</h5>
+                </div>
             </div>
-            <div class="card-body">
-                <p class="card-text small text-muted mb-3">
+            <div class="card-body-modern">
+                <p class="small text-muted mb-3">
                     {% trans "Visually organize your event zones with our interactive map editor." %}
                 </p>
                 <div class="d-grid gap-2">
                     {% if recent_events %}
                         {% for event in recent_events|slice:":2" %}
-                        <a href="/zones/events/{{ event.id }}/map-editor/" class="btn btn-sm btn-success">
-                            <i class="fas fa-map me-1"></i>
-                            {% trans "Map" %}: {{ event.name|truncatechars:20 }}
+                        <a href="/zones/events/{{ event.id }}/map-editor/" class="btn btn-modern btn-success-modern btn-sm-modern">
+                            <i class="bi bi-map-fill"></i>
+                            <span>{{ event.name|truncatechars:20 }}</span>
                         </a>
                         {% endfor %}
                     {% else %}
-                        <div class="text-center text-muted py-2">
-                            <i class="fas fa-info-circle"></i>
-                            <small>{% trans "Create an event to use the map editor" %}</small>
+                        <div class="text-center text-muted py-3">
+                            <i class="bi bi-info-circle" style="font-size: 1.5rem; opacity: 0.5;"></i>
+                            <p class="small mt-2 mb-0">{% trans "Create an event to use the map editor" %}</p>
                         </div>
                     {% endif %}
                 </div>
@@ -216,41 +237,45 @@
         </div>
 
         <!-- Top Venues -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-building me-2"></i>
-                    {% trans "Top Venues" %}
-                </h5>
-                <a href="{% url 'events:venue_list' %}" class="btn btn-sm btn-outline-light">
+        <div class="card-modern">
+            <div class="card-header-modern d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-building-fill"></i>
+                    <h5 class="mb-0">{% trans "Top Venues" %}</h5>
+                </div>
+                <a href="{% url 'events:venue_list' %}" class="btn btn-modern btn-sm-modern btn-outline-modern">
                     {% trans "View All" %}
                 </a>
             </div>
-            <div class="card-body">
+            <div class="card-body-modern">
                 {% if top_venues %}
-                    {% for venue in top_venues %}
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="flex-shrink-0">
-                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
-                                 style="width: 40px; height: 40px;">
-                                <i class="bi bi-building"></i>
+                    <div class="d-flex flex-column gap-3">
+                        {% for venue in top_venues %}
+                        <div class="d-flex align-items-center p-2 rounded" style="transition: var(--transition-all);" onmouseover="this.style.backgroundColor='var(--surface-secondary)'" onmouseout="this.style.backgroundColor='transparent'">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                     style="width: 48px; height: 48px; background-color: var(--primary-50); color: var(--primary-500);">
+                                    <i class="bi bi-building" style="font-size: 1.25rem;"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <div class="fw-semibold">{{ venue.name }}</div>
+                                <small class="text-muted">
+                                    <i class="bi bi-geo-alt"></i> {{ venue.city }}
+                                    <span class="mx-1">•</span>
+                                    <i class="bi bi-people"></i> {{ venue.capacity|default:"N/A" }} cap.
+                                </small>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <span class="table-badge badge-info">{{ venue.events_count }}</span>
                             </div>
                         </div>
-                        <div class="flex-grow-1 ms-3">
-                            <div class="fw-bold">{{ venue.name }}</div>
-                            <small class="text-muted">
-                                {{ venue.city }} • {{ venue.capacity|default:"N/A" }} cap.
-                            </small>
-                        </div>
-                        <div class="flex-shrink-0">
-                            <span class="badge bg-light text-dark">{{ venue.events_count }} {% trans "events" %}</span>
-                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                 {% else %}
-                    <div class="text-center py-3">
-                        <i class="bi bi-building-x display-6 text-muted"></i>
-                        <p class="text-muted mt-2 mb-0">{% trans "No venues registered" %}</p>
+                    <div class="text-center py-4" style="color: var(--secondary-500);">
+                        <i class="bi bi-building-x" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                        <p class="mt-2 mb-0">{% trans "No venues registered" %}</p>
                     </div>
                 {% endif %}
             </div>
@@ -261,29 +286,27 @@
 <!-- Recent Activity -->
 <div class="row mt-4">
     <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-activity me-2"></i>
-                    {% trans "Recent Activity" %}
-                </h5>
+        <div class="card-modern">
+            <div class="card-header-modern">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-activity"></i>
+                    <h5 class="mb-0">{% trans "Recent Activity" %}</h5>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="timeline">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="flex-shrink-0">
-                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" 
-                                 style="width: 32px; height: 32px;">
-                                <i class="bi bi-plus" style="font-size: 0.8rem;"></i>
-                            </div>
+            <div class="card-body-modern">
+                <div class="d-flex align-items-center p-3 rounded" style="background-color: var(--success-light); border-left: 4px solid var(--success);">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="width: 40px; height: 40px; background-color: var(--success); color: white;">
+                            <i class="bi bi-check-lg"></i>
                         </div>
-                        <div class="flex-grow-1 ms-3">
-                            <div class="fw-bold">{% trans "System initialized" %}</div>
-                            <small class="text-muted">{% trans "Welcome to Tiquemax" %}</small>
-                        </div>
-                        <div class="flex-shrink-0">
-                            <small class="text-muted">{% trans "Today" %}</small>
-                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="fw-semibold">{% trans "System initialized" %}</div>
+                        <small class="text-muted">{% trans "Welcome to Tiquemax" %}</small>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <small class="text-muted fw-medium">{% trans "Today" %}</small>
                     </div>
                 </div>
             </div>
