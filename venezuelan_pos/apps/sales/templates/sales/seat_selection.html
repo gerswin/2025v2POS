@@ -1,5 +1,6 @@
 {% extends 'events/base.html' %}
 {% load i18n %}
+{% load l10n %}
 
 {% block title %}{% trans "Seat Selection" %} - {{ event.name }} - Tiquemax{% endblock %}
 
@@ -85,11 +86,132 @@
     color: var(--success-color);
 }
 
+/* Venue Map Styles */
+.venue-map-container {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    border: 2px solid #dee2e6;
+    border-radius: 0.5rem;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    overflow: hidden;
+    background-image: 
+        linear-gradient(rgba(0,0,0,.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+.venue-map {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+}
+
+.venue-map.dragging {
+    cursor: grabbing;
+}
+
+.map-zone {
+    position: absolute;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    background: rgba(0, 123, 255, 0.1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #004085;
+    user-select: none;
+    transition: all 0.2s ease;
+    min-width: 80px;
+    min-height: 60px;
+}
+
+.map-zone:hover {
+    background: rgba(0, 123, 255, 0.2);
+    border-color: #0056b3;
+    transform: scale(1.05);
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.map-zone.sold-out {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: #dc3545;
+    color: #721c24;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.map-zone.sold-out:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.map-zone.general {
+    border-color: #17a2b8;
+    background: rgba(23, 162, 184, 0.1);
+    color: #0c5460;
+}
+
+.map-zone.general:hover {
+    background: rgba(23, 162, 184, 0.2);
+    border-color: #138496;
+}
+
+.zone-label {
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.2;
+    padding: 4px;
+}
+
+.zone-info {
+    font-size: 10px;
+    opacity: 0.8;
+}
+
+.stage-indicator {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 0.375rem;
+    font-weight: bold;
+    z-index: 5;
+}
+
+.map-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+}
+
+.map-controls .btn {
+    margin-left: 5px;
+}
+
 @media (max-width: 768px) {
     .cart-sidebar {
         position: static;
         max-height: none;
         margin-top: 2rem;
+    }
+    
+    .venue-map-container {
+        height: 400px;
+    }
+    
+    .map-zone {
+        min-width: 60px;
+        min-height: 40px;
+        font-size: 10px;
     }
 }
 </style>
@@ -123,6 +245,9 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3>{% trans "Select Zone" %}</h3>
             <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-secondary btn-sm active" id="mapView">
+                    <i class="bi bi-map"></i> {% trans "Map" %}
+                </button>
                 <button type="button" class="btn btn-outline-secondary btn-sm" id="gridView">
                     <i class="bi bi-grid-3x3-gap"></i> {% trans "Grid" %}
                 </button>
@@ -132,8 +257,85 @@
             </div>
         </div>
 
+        <!-- Venue Map View -->
+        <div id="venueMapView" class="mb-4">
+            <div class="venue-map-container">
+                <!-- Map Controls -->
+                <div class="map-controls">
+                    <button class="btn btn-sm btn-outline-secondary" id="zoomInBtn" title="{% trans 'Zoom In' %}">
+                        <i class="bi bi-zoom-in"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" id="zoomOutBtn" title="{% trans 'Zoom Out' %}">
+                        <i class="bi bi-zoom-out"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" id="resetZoomBtn" title="{% trans 'Reset Zoom' %}">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+                </div>
+                
+                <div class="venue-map" id="venueMap">
+                    <!-- Stage indicator -->
+                    <div class="stage-indicator">
+                        <i class="bi bi-music-note"></i> {% trans "STAGE" %}
+                    </div>
+                    
+                    <!-- Zones will be rendered here -->
+                    {% for zone in zones %}
+                    {% if zone.map_x is not None and zone.map_y is not None %}
+                    <div class="map-zone {% if zone.zone_type == 'general' %}general{% endif %} {% if zone.is_sold_out %}sold-out{% endif %}"
+                         data-zone-id="{{ zone.id }}"
+                         data-zone-name="{{ zone.name }}"
+                         data-zone-type="{{ zone.zone_type }}"
+                         style="
+                            left: {% localize off %}{{ zone.map_x|default:100 }}{% endlocalize %}px;
+                            top: {% localize off %}{{ zone.map_y|default:100 }}{% endlocalize %}px;
+                            width: {% localize off %}{{ zone.map_width|default:120 }}{% endlocalize %}px;
+                            height: {% localize off %}{{ zone.map_height|default:80 }}{% endlocalize %}px;
+                            transform: rotate({% localize off %}{{ zone.map_rotation|default:0 }}{% endlocalize %}deg);
+                         "
+                         {% if not zone.is_sold_out %}onclick="selectZone('{{ zone.id }}', '{{ zone.zone_type }}')"{% endif %}>
+                        <div class="zone-label">
+                            <div>{{ zone.name }}</div>
+                            <div class="zone-info">
+                                {% if zone.zone_type == 'numbered' %}
+                                    {{ zone.available_seats }}/{{ zone.total_seats }} {% trans "seats" %}
+                                {% else %}
+                                    {{ zone.available_seats }} {% trans "available" %}
+                                {% endif %}
+                            </div>
+                            <div class="zone-info">
+                                ${{ zone.base_price|floatformat:0 }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Map Legend -->
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="d-flex flex-wrap gap-3 align-items-center justify-content-center">
+                        <div class="d-flex align-items-center">
+                            <div style="width: 20px; height: 15px; background: rgba(0, 123, 255, 0.1); border: 2px solid #007bff; border-radius: 3px; margin-right: 8px;"></div>
+                            <small>{% trans "Numbered Zone" %}</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div style="width: 20px; height: 15px; background: rgba(23, 162, 184, 0.1); border: 2px solid #17a2b8; border-radius: 3px; margin-right: 8px;"></div>
+                            <small>{% trans "General Zone" %}</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div style="width: 20px; height: 15px; background: rgba(220, 53, 69, 0.1); border: 2px solid #dc3545; border-radius: 3px; margin-right: 8px;"></div>
+                            <small>{% trans "Sold Out" %}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Zone Grid -->
-        <div id="zoneGrid" class="row">
+        <div id="zoneGrid" class="row" style="display: none;">
             {% for zone in zones %}
             <div class="col-md-6 col-lg-4 mb-3">
                 <div class="card zone-card h-100 {% if zone.is_sold_out %}sold-out{% endif %}" 
@@ -303,6 +505,10 @@ let cartUpdateInterval;
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize view toggle
+    document.getElementById('mapView').addEventListener('click', function() {
+        showMapView();
+    });
+    
     document.getElementById('gridView').addEventListener('click', function() {
         showGridView();
     });
@@ -311,22 +517,115 @@ document.addEventListener('DOMContentLoaded', function() {
         showListView();
     });
     
+    // Initialize map controls
+    initializeMapControls();
+    
     // Start cart update polling
     startCartPolling();
 });
 
+function showMapView() {
+    document.getElementById('venueMapView').style.display = 'block';
+    document.getElementById('zoneGrid').style.display = 'none';
+    document.getElementById('zoneList').style.display = 'none';
+    updateViewButtons('map');
+}
+
 function showGridView() {
-    document.getElementById('zoneGrid').classList.remove('d-none');
-    document.getElementById('zoneList').classList.add('d-none');
-    document.getElementById('gridView').classList.add('active');
-    document.getElementById('listView').classList.remove('active');
+    document.getElementById('venueMapView').style.display = 'none';
+    document.getElementById('zoneGrid').style.display = 'block';
+    document.getElementById('zoneList').style.display = 'none';
+    updateViewButtons('grid');
 }
 
 function showListView() {
-    document.getElementById('zoneGrid').classList.add('d-none');
-    document.getElementById('zoneList').classList.remove('d-none');
-    document.getElementById('listView').classList.add('active');
-    document.getElementById('gridView').classList.remove('active');
+    document.getElementById('venueMapView').style.display = 'none';
+    document.getElementById('zoneGrid').style.display = 'none';
+    document.getElementById('zoneList').style.display = 'block';
+    updateViewButtons('list');
+}
+
+function updateViewButtons(activeView) {
+    // Remove active class from all buttons
+    document.querySelectorAll('#mapView, #gridView, #listView').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Add active class to current button
+    const activeButton = document.getElementById(activeView + 'View');
+    if (activeButton) {
+        activeButton.classList.add('active');
+    }
+}
+
+// Map functionality
+let zoomLevel = 1;
+let isDragging = false;
+let dragStart = { x: 0, y: 0 };
+let mapOffset = { x: 0, y: 0 };
+
+function initializeMapControls() {
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const resetZoomBtn = document.getElementById('resetZoomBtn');
+    const venueMap = document.getElementById('venueMap');
+    
+    if (zoomInBtn) zoomInBtn.addEventListener('click', zoomIn);
+    if (zoomOutBtn) zoomOutBtn.addEventListener('click', zoomOut);
+    if (resetZoomBtn) resetZoomBtn.addEventListener('click', resetZoom);
+    
+    // Add pan functionality
+    if (venueMap) {
+        venueMap.addEventListener('mousedown', startPan);
+        venueMap.addEventListener('mousemove', pan);
+        venueMap.addEventListener('mouseup', endPan);
+        venueMap.addEventListener('mouseleave', endPan);
+    }
+}
+
+function zoomIn() {
+    zoomLevel = Math.min(zoomLevel * 1.2, 3);
+    applyZoom();
+}
+
+function zoomOut() {
+    zoomLevel = Math.max(zoomLevel / 1.2, 0.5);
+    applyZoom();
+}
+
+function resetZoom() {
+    zoomLevel = 1;
+    mapOffset = { x: 0, y: 0 };
+    applyZoom();
+}
+
+function applyZoom() {
+    const venueMap = document.getElementById('venueMap');
+    if (venueMap) {
+        venueMap.style.transform = `scale(${zoomLevel}) translate(${mapOffset.x}px, ${mapOffset.y}px)`;
+        venueMap.style.transformOrigin = 'center center';
+    }
+}
+
+function startPan(e) {
+    if (e.target.classList.contains('map-zone')) return; // Don't pan when clicking zones
+    isDragging = true;
+    dragStart.x = e.clientX - mapOffset.x;
+    dragStart.y = e.clientY - mapOffset.y;
+    document.getElementById('venueMap').style.cursor = 'grabbing';
+}
+
+function pan(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    mapOffset.x = e.clientX - dragStart.x;
+    mapOffset.y = e.clientY - dragStart.y;
+    applyZoom();
+}
+
+function endPan() {
+    isDragging = false;
+    document.getElementById('venueMap').style.cursor = 'grab';
 }
 
 function selectZone(zoneId, zoneType) {
