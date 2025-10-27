@@ -221,6 +221,18 @@
     cursor: not-allowed;
 }
 
+.seat.reserved-by-me {
+    background-color: #fff3cd !important;
+    color: #856404 !important;
+    border-color: #ffc107 !important;
+    box-shadow: 0 2px 8px rgba(255,193,7,0.3);
+}
+
+.seat.reserved-by-me:hover {
+    background-color: #ffeaa7 !important;
+    border-color: #e0a800 !important;
+}
+
 .selection-summary {
     background-color: #e3f2fd;
     border: 1px solid #bbdefb;
@@ -370,5 +382,140 @@ function getCookie(name) {
         }
     }
     return cookieValue;
+}
+
+// Seat reservation functions
+function reserveSeat(seatId, seatElement) {
+    fetch('/sales/seats/reserve/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            seat_ids: [seatId]
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Seat reserved successfully
+            window.selectedSeats.add(seatId);
+            seatElement.classList.add('selected');
+            seatElement.classList.add('reserved-by-me');
+            
+            // Show reservation timer
+            showReservationTimer(seatId, data.expires_at);
+            
+            console.log('✅ Seat reserved:', data.message);
+        } else {
+            // Reservation failed
+            showMessage(data.error, 'error');
+            console.error('❌ Seat reservation failed:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error reserving seat:', error);
+        showMessage('Error reserving seat. Please try again.', 'error');
+    });
+}
+
+function releaseSeatReservation(seatId) {
+    fetch('/sales/seats/release/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            seat_ids: [seatId]
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('✅ Seat reservation released:', data.message);
+            
+            // Remove visual indicators
+            const seatElement = document.querySelector(`[data-seat-id="${seatId}"]`);
+            if (seatElement) {
+                seatElement.classList.remove('reserved-by-me');
+            }
+            
+            // Clear any reservation timers
+            clearReservationTimer(seatId);
+        } else {
+            console.error('❌ Failed to release reservation:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error releasing seat reservation:', error);
+    });
+}
+
+// Reservation timer management
+let reservationTimers = {};
+
+function showReservationTimer(seatId, expiresAt) {
+    const expirationTime = new Date(expiresAt);
+    const now = new Date();
+    const timeLeft = expirationTime - now;
+    
+    if (timeLeft <= 0) {
+        return; // Already expired
+    }
+    
+    // Clear existing timer if any
+    clearReservationTimer(seatId);
+    
+    // Set new timer
+    reservationTimers[seatId] = setTimeout(() => {
+        // Reservation expired
+        const seatElement = document.querySelector(`[data-seat-id="${seatId}"]`);
+        if (seatElement) {
+            seatElement.classList.remove('selected', 'reserved-by-me');
+            window.selectedSeats.delete(seatId);
+            updateSelectionDisplay();
+        }
+        
+        showMessage('Seat reservation expired. Please select again if needed.', 'warning');
+        delete reservationTimers[seatId];
+    }, timeLeft);
+}
+
+function clearReservationTimer(seatId) {
+    if (reservationTimers[seatId]) {
+        clearTimeout(reservationTimers[seatId]);
+        delete reservationTimers[seatId];
+    }
+}
+
+// Main seat toggle function with reservation system
+function toggleSeat(seatElement) {
+    const seatId = seatElement.dataset.seatId;
+    const status = seatElement.dataset.status;
+    
+    // Only allow selection of available seats
+    if (status !== 'available') {
+        return;
+    }
+    
+    if (window.selectedSeats && window.selectedSeats.has(seatId)) {
+        // Deselect seat - release reservation
+        window.selectedSeats.delete(seatId);
+        seatElement.classList.remove('selected');
+        releaseSeatReservation(seatId);
+    } else {
+        // Select seat - create reservation
+        if (!window.selectedSeats) {
+            window.selectedSeats = new Set();
+        }
+        reserveSeat(seatId, seatElement);
+    }
+    
+    // Update selection display if function exists
+    if (typeof updateSelectionDisplay === 'function') {
+        updateSelectionDisplay();
+    }
 }
 </script>

@@ -150,17 +150,6 @@
     box-shadow: none;
 }
 
-.map-zone.reserved-by-me {
-    background: rgba(255, 193, 7, 0.2);
-    border-color: #ffc107;
-    color: #856404;
-}
-
-.map-zone.reserved-by-me:hover {
-    background: rgba(255, 193, 7, 0.3);
-    border-color: #e0a800;
-}
-
 .map-zone.general {
     border-color: #17a2b8;
     background: rgba(23, 162, 184, 0.1);
@@ -182,18 +171,6 @@
 .zone-info {
     font-size: 10px;
     opacity: 0.8;
-}
-
-/* Seat-specific styles for individual seat maps */
-.seat.reserved-by-me {
-    background-color: #fff3cd !important;
-    border-color: #ffc107 !important;
-    color: #856404 !important;
-}
-
-.seat.reserved-by-me:hover {
-    background-color: #ffeaa7 !important;
-    border-color: #e0a800 !important;
 }
 
 .stage-indicator {
@@ -909,13 +886,13 @@ window.toggleSeat = function(seatElement) {
     }
     
     if (window.selectedSeats.has(seatId)) {
-        // Deselect seat - release reservation
+        // Deselect seat
         window.selectedSeats.delete(seatId);
         seatElement.classList.remove('selected');
-        releaseSeatReservation(seatId);
     } else {
-        // Select seat - create reservation
-        reserveSeat(seatId, seatElement);
+        // Select seat
+        window.selectedSeats.add(seatId);
+        seatElement.classList.add('selected');
     }
     
     updateSelectionDisplay();
@@ -1094,124 +1071,10 @@ window.addSelectedSeatsToCart = function() {
     });
 };
 
-// Seat reservation functions
-function reserveSeat(seatId, seatElement) {
-    fetch('{% url "sales_web:reserve_seats" %}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({
-            seat_ids: [seatId]
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Seat reserved successfully
-            window.selectedSeats.add(seatId);
-            seatElement.classList.add('selected');
-            seatElement.classList.add('reserved-by-me');
-            
-            // Show reservation timer
-            showReservationTimer(seatId, data.expires_at);
-            
-            console.log('✅ Seat reserved:', data.message);
-        } else {
-            // Reservation failed
-            showMessage(data.error, 'error');
-            console.error('❌ Seat reservation failed:', data.error);
-        }
-    })
-    .catch(error => {
-        console.error('❌ Error reserving seat:', error);
-        showMessage('Error reserving seat. Please try again.', 'error');
-    });
-}
-
-function releaseSeatReservation(seatId) {
-    fetch('{% url "sales_web:release_seats" %}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({
-            seat_ids: [seatId]
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            console.log('✅ Seat reservation released:', data.message);
-            
-            // Remove visual indicators
-            const seatElement = document.querySelector(`[data-seat-id="${seatId}"]`);
-            if (seatElement) {
-                seatElement.classList.remove('reserved-by-me');
-            }
-            
-            // Clear any reservation timers
-            clearReservationTimer(seatId);
-        } else {
-            console.error('❌ Failed to release reservation:', data.error);
-        }
-    })
-    .catch(error => {
-        console.error('❌ Error releasing seat reservation:', error);
-    });
-}
-
-// Reservation timer management
-let reservationTimers = {};
-
-function showReservationTimer(seatId, expiresAt) {
-    const expirationTime = new Date(expiresAt);
-    const now = new Date();
-    const timeLeft = expirationTime - now;
-    
-    if (timeLeft <= 0) {
-        return; // Already expired
-    }
-    
-    // Clear existing timer if any
-    clearReservationTimer(seatId);
-    
-    // Set new timer
-    reservationTimers[seatId] = setTimeout(() => {
-        // Reservation expired
-        const seatElement = document.querySelector(`[data-seat-id="${seatId}"]`);
-        if (seatElement) {
-            seatElement.classList.remove('selected', 'reserved-by-me');
-            window.selectedSeats.delete(seatId);
-            updateSelectionDisplay();
-        }
-        
-        showMessage('Seat reservation expired. Please select again if needed.', 'warning');
-        delete reservationTimers[seatId];
-    }, timeLeft);
-}
-
-function clearReservationTimer(seatId) {
-    if (reservationTimers[seatId]) {
-        clearTimeout(reservationTimers[seatId]);
-        delete reservationTimers[seatId];
-    }
-}
-
-// Release all reservations when leaving the page
+// Cleanup on page unload
 window.addEventListener('beforeunload', function() {
     if (cartUpdateInterval) {
         clearInterval(cartUpdateInterval);
-    }
-    
-    // Release all active reservations
-    if (window.selectedSeats && window.selectedSeats.size > 0) {
-        const seatIds = Array.from(window.selectedSeats);
-        navigator.sendBeacon('{% url "sales_web:release_seats" %}', JSON.stringify({
-            seat_ids: seatIds
-        }));
     }
 });
 </script>
