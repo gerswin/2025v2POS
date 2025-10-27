@@ -468,6 +468,210 @@ def clear_cart(request):
     })
 
 
+@require_POST
+@login_required
+def reserve_seats(request):
+    """
+    Create temporary reservations for selected seats to prevent conflicts.
+    Reservations expire after 10 minutes if not completed.
+    """
+    try:
+        data = json.loads(request.body)
+        seat_ids = data.get('seat_ids', [])
+        zone_id = data.get('zone_id')
+        
+        if not seat_ids and not zone_id:
+            return JsonResponse({'success': False, 'error': 'No seats or zone specified'})
+        
+        # Get or create a temporary transaction for reservations
+        session_key = request.session.session_key
+        if not session_key:
+            request.session.create()
+            session_key = request.session.session_key
+        
+        # Create temporary transaction for this session if it doesn't exist
+        temp_transaction, created = Transaction.objects.get_or_create(
+            tenant=request.user.tenant,
+            fiscal_series=f"TEMP_{session_key}",
+            defaults={
+                'status': Transaction.Status.PENDING,
+                'total_price': Decimal('0.00'),
+                'payment_method': Transaction.PaymentMethod.CASH,
+                'notes': 'Temporary transaction for seat reservations'
+            }
+        )
+        
+        reserved_seats = []
+        reservation_time = timezone.now() + timezone.timedelta(minutes=10)  # 10 minute hold
+        
+        if seat_ids:
+            # Reserve specific seats (numbered zones)
+            for seat_id in seat_ids:
+                try:
+                    seat = Seat.objects.select_for_update().get(
+                        id=seat_id,
+                        status=Seat.Status.AVAILABLE
+                    )
+                    
+                    # Check if seat is already reserved by someone else
+                    existing_reservation = ReservedTicket.objects.filter(
+                        seat=seat,
+                        status=ReservedTicket.Status.ACTIVE,
+                        reserved_until__gt=timezone.now()
+                    ).exclude(transaction=temp_transaction).first()
+                    
+                    if existing_reservation:
+                        return JsonResponse({
+                            'success': False, 
+                            'error': f'Seat {seat.seat_label} is already reserved by another operator'
+                        })
+                    
+                    # Create or update reservation
+                    reservation, created = ReservedTicket.objects.update_or_create(
+                        transaction=temp_transaction,
+                        seat=seat,
+                        zone=seat.zone,
+                        defaults={
+                            'reserved_until': reservation_time,
+                            'status': ReservedTicket.Status.ACTIVE,
+                            'quantity': 1
+                        }
+                    )
+                    
+                    reserved_seats.append({
+                        'seat_id': str(seat.id),
+                        'seat_label': seat.seat_label,
+                        'reserved_until': reservation_time.isoformat()
+                    })
+                    
+                except Seat.DoesNotExist:
+                    return JsonResponse({
+                        'success': False, 
+                        'error': f'Seat {seat_id} not found or not available'
+                    })
+        
+        elif zone_id:
+            # Reserve general admission tickets
+            try:
+                zone = Zone.objects.get(id=zone_id)
+                quantity = data.get('quantity', 1)
+                
+                # Check zone availability
+                if zone.available_capacity < quantity:
+                    return JsonResponse({
+                        'success': False, 
+                        'error': f'Only {zone.available_capacity} tickets available in {zone.name}'
+                    })
+                
+                # Create or update reservation
+                reservation, created = ReservedTicket.objects.update_or_create(
+                    transaction=temp_transaction,
+                    zone=zone,
+                    seat=None,  # General admission
+                    defaults={
+                        'reserved_until': reservation_time,
+                        'status': ReservedTicket.Status.ACTIVE,
+                        'quantity': quantity
+                    }
+                )
+                
+                reserved_seats.append({
+                    'zone_id': str(zone.id),
+                    'zone_name': zone.name,
+                    'quantity': quantity,
+                    'reserved_until': reservation_time.isoformat()
+                })
+                
+            except Zone.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Zone not found'})
+        
+        # Update cache to reflect reservations
+        for seat_info in reserved_seats:
+            if 'seat_id' in seat_info:
+                sales_cache.invalidate_seat_availability(seat_info['seat_id'])
+            else:
+                sales_cache.invalidate_zone_availability(zone_id)
+        
+        return JsonResponse({
+            'success': True,
+            'reserved_seats': reserved_seats,
+            'expires_at': reservation_time.isoformat(),
+            'message': f'Reserved {len(reserved_seats)} seat(s) for 10 minutes'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error reserving seats: {e}")
+        return JsonResponse({'success': False, 'error': 'Failed to reserve seats'})
+
+
+@require_POST
+@login_required
+def release_seats(request):
+    """Release temporary seat reservations."""
+    try:
+        data = json.loads(request.body)
+        seat_ids = data.get('seat_ids', [])
+        zone_id = data.get('zone_id')
+        
+        session_key = request.session.session_key
+        if not session_key:
+            return JsonResponse({'success': True, 'message': 'No reservations to release'})
+        
+        # Find temporary transaction for this session
+        try:
+            temp_transaction = Transaction.objects.get(
+                tenant=request.user.tenant,
+                fiscal_series=f"TEMP_{session_key}"
+            )
+        except Transaction.DoesNotExist:
+            return JsonResponse({'success': True, 'message': 'No reservations found'})
+        
+        released_count = 0
+        
+        if seat_ids:
+            # Release specific seats
+            for seat_id in seat_ids:
+                released = ReservedTicket.objects.filter(
+                    transaction=temp_transaction,
+                    seat_id=seat_id,
+                    status=ReservedTicket.Status.ACTIVE
+                ).update(status=ReservedTicket.Status.CANCELLED)
+                released_count += released
+                
+                # Update cache
+                sales_cache.invalidate_seat_availability(seat_id)
+        
+        elif zone_id:
+            # Release zone reservations
+            released = ReservedTicket.objects.filter(
+                transaction=temp_transaction,
+                zone_id=zone_id,
+                status=ReservedTicket.Status.ACTIVE
+            ).update(status=ReservedTicket.Status.CANCELLED)
+            released_count += released
+            
+            # Update cache
+            sales_cache.invalidate_zone_availability(zone_id)
+        
+        else:
+            # Release all reservations for this session
+            released = ReservedTicket.objects.filter(
+                transaction=temp_transaction,
+                status=ReservedTicket.Status.ACTIVE
+            ).update(status=ReservedTicket.Status.CANCELLED)
+            released_count += released
+        
+        return JsonResponse({
+            'success': True,
+            'released_count': released_count,
+            'message': f'Released {released_count} reservation(s)'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error releasing seats: {e}")
+        return JsonResponse({'success': False, 'error': 'Failed to release seats'})
+
+
 @login_required
 def checkout(request):
     """Checkout process step 1 - Review cart and select customer."""

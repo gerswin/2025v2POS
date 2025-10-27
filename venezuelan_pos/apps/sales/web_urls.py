@@ -22,6 +22,10 @@ urlpatterns = [
     path('cart/remove/', web_views.remove_from_cart, name='remove_from_cart'),
     path('cart/clear/', web_views.clear_cart, name='clear_cart'),
     
+    # Seat Reservations (temporary holds)
+    path('seats/reserve/', web_views.reserve_seats, name='reserve_seats'),
+    path('seats/release/', web_views.release_seats, name='release_seats'),
+    
     # Checkout Process
     path('checkout/', web_views.checkout, name='checkout'),
     path('checkout/customer/', web_views.checkout_customer, name='checkout_customer'),
