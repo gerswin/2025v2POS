@@ -265,13 +265,11 @@
 
 <script>
 const unitPrice = {{ zone_price }};
-const maxQuantity = {{ available_capacity }};
+let maxQuantity = {{ available_capacity }};
 let currentQuantity = 1;
 
 document.addEventListener('DOMContentLoaded', function() {
     updateTotal();
-    
-    // Start real-time availability updates
     startAvailabilityPolling();
 });
 
