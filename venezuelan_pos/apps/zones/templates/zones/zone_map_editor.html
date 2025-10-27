@@ -329,11 +329,11 @@
                                          data-zone-id="{{ zone.id }}"
                                          data-zone-name="{{ zone.name }}"
                                          style="
-                                            left: {% localize off %}{{ zone.map_x|default:100 }}{% endlocalize %}px;
-                                            top: {% localize off %}{{ zone.map_y|default:100 }}{% endlocalize %}px;
-                                            width: {% localize off %}{{ zone.map_width|default:120 }}{% endlocalize %}px;
-                                            height: {% localize off %}{{ zone.map_height|default:80 }}{% endlocalize %}px;
-                                            transform: rotate({% localize off %}{{ zone.map_rotation|default:0 }}{% endlocalize %}deg);
+                                            left: {{ zone.map_x|default:100|floatformat:0 }}px;
+                                            top: {{ zone.map_y|default:100|floatformat:0 }}px;
+                                            width: {{ zone.map_width|default:120|floatformat:0 }}px;
+                                            height: {{ zone.map_height|default:80|floatformat:0 }}px;
+                                            transform: rotate({{ zone.map_rotation|default:0|floatformat:0 }}deg);
                                          ">
                                         <div class="zone-label">
                                             <div>{{ zone.name }}</div>
@@ -392,19 +392,18 @@ let zoomLevel = 1;
 let zones = {};
 
 // Initialize zones data
-{% load l10n %}
 {% for zone in zones %}
 zones['{{ zone.id }}'] = {
     id: '{{ zone.id }}',
     name: '{{ zone.name }}',
     capacity: {{ zone.capacity }},
     zone_type: '{{ zone.zone_type }}',
-    base_price: {% localize off %}{{ zone.base_price|default:0 }}{% endlocalize %},
-    x: {% localize off %}{{ zone.map_x|default:100 }}{% endlocalize %},
-    y: {% localize off %}{{ zone.map_y|default:100 }}{% endlocalize %},
-    width: {% localize off %}{{ zone.map_width|default:120 }}{% endlocalize %},
-    height: {% localize off %}{{ zone.map_height|default:80 }}{% endlocalize %},
-    rotation: {% localize off %}{{ zone.map_rotation|default:0 }}{% endlocalize %}
+    base_price: {{ zone.base_price|default:0|floatformat:2 }},
+    x: {{ zone.map_x|default:100|floatformat:0 }},
+    y: {{ zone.map_y|default:100|floatformat:0 }},
+    width: {{ zone.map_width|default:120|floatformat:0 }},
+    height: {{ zone.map_height|default:80|floatformat:0 }},
+    rotation: {{ zone.map_rotation|default:0|floatformat:0 }}
 };
 {% endfor %}
 
