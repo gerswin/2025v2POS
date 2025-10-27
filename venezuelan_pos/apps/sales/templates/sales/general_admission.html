@@ -306,7 +306,7 @@ function setQuantity(quantity) {
 
 function updateTotal() {
     const quantityInput = document.getElementById('ticketQuantity');
-    const quantity = parseInt(quantityInput.value) || 1;
+    let quantity = parseInt(quantityInput.value) || 1;
     
     // Validate quantity
     if (quantity > maxQuantity) {
