@@ -145,6 +145,11 @@ log_info "Collecting static files..."
 podman exec "${POD_NAME}-web" python manage.py collectstatic --noinput
 log_success "Static files collected"
 
+# Create default superuser
+log_info "Creating default superuser..."
+podman exec "${POD_NAME}-web" python manage.py create_default_superuser 2>&1 | grep -v "UserWarning" || true
+log_success "Default superuser created (admin/admin123)"
+
 # 4. Celery Worker
 log_info "Creating Celery worker container..."
 podman run -d \
@@ -196,6 +201,41 @@ podman volume create tiquemax-letsencrypt 2>/dev/null || true
 # Create traefik logs volume
 podman volume create tiquemax-traefik-logs 2>/dev/null || true
 
+# Determine if we should use HTTPS (skip for localhost)
+USE_HTTPS="true"
+if [ "$DOMAIN" = "localhost" ] || [ "$DOMAIN" = "127.0.0.1" ]; then
+    USE_HTTPS="false"
+    log_warning "Using HTTP only for localhost (no SSL/TLS)"
+fi
+
+# Build Traefik command
+TRAEFIK_CMD="--providers.docker=false \
+    --providers.file.filename=/etc/traefik/dynamic.yml \
+    --providers.file.watch=true \
+    --entrypoints.web.address=:80"
+
+# Add HTTPS configuration only if not localhost
+if [ "$USE_HTTPS" = "true" ]; then
+    TRAEFIK_CMD="$TRAEFIK_CMD \
+    --entrypoints.web.http.redirections.entrypoint.to=websecure \
+    --entrypoints.web.http.redirections.entrypoint.scheme=https \
+    --entrypoints.websecure.address=:443 \
+    --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-admin@localhost} \
+    --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json \
+    --certificatesresolvers.letsencrypt.acme.httpchallenge=true \
+    --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+fi
+
+TRAEFIK_CMD="$TRAEFIK_CMD \
+    --api.dashboard=true \
+    --api.insecure=false \
+    --log.level=${TRAEFIK_LOG_LEVEL:-INFO} \
+    --log.format=json \
+    --accesslog=true \
+    --accesslog.format=json \
+    --accesslog.filepath=/var/log/traefik/access.log \
+    --metrics.prometheus=true"
+
 podman run -d \
     --pod "$POD_NAME" \
     --name "${POD_NAME}-traefik" \
@@ -208,25 +248,7 @@ podman run -d \
     -e DOMAIN="${DOMAIN:-localhost}" \
     -e ACME_EMAIL="${ACME_EMAIL:-admin@localhost}" \
     docker.io/library/traefik:v2.11 \
-    --providers.docker=false \
-    --providers.file.filename=/etc/traefik/dynamic.yml \
-    --providers.file.watch=true \
-    --entrypoints.web.address=:80 \
-    --entrypoints.web.http.redirections.entrypoint.to=websecure \
-    --entrypoints.web.http.redirections.entrypoint.scheme=https \
-    --entrypoints.websecure.address=:443 \
-    --certificatesresolvers.letsencrypt.acme.email="${ACME_EMAIL:-admin@localhost}" \
-    --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json \
-    --certificatesresolvers.letsencrypt.acme.httpchallenge=true \
-    --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web \
-    --api.dashboard=true \
-    --api.insecure=false \
-    --log.level="${TRAEFIK_LOG_LEVEL:-INFO}" \
-    --log.format=json \
-    --accesslog=true \
-    --accesslog.format=json \
-    --accesslog.filepath=/var/log/traefik/access.log \
-    --metrics.prometheus=true
+    $TRAEFIK_CMD
 
 log_success "Traefik container created"
 

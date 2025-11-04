@@ -93,17 +93,52 @@ http:
     #       - "127.0.0.1/32"
     #       - "192.168.1.0/24"
 
-  # Routers for specific paths (if needed for static/media)
+  # Services
+  services:
+    # Django application
+    django-app:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:8000"
+
+    # Flower (Celery monitoring)
+    flower-app:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:5555"
+
+  # Routers for specific paths
   routers:
-    # Dashboard router
+    # Main application router
+    app-main:
+      rule: "Host(`localhost`) || Host(`127.0.0.1`)"
+      service: django-app
+      middlewares:
+        - security-headers
+        - compress
+        - rate-limit-general
+      priority: 1
+
+    # Flower router
+    flower:
+      rule: "(Host(`localhost`) || Host(`127.0.0.1`)) && PathPrefix(`/flower`)"
+      service: flower-app
+      middlewares:
+        - security-headers
+        - compress
+      priority: 10
+
+    # Dashboard router (HTTP only for localhost, HTTPS for production)
     dashboard:
-      rule: "Host(`${DOMAIN}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+      rule: "(Host(`localhost`) || Host(`127.0.0.1`)) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
       service: api@internal
       middlewares:
-        - dashboard-auth
+        # - dashboard-auth  # Disabled for localhost testing
         - security-headers
-      tls:
-        certResolver: letsencrypt
+      priority: 20
+      # TLS only for production domains (not localhost)
+      # tls:
+      #   certResolver: letsencrypt
 
 # TLS Configuration
 tls:

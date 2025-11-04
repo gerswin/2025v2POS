@@ -11,7 +11,7 @@ backlog = 2048
 
 # Worker processes
 workers = multiprocessing.cpu_count() * 2 + 1
-worker_class = "uvicorn.workers.UvicornWorker"
+worker_class = "sync"  # Use sync for WSGI apps like Django
 worker_connections = 1000
 timeout = 30
 keepalive = 2

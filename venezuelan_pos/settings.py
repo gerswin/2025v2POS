@@ -64,8 +64,9 @@ THIRD_PARTY_APPS = [
     "health_check.cache",
 ]
 
-# Add Prometheus only in production to avoid autoreloader conflicts
-if not DEBUG:
+# Add Prometheus only if explicitly enabled
+ENABLE_PROMETHEUS = config("ENABLE_PROMETHEUS", default=False, cast=bool)
+if ENABLE_PROMETHEUS:
     THIRD_PARTY_APPS.append("django_prometheus")
 
 LOCAL_APPS = [
@@ -119,8 +120,8 @@ MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
-# Add Prometheus middleware only in production
-if not DEBUG:
+# Add Prometheus middleware only if explicitly enabled
+if ENABLE_PROMETHEUS:
     MIDDLEWARE.insert(0, "django_prometheus.middleware.PrometheusBeforeMiddleware")
     MIDDLEWARE.append("django_prometheus.middleware.PrometheusAfterMiddleware")
 
@@ -413,86 +414,129 @@ structlog.configure(
 )
 
 # Standard Django Logging Configuration
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
+# Determine if we're in a containerized environment
+IN_CONTAINER = os.path.exists('/.dockerenv') or os.path.exists('/run/.containerenv')
+
+# Logging Configuration - Use console-only logging in containers
+if IN_CONTAINER:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+                'style': '{',
+            },
+            'json': {
+                '()': structlog.stdlib.ProcessorFormatter,
+                'processor': structlog.processors.JSONRenderer(),
+            },
         },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
+        'handlers': {
+            'console': {
+                'level': 'DEBUG',
+                'class': 'logging.StreamHandler',
+                'formatter': 'json' if not DEBUG else 'verbose',
+            },
         },
-        'json': {
-            '()': structlog.stdlib.ProcessorFormatter,
-            'processor': structlog.processors.JSONRenderer(),
-        },
-        'console': {
-            '()': structlog.stdlib.ProcessorFormatter,
-            'processor': structlog.dev.ConsoleRenderer(colors=DEBUG),
-        },
-    },
-    'handlers': {
-        'file': {
+        'root': {
+            'handlers': ['console'],
             'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs' / 'django.log',
-            'formatter': 'json' if not DEBUG else 'verbose',
-            'maxBytes': 10 * 1024 * 1024,  # 10MB
-            'backupCount': 5,
         },
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'console' if DEBUG else 'json',
+        'loggers': {
+            'django': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'venezuelan_pos': {
+                'handlers': ['console'],
+                'level': 'DEBUG' if DEBUG else 'INFO',
+                'propagate': False,
+            },
         },
-        'performance': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs' / 'performance.log',
-            'formatter': 'json',
-            'maxBytes': 10 * 1024 * 1024,  # 10MB
-            'backupCount': 3,
+    }
+else:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+                'style': '{',
+            },
+            'simple': {
+                'format': '{levelname} {message}',
+                'style': '{',
+            },
+            'json': {
+                '()': structlog.stdlib.ProcessorFormatter,
+                'processor': structlog.processors.JSONRenderer(),
+            },
+            'console': {
+                '()': structlog.stdlib.ProcessorFormatter,
+                'processor': structlog.dev.ConsoleRenderer(colors=DEBUG),
+            },
         },
-        'security': {
+        'handlers': {
+            'file': {
+                'level': 'INFO',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': BASE_DIR / 'logs' / 'django.log',
+                'formatter': 'json' if not DEBUG else 'verbose',
+                'maxBytes': 10 * 1024 * 1024,  # 10MB
+                'backupCount': 5,
+            },
+            'console': {
+                'level': 'DEBUG',
+                'class': 'logging.StreamHandler',
+                'formatter': 'console' if DEBUG else 'json',
+            },
+            'performance': {
+                'level': 'INFO',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': BASE_DIR / 'logs' / 'performance.log',
+                'formatter': 'json',
+                'maxBytes': 10 * 1024 * 1024,  # 10MB
+                'backupCount': 3,
+            },
+            'security': {
+                'level': 'WARNING',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': BASE_DIR / 'logs' / 'security.log',
+                'formatter': 'json',
+                'maxBytes': 10 * 1024 * 1024,  # 10MB
+                'backupCount': 10,
+            },
+        },
+        'root': {
+            'handlers': ['console'],
             'level': 'WARNING',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs' / 'security.log',
-            'formatter': 'json',
-            'maxBytes': 10 * 1024 * 1024,  # 10MB
-            'backupCount': 10,
         },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'WARNING',
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file', 'console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'venezuelan_pos': {
-            'handlers': ['file', 'console'],
-            'level': 'DEBUG',
-            'propagate': False,
-        },
-        'venezuelan_pos.performance': {
-            'handlers': ['performance', 'console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'venezuelan_pos.security': {
-            'handlers': ['security', 'console'],
-            'level': 'WARNING',
-            'propagate': False,
-        },
-        'django.security': {
-            'handlers': ['security'],
-            'level': 'WARNING',
+        'loggers': {
+            'django': {
+                'handlers': ['file', 'console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'venezuelan_pos': {
+                'handlers': ['file', 'console'],
+                'level': 'DEBUG',
+                'propagate': False,
+            },
+            'venezuelan_pos.performance': {
+                'handlers': ['performance', 'console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'venezuelan_pos.security': {
+                'handlers': ['security', 'console'],
+                'level': 'WARNING',
+                'propagate': False,
+            },
+            'django.security': {
+                'handlers': ['security'],
+                'level': 'WARNING',
             'propagate': False,
         },
         'django.request': {

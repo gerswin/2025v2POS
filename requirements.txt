@@ -7,7 +7,6 @@ djangorestframework-simplejwt==5.3.*
 psycopg2-binary==2.9.*
 django-redis==5.4.*
 redis==5.0.*
-django-db-pool==1.0.*
 
 # Async Processing
 celery==5.3.*
@@ -28,6 +27,7 @@ structlog==23.2.*
 
 # Validation and Utilities
 django-phonenumber-field==7.2.*
+phonenumbers==8.13.*
 django-localflavor==4.0.*
 python-decouple==3.8
 django-cors-headers==4.3.*
