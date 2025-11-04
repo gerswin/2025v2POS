@@ -1,0 +1,26 @@
+[Unit]
+Description=Tiquemax POS Podman Pod
+Documentation=https://github.com/gerswin/2025v2POS
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+RemainAfterExit=yes
+
+# Start the pod
+ExecStart=/usr/bin/podman pod start tiquemax-pos
+ExecStop=/usr/bin/podman pod stop tiquemax-pos
+
+# Restart policy
+Restart=on-failure
+RestartSec=30s
+TimeoutStartSec=300s
+TimeoutStopSec=120s
+
+# Security
+User=%i
+Group=%i
+
+[Install]
+WantedBy=multi-user.target default.target
