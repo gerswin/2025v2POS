@@ -187,18 +187,48 @@ podman run -d \
 
 log_success "Flower container created"
 
-# 7. Nginx Container
-log_info "Creating Nginx container..."
+# 7. Traefik Reverse Proxy
+log_info "Creating Traefik container..."
+
+# Create letsencrypt volume for SSL certificates
+podman volume create tiquemax-letsencrypt 2>/dev/null || true
+
+# Create traefik logs volume
+podman volume create tiquemax-traefik-logs 2>/dev/null || true
+
 podman run -d \
     --pod "$POD_NAME" \
-    --name "${POD_NAME}-nginx" \
-    -v tiquemax-static:/usr/share/nginx/html/static:ro \
-    -v tiquemax-media:/usr/share/nginx/html/media:ro \
-    -v "$(pwd)/../../docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro" \
-    -v "$(pwd)/../../docker/nginx/conf.d:/etc/nginx/conf.d:ro" \
-    docker.io/library/nginx:1.25-alpine
+    --name "${POD_NAME}-traefik" \
+    -v /var/run/docker.sock:/var/run/docker.sock:ro \
+    -v "$(pwd)/../../docker/traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro" \
+    -v tiquemax-letsencrypt:/letsencrypt:Z \
+    -v tiquemax-traefik-logs:/var/log/traefik:Z \
+    -v tiquemax-static:/var/www/static:ro \
+    -v tiquemax-media:/var/www/media:ro \
+    -e DOMAIN="${DOMAIN:-localhost}" \
+    -e ACME_EMAIL="${ACME_EMAIL:-admin@localhost}" \
+    docker.io/library/traefik:v2.11 \
+    --providers.docker=false \
+    --providers.file.filename=/etc/traefik/dynamic.yml \
+    --providers.file.watch=true \
+    --entrypoints.web.address=:80 \
+    --entrypoints.web.http.redirections.entrypoint.to=websecure \
+    --entrypoints.web.http.redirections.entrypoint.scheme=https \
+    --entrypoints.websecure.address=:443 \
+    --certificatesresolvers.letsencrypt.acme.email="${ACME_EMAIL:-admin@localhost}" \
+    --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json \
+    --certificatesresolvers.letsencrypt.acme.httpchallenge=true \
+    --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web \
+    --api.dashboard=true \
+    --api.insecure=false \
+    --log.level="${TRAEFIK_LOG_LEVEL:-INFO}" \
+    --log.format=json \
+    --accesslog=true \
+    --accesslog.format=json \
+    --accesslog.filepath=/var/log/traefik/access.log \
+    --metrics.prometheus=true
 
-log_success "Nginx container created"
+log_success "Traefik container created"
 
 # Display pod status
 log_info "Pod Status:"

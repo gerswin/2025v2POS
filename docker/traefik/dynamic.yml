@@ -1,0 +1,128 @@
+# Traefik Dynamic Configuration
+# https://doc.traefik.io/traefik/
+
+http:
+  # Middlewares
+  middlewares:
+    # Security Headers
+    security-headers:
+      headers:
+        browserXssFilter: true
+        contentTypeNosniff: true
+        forceSTSHeader: true
+        frameDeny: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+        customFrameOptionsValue: "SAMEORIGIN"
+        customResponseHeaders:
+          X-Robots-Tag: "none,noarchive,nosnippet,notranslate,noimageindex"
+          server: ""
+          X-Powered-By: ""
+
+    # Rate Limiting - General
+    rate-limit-general:
+      rateLimit:
+        average: 100
+        period: 1s
+        burst: 50
+
+    # Rate Limiting - API (stricter)
+    rate-limit-api:
+      rateLimit:
+        average: 50
+        period: 1s
+        burst: 20
+
+    # Rate Limiting - Admin (very strict)
+    rate-limit-admin:
+      rateLimit:
+        average: 20
+        period: 1s
+        burst: 10
+
+    # Rate Limiting - Auth endpoints (strictest)
+    rate-limit-auth:
+      rateLimit:
+        average: 5
+        period: 1m
+        burst: 10
+
+    # CORS Headers
+    cors-headers:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - PATCH
+          - OPTIONS
+        accessControlAllowOriginList:
+          - "*"
+        accessControlAllowHeaders:
+          - "*"
+        accessControlExposeHeaders:
+          - "*"
+        accessControlMaxAge: 100
+        addVaryHeader: true
+
+    # Compress responses
+    compress:
+      compress: {}
+
+    # Redirect to non-www or www (choose one)
+    redirect-non-www:
+      redirectRegex:
+        regex: "^https://www\\.(.+)"
+        replacement: "https://${1}"
+        permanent: true
+
+    # Basic Auth for Dashboard
+    dashboard-auth:
+      basicAuth:
+        users:
+          # admin:admin (change this!)
+          # Generate with: echo $(htpasswd -nB admin) | sed -e s/\\$/\\$\\$/g
+          - "admin:$$2y$$05$$rZ8qLnJvBcZ6hH6P0YJYXe8qPQr0qp.lVvY8YtmXjWqCr1aKhRJLG"
+
+    # IP Whitelist (optional - uncomment and configure if needed)
+    # ip-whitelist:
+    #   ipWhiteList:
+    #     sourceRange:
+    #       - "127.0.0.1/32"
+    #       - "192.168.1.0/24"
+
+  # Routers for specific paths (if needed for static/media)
+  routers:
+    # Dashboard router
+    dashboard:
+      rule: "Host(`${DOMAIN}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+      service: api@internal
+      middlewares:
+        - dashboard-auth
+        - security-headers
+      tls:
+        certResolver: letsencrypt
+
+# TLS Configuration
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12
+      cipherSuites:
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+        - TLS_AES_128_GCM_SHA256
+        - TLS_AES_256_GCM_SHA384
+        - TLS_CHACHA20_POLY1305_SHA256
+      curvePreferences:
+        - CurveP521
+        - CurveP384
+      sniStrict: true
+
+    # Modern TLS configuration (more restrictive)
+    modern:
+      minVersion: VersionTLS13
+      sniStrict: true

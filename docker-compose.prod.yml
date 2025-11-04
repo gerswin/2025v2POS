@@ -122,8 +122,8 @@ services:
       - media_volume:/app/media
       - logs_volume:/app/logs
 
-    ports:
-      - "${WEB_PORT:-8000}:8000"
+    expose:
+      - "8000"
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
@@ -134,6 +134,51 @@ services:
 
     networks:
       - tiquemax_network
+
+    labels:
+      # Enable Traefik for this service
+      - "traefik.enable=true"
+
+      # HTTP Router
+      - "traefik.http.routers.tiquemax-web.rule=Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.tiquemax-web.entrypoints=websecure"
+      - "traefik.http.routers.tiquemax-web.tls.certresolver=letsencrypt"
+
+      # Service
+      - "traefik.http.services.tiquemax-web.loadbalancer.server.port=8000"
+
+      # Middlewares
+      - "traefik.http.routers.tiquemax-web.middlewares=security-headers,compress,rate-limit-general"
+
+      # Static files route
+      - "traefik.http.routers.tiquemax-static.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/static`)"
+      - "traefik.http.routers.tiquemax-static.entrypoints=websecure"
+      - "traefik.http.routers.tiquemax-static.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.tiquemax-static.middlewares=security-headers,compress"
+
+      # Media files route
+      - "traefik.http.routers.tiquemax-media.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/media`)"
+      - "traefik.http.routers.tiquemax-media.entrypoints=websecure"
+      - "traefik.http.routers.tiquemax-media.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.tiquemax-media.middlewares=security-headers"
+
+      # Admin route with stricter rate limiting
+      - "traefik.http.routers.tiquemax-admin.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/admin`)"
+      - "traefik.http.routers.tiquemax-admin.entrypoints=websecure"
+      - "traefik.http.routers.tiquemax-admin.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.tiquemax-admin.middlewares=security-headers,compress,rate-limit-admin"
+
+      # API route with API rate limiting
+      - "traefik.http.routers.tiquemax-api.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.tiquemax-api.entrypoints=websecure"
+      - "traefik.http.routers.tiquemax-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.tiquemax-api.middlewares=security-headers,compress,rate-limit-api,cors-headers"
+
+      # Auth endpoints with strictest rate limiting
+      - "traefik.http.routers.tiquemax-auth.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/accounts/login`)"
+      - "traefik.http.routers.tiquemax-auth.entrypoints=websecure"
+      - "traefik.http.routers.tiquemax-auth.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.tiquemax-auth.middlewares=security-headers,compress,rate-limit-auth"
 
     logging:
       driver: "json-file"
@@ -227,20 +272,36 @@ services:
     image: tiquemax_web:latest
     container_name: tiquemax_flower
     restart: unless-stopped
-    command: celery -A venezuelan_pos flower --port=5555 --basic_auth=${FLOWER_USER:-admin}:${FLOWER_PASSWORD:?Flower password required}
+    command: celery -A venezuelan_pos flower --port=5555
     environment:
       - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/2
       - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/3
+      - FLOWER_BASIC_AUTH=${FLOWER_USER:-admin}:${FLOWER_PASSWORD:?Flower password required}
 
     depends_on:
       - redis
       - celery_worker
 
-    ports:
-      - "${FLOWER_PORT:-5555}:5555"
+    expose:
+      - "5555"
 
     networks:
       - tiquemax_network
+
+    labels:
+      # Enable Traefik for this service
+      - "traefik.enable=true"
+
+      # HTTP Router for Flower
+      - "traefik.http.routers.tiquemax-flower.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/flower`)"
+      - "traefik.http.routers.tiquemax-flower.entrypoints=websecure"
+      - "traefik.http.routers.tiquemax-flower.tls.certresolver=letsencrypt"
+
+      # Service
+      - "traefik.http.services.tiquemax-flower.loadbalancer.server.port=5555"
+
+      # Middlewares - Add basic auth protection through Traefik as well
+      - "traefik.http.routers.tiquemax-flower.middlewares=security-headers,compress,rate-limit-general"
 
     logging:
       driver: "json-file"
@@ -248,22 +309,72 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Nginx Reverse Proxy
-  nginx:
-    image: docker.io/library/nginx:1.25-alpine
-    container_name: tiquemax_nginx
+  # Traefik Reverse Proxy
+  traefik:
+    image: docker.io/library/traefik:v2.11
+    container_name: tiquemax_traefik
     restart: unless-stopped
+
+    command:
+      # Enable Docker provider
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=tiquemax_network"
+
+      # Enable file provider for dynamic configuration
+      - "--providers.file.filename=/etc/traefik/dynamic.yml"
+      - "--providers.file.watch=true"
+
+      # Entry points
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+
+      # Let's Encrypt configuration
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-admin@${DOMAIN:-localhost}}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+
+      # API and Dashboard
+      - "--api.dashboard=true"
+      - "--api.insecure=false"
+
+      # Logging
+      - "--log.level=${TRAEFIK_LOG_LEVEL:-INFO}"
+      - "--log.format=json"
+      - "--accesslog=true"
+      - "--accesslog.format=json"
+      - "--accesslog.filepath=/var/log/traefik/access.log"
+
+      # Metrics
+      - "--metrics.prometheus=true"
+
     ports:
       - "${HTTP_PORT:-80}:80"
       - "${HTTPS_PORT:-443}:443"
 
     volumes:
-      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      # Docker socket for auto-discovery
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+      # Configuration files
+      - ./docker/traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+
+      # Let's Encrypt certificates storage
+      - letsencrypt_data:/letsencrypt
+
+      # Logs
+      - traefik_logs:/var/log/traefik
+
+      # Static and media files (served directly by Traefik)
       - static_volume:/var/www/static:ro
       - media_volume:/var/www/media:ro
-      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
-      - nginx_logs:/var/log/nginx
+
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+      - ACME_EMAIL=${ACME_EMAIL:-admin@localhost}
 
     depends_on:
       web:
@@ -272,6 +383,17 @@ services:
     networks:
       - tiquemax_network
 
+    labels:
+      # Enable Traefik for itself (dashboard)
+      - "traefik.enable=true"
+
+      # Dashboard router
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`${DOMAIN:-localhost}`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.middlewares=dashboard-auth,security-headers"
+
     logging:
       driver: "json-file"
       options:
@@ -279,10 +401,11 @@ services:
         max-file: "3"
 
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health/"]
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 10s
 
 networks:
   tiquemax_network:
@@ -302,5 +425,7 @@ volumes:
     driver: local
   logs_volume:
     driver: local
-  nginx_logs:
+  traefik_logs:
+    driver: local
+  letsencrypt_data:
     driver: local

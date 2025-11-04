@@ -261,7 +261,7 @@ cmd_exec() {
     if [ -z "$container" ]; then
         log_error "Please specify container name"
         log_info "Usage: ./manage-pod.sh exec <container> <command>"
-        log_info "Containers: web, db, redis, celery-worker, celery-beat, flower, nginx"
+        log_info "Containers: web, db, redis, celery-worker, celery-beat, flower, traefik"
         exit 1
     fi
 
@@ -326,8 +326,8 @@ cmd_healthcheck() {
         echo -e "${RED}✗ Not Running${NC}"
     fi
 
-    echo -n "Nginx: "
-    if podman ps --filter name="${POD_NAME}-nginx" --filter status=running --quiet | grep -q .; then
+    echo -n "Traefik: "
+    if podman ps --filter name="${POD_NAME}-traefik" --filter status=running --quiet | grep -q .; then
         echo -e "${GREEN}✓ Running${NC}"
     else
         echo -e "${RED}✗ Not Running${NC}"
@@ -359,7 +359,7 @@ show_help() {
     echo "  healthcheck           Check health of all services"
     echo "  help                  Show this help message"
     echo ""
-    echo "Services: web, db, redis, celery-worker, celery-beat, flower, nginx"
+    echo "Services: web, db, redis, celery-worker, celery-beat, flower, traefik"
     echo ""
     echo "Examples:"
     echo "  $0 start"
