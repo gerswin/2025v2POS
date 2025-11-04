@@ -1,0 +1,27 @@
+¡COMPRA CONFIRMADA!
+
+Estimado/a {{ customer.name }} {{ customer.surname }},
+
+Su compra ha sido procesada exitosamente.
+
+DETALLES DEL EVENTO:
+- Evento: {{ event.name }}
+- Fecha: {{ event.start_date|date:"d/m/Y H:i" }}
+{% if event.venue %}- Lugar: {{ event.venue.name }}{% endif %}
+
+DETALLES DE LA TRANSACCIÓN:
+- Número de Serie: {{ transaction.fiscal_series }}
+- Fecha de Compra: {{ transaction.created_at|date:"d/m/Y H:i" }}
+- Total Pagado: ${{ total_amount }}
+
+ENTRADAS COMPRADAS:
+{% for item in items %}{% if item.seat %}{{ item.seat.zone.name }} - Fila {{ item.seat.row_number }}, Asiento {{ item.seat.seat_number }}{% else %}{{ item.zone.name }} - Admisión General{% endif %} - ${{ item.price }}
+{% endfor %}
+
+Sus entradas digitales serán enviadas por separado. Guarde este correo como comprobante de compra.
+
+¡Gracias por su compra y disfrute del evento!
+
+---
+Venezuelan POS System
+Este es un correo automático, por favor no responda.

@@ -1,8 +1,7 @@
 {% extends 'events/base.html' %}
-{% load static %}
-{% load l10n %}
+{% load i18n static l10n %}
 
-{% block title %}Zone Map Editor - {{ event.name }}{% endblock %}
+{% block title %}{% trans "Zone Map Editor" %} - {{ event.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -14,10 +13,15 @@
     border-radius: 0.375rem;
     background: #f8f9fa;
     overflow: hidden;
-    background-image: 
-        linear-gradient(rgba(0,0,0,.1) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,0,0,.1) 1px, transparent 1px);
+    background-image:
+        linear-gradient(rgba(0,0,0,.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,.08) 1px, transparent 1px);
     background-size: 20px 20px;
+    transition: background 0.3s ease;
+}
+
+.map-editor-container.hide-grid {
+    background-image: none;
 }
 
 .venue-map {
@@ -33,39 +37,57 @@
 
 .zone-element {
     position: absolute;
-    border: 2px solid #007bff;
-    border-radius: 8px;
-    background: rgba(0, 123, 255, 0.1);
+    border: 2px solid rgba(var(--zone-color-rgb, 59, 91, 219), 0.7);
+    border-radius: 10px;
     cursor: move;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    color: #004085;
+    color: #1f2937;
     user-select: none;
     transition: all 0.2s ease;
     min-width: 80px;
     min-height: 60px;
+    box-shadow: 0 10px 25px -12px rgba(31, 41, 55, 0.25);
+    background: linear-gradient(
+        135deg,
+        rgba(var(--zone-color-rgb, 59, 91, 219), 0.18),
+        rgba(var(--zone-color-rgb, 59, 91, 219), 0.06)
+    );
 }
 
 .zone-element:hover {
-    background: rgba(0, 123, 255, 0.2);
-    border-color: #0056b3;
-    transform: scale(1.02);
+    transform: translateY(-2px) scale(1.02);
     z-index: 10;
 }
 
 .zone-element.selected {
-    border-color: #28a745;
-    background: rgba(40, 167, 69, 0.2);
-    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.3);
+    border-color: rgba(var(--zone-color-rgb, 59, 91, 219), 0.9);
+    box-shadow: 0 0 0 3px rgba(var(--zone-color-rgb, 59, 91, 219), 0.25);
     z-index: 15;
 }
 
+.zone-element.primary-selected {
+    box-shadow: 0 0 0 4px rgba(var(--zone-color-rgb, 59, 91, 219), 0.45);
+}
+
 .zone-element.dragging {
-    opacity: 0.8;
+    opacity: 0.85;
     transform: rotate(2deg);
     z-index: 20;
+}
+
+.zone-element[data-zone-type="numbered"] {
+    --zone-color-rgb: 59, 91, 219;
+}
+
+.zone-element[data-zone-type="general"] {
+    --zone-color-rgb: 245, 158, 11;
+}
+
+.zone-element[data-zone-type="vip"] {
+    --zone-color-rgb: 217, 119, 6;
 }
 
 .zone-label {
@@ -101,7 +123,7 @@
     border-bottom: 1px solid #f1f3f4;
     cursor: pointer;
     display: flex;
-    justify-content: between;
+    justify-content: space-between;
     align-items: center;
 }
 
@@ -145,12 +167,15 @@
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: linear-gradient(135deg, #6c757d, #495057);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 0.375rem;
-    font-weight: bold;
+    background: linear-gradient(120deg, #111827, #1f2937);
+    color: #f9fafb;
+    padding: 14px 36px;
+    border-radius: 9999px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
     z-index: 5;
+    box-shadow: 0 18px 35px -20px rgba(17, 24, 39, 0.7);
+    text-transform: uppercase;
 }
 
 .legend {
@@ -169,8 +194,26 @@
 .legend-color {
     width: 16px;
     height: 16px;
-    border-radius: 3px;
+    border-radius: 4px;
     border: 1px solid #ccc;
+}
+
+.zone-color-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.1);
+    margin-right: 8px;
+}
+
+.selection-rectangle {
+    position: absolute;
+    border: 1px dashed rgba(59, 91, 219, 0.8);
+    background: rgba(59, 91, 219, 0.1);
+    pointer-events: none;
+    z-index: 25;
+    border-radius: 4px;
 }
 
 .resize-handle {
@@ -187,7 +230,7 @@
 .resize-handle.sw { bottom: -4px; left: -4px; cursor: sw-resize; }
 .resize-handle.se { bottom: -4px; right: -4px; cursor: se-resize; }
 
-.zone-element.selected .resize-handle {
+.zone-element.primary-selected .resize-handle {
     display: block;
 }
 
@@ -209,6 +252,12 @@
         min-width: 60px;
         min-height: 40px;
         font-size: 10px;
+        height: 60vh;
+    }
+
+    .stage-indicator {
+        padding: 10px 24px;
+        font-size: 0.8rem;
     }
 }
 </style>
@@ -221,18 +270,18 @@
             <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="h3 mb-0">Zone Map Editor</h1>
+                    <h1 class="h3 mb-0">{% trans "Zone Map Editor" %}</h1>
                     <p class="text-muted mb-0">{{ event.name }} - {{ venue.name }}</p>
                 </div>
                 <div>
                     <button class="btn btn-success" id="saveLayoutBtn">
-                        <i class="fas fa-save"></i> Save Layout
+                        <i class="fas fa-save"></i> {% trans "Save Layout" %}
                     </button>
                     <button class="btn btn-outline-secondary" id="resetLayoutBtn">
-                        <i class="fas fa-undo"></i> Reset
+                        <i class="fas fa-undo"></i> {% trans "Reset" %}
                     </button>
                     <a href="{% url 'events:event_detail' event.id %}" class="btn btn-outline-primary">
-                        <i class="fas fa-arrow-left"></i> Back to Event
+                        <i class="fas fa-arrow-left"></i> {% trans "Back to Event" %}
                     </a>
                 </div>
             </div>
@@ -252,18 +301,43 @@
                         </button>
                     </div>
                     
-                    <div class="position-info" id="positionInfo">
-                        Position: (0, 0) | Selected: None
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="snapToGridToggle" checked>
+                        <label class="form-check-label" for="snapToGridToggle">{% trans "Snap to grid" %}</label>
+                    </div>
+
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="gridVisibilityToggle" checked>
+                        <label class="form-check-label" for="gridVisibilityToggle">{% trans "Show grid" %}</label>
                     </div>
                     
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <label for="zoneColorPicker" class="form-label mb-0 small text-muted">{% trans "Color" %}</label>
+                        <input type="color" class="form-control form-control-color" id="zoneColorPicker" value="#3B5BDB" title="{% trans "Choose color" %}">
+                        <button class="btn btn-sm btn-outline-primary" id="applyColorBtn">
+                            <i class="fas fa-palette"></i> {% trans "Apply Color" %}
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" id="clearColorBtn">
+                            <i class="fas fa-eraser"></i> {% trans "Reset color" %}
+                        </button>
+                    </div>
+
+                    <div class="position-info" id="positionInfo">
+                        {% trans "Position" %}: (0, 0) | {% trans "Size" %}: 0x0 | {% trans "Selected" %}: {% trans "None" %}
+                    </div>
+
                     <div class="legend">
                         <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(0, 123, 255, 0.1); border-color: #007bff;"></div>
-                            <span>Zone</span>
+                            <div class="legend-color" style="background: rgba(59, 91, 219, 0.2); border-color: rgba(59, 91, 219, 0.7);"></div>
+                            <span>{% trans "Numbered zone" %}</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: rgba(245, 158, 11, 0.18); border-color: rgba(245, 158, 11, 0.7);"></div>
+                            <span>{% trans "General zone" %}</span>
                         </div>
                         <div class="legend-item">
                             <div class="legend-color" style="background: rgba(40, 167, 69, 0.2); border-color: #28a745;"></div>
-                            <span>Selected</span>
+                            <span>{% trans "Selected" %}</span>
                         </div>
                     </div>
                 </div>
@@ -275,16 +349,19 @@
                     <div class="card">
                         <div class="card-header">
                             <h5 class="card-title mb-0">
-                                <i class="fas fa-list"></i> Zones ({{ zones.count }})
+                                <i class="fas fa-list"></i> {% trans "Zones" %} ({{ zones.count }})
                             </h5>
                         </div>
                         <div class="zone-list" id="zoneList">
                             {% for zone in zones %}
                             <div class="zone-list-item" data-zone-id="{{ zone.id }}">
-                                <div>
-                                    <div class="fw-bold">{{ zone.name }}</div>
-                                    <div class="zone-stats">
-                                        {{ zone.zone_type|title }} | {{ zone.capacity }} seats | ${{ zone.base_price|floatformat:2 }}
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="zone-color-dot" data-zone-color-dot="{{ zone.id }}"></span>
+                                    <div>
+                                        <div class="fw-bold">{{ zone.name }}</div>
+                                        <div class="zone-stats">
+                                            {{ zone.zone_type|title }} | {{ zone.capacity }} {% trans "seats" %} | ${{ zone.base_price|floatformat:2 }}
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="text-end">
@@ -300,7 +377,7 @@
                             {% empty %}
                             <div class="p-3 text-center text-muted">
                                 <i class="fas fa-info-circle"></i>
-                                No zones found. Create zones first.
+                                {% trans "No zones found. Create zones first." %}
                             </div>
                             {% endfor %}
                         </div>
@@ -312,7 +389,7 @@
                     <div class="card">
                         <div class="card-header">
                             <h5 class="card-title mb-0">
-                                <i class="fas fa-map"></i> Venue Layout
+                                <i class="fas fa-map"></i> {% trans "Venue Layout" %}
                             </h5>
                         </div>
                         <div class="card-body p-0">
@@ -320,15 +397,17 @@
                                 <div class="venue-map" id="venueMap">
                                     <!-- Stage indicator -->
                                     <div class="stage-indicator">
-                                        <i class="fas fa-music"></i> STAGE
+                                        <i class="fas fa-music"></i> {% trans "STAGE" %}
                                     </div>
-                                    
+
                                     <!-- Zones will be rendered here -->
                                     {% for zone in zones %}
-                                    <div class="zone-element" 
+                                    <div class="zone-element"
                                          id="zone-{{ zone.id }}"
                                          data-zone-id="{{ zone.id }}"
                                          data-zone-name="{{ zone.name }}"
+                                         data-zone-type="{{ zone.zone_type }}"
+                                         data-zone-color="{{ zone.map_color|default_if_none:'' }}"
                                          style="
                                             left: {% localize off %}{{ zone.map_x|default:100 }}{% endlocalize %}px;
                                             top: {% localize off %}{{ zone.map_y|default:100 }}{% endlocalize %}px;
@@ -338,7 +417,7 @@
                                          ">
                                         <div class="zone-label">
                                             <div>{{ zone.name }}</div>
-                                            <div class="zone-info">{{ zone.capacity }} seats</div>
+                                            <div class="zone-info">{{ zone.capacity }} {% trans "seats" %}</div>
                                         </div>
                                         
                                         <!-- Resize handles -->
@@ -360,11 +439,11 @@
 
 <!-- Zone Properties Modal -->
 <div class="modal fade" id="zonePropertiesModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-cog"></i> Zone Properties
+                    <i class="fas fa-cog"></i> {% trans "Zone Properties" %}
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -372,9 +451,9 @@
                 <!-- Content will be loaded dynamically -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
                 <button type="button" class="btn btn-primary" id="saveZonePropertiesBtn">
-                    <i class="fas fa-save"></i> Save Changes
+                    <i class="fas fa-save"></i> {% trans "Save Changes" %}
                 </button>
             </div>
         </div>
@@ -385,12 +464,60 @@
 {% block extra_js %}
 <script>
 const eventId = '{{ event.id }}';
-let selectedZone = null;
+const GRID_SIZE = 20;
+const DEFAULT_ZONE_COLORS = {
+    numbered: '#3B5BDB',
+    general: '#F59E0B',
+    vip: '#D97706'
+};
+
+let selectedZones = new Set();
+let primaryZone = null;
 let isDragging = false;
 let isResizing = false;
+let isSelecting = false;
 let dragOffset = { x: 0, y: 0 };
+let dragStartPositions = {};
+let selectionStart = { x: 0, y: 0 };
+let selectionRectElement = null;
+let selectionAdditive = false;
 let zoomLevel = 1;
 let zones = {};
+let snapToGridEnabled = true;
+let gridVisible = true;
+let lastPointerPosition = { x: 0, y: 0 };
+
+// i18n translations for JavaScript
+const translations = {
+    position: '{% trans "Position" %}',
+    size: '{% trans "Size" %}',
+    selected: '{% trans "Selected" %}',
+    none: '{% trans "None" %}',
+    confirmReset: '{% trans "Reset all zones to default positions? This cannot be undone." %}',
+    successSaveLayout: '{% trans "Layout saved successfully!" %}',
+    errorSaveLayout: '{% trans "Error saving layout" %}',
+    errorUpdatingZone: '{% trans "Error updating zone position" %}',
+    positionLabel: '{% trans "Position" %}',
+    xPosition: '{% trans "X Position" %}',
+    yPosition: '{% trans "Y Position" %}',
+    sizeLabel: '{% trans "Size" %}',
+    width: '{% trans "Width" %}',
+    height: '{% trans "Height" %}',
+    rotationLabel: '{% trans "Rotation (degrees)" %}',
+    properties: '{% trans "Properties" %}',
+    snapEnabled: '{% trans "Snap to grid enabled" %}',
+    snapDisabled: '{% trans "Snap to grid disabled" %}',
+    gridVisible: '{% trans "Grid visible" %}',
+    gridHidden: '{% trans "Grid hidden" %}',
+    color: '{% trans "Color" %}',
+    chooseColor: '{% trans "Choose color" %}',
+    applyColor: '{% trans "Apply color" %}',
+    clearColor: '{% trans "Reset color" %}',
+    colorApplied: '{% trans "Color applied to selected zones" %}',
+    colorCleared: '{% trans "Color reset for selected zones" %}',
+    nothingSelected: '{% trans "Select at least one zone first." %}',
+    selectionCount: '{% trans "zones selected" %}'
+};
 
 // Initialize zones data
 {% localize off %}
@@ -405,79 +532,157 @@ zones['{{ zone.id }}'] = {
     y: {{ zone.map_y|default:100 }},
     width: {{ zone.map_width|default:120 }},
     height: {{ zone.map_height|default:80 }},
-    rotation: {{ zone.map_rotation|default:0 }}
+    rotation: {{ zone.map_rotation|default:0 }},
+    color: '{{ zone.map_color|default_if_none:""|escapejs }}'
 };
 {% endfor %}
 {% endlocalize %}
 
 document.addEventListener('DOMContentLoaded', function() {
+    normalizeZoneData();
     initializeMapEditor();
 });
 
-function initializeMapEditor() {
-    const venueMap = document.getElementById('venueMap');
-    const mapContainer = document.getElementById('mapContainer');
-    
-    // Add event listeners for zone elements
-    document.querySelectorAll('.zone-element').forEach(zoneElement => {
-        addZoneEventListeners(zoneElement);
+function normalizeZoneData() {
+    Object.keys(zones).forEach(zoneId => {
+        const zone = zones[zoneId];
+        if (!zone) return;
+        zone.x = Number(zone.x ?? 0) || 0;
+        zone.y = Number(zone.y ?? 0) || 0;
+        zone.width = Number(zone.width ?? 120) || 120;
+        zone.height = Number(zone.height ?? 80) || 80;
+        zone.rotation = Number(zone.rotation ?? 0) || 0;
+        zone.color = sanitizeHexColor(zone.color);
     });
-    
-    // Add event listeners for zone list items
+}
+
+function initializeMapEditor() {
+    const mapContainer = document.getElementById('mapContainer');
+
+    document.querySelectorAll('.zone-element').forEach(zoneElement => {
+        const zoneId = zoneElement.dataset.zoneId;
+        addZoneEventListeners(zoneElement);
+        renderZone(zoneId);
+        applyZoneColor(zoneId);
+    });
+
     document.querySelectorAll('.zone-list-item').forEach(listItem => {
         const zoneId = listItem.dataset.zoneId;
         listItem.addEventListener('click', function(e) {
             e.stopPropagation();
-            selectZone(zoneId);
+            const additive = e.ctrlKey || e.metaKey || e.shiftKey;
+            selectZone(zoneId, additive);
+        });
+        listItem.addEventListener('dblclick', function(e) {
+            e.preventDefault();
+            selectZone(zoneId, false);
+            showZoneProperties(zoneId);
         });
     });
-    
-    // Map container mouse events for position tracking
-    mapContainer.addEventListener('mousemove', function(e) {
-        const rect = mapContainer.getBoundingClientRect();
-        const x = Math.round((e.clientX - rect.left) / zoomLevel);
-        const y = Math.round((e.clientY - rect.top) / zoomLevel);
-        
-        const selectedText = selectedZone ? zones[selectedZone].name : 'None';
-        document.getElementById('positionInfo').textContent = 
-            `Position: (${x}, ${y}) | Selected: ${selectedText}`;
-    });
-    
-    // Add event listeners for toolbar buttons
+
+    mapContainer.addEventListener('mousedown', onMapMouseDown);
+    mapContainer.addEventListener('mousemove', onMapMouseMove);
+    mapContainer.addEventListener('wheel', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            if (e.deltaY < 0) {
+                zoomIn();
+            } else {
+                zoomOut();
+            }
+        }
+    }, { passive: false });
+
     document.getElementById('saveLayoutBtn').addEventListener('click', saveLayout);
     document.getElementById('resetLayoutBtn').addEventListener('click', resetLayout);
     document.getElementById('zoomInBtn').addEventListener('click', zoomIn);
     document.getElementById('zoomOutBtn').addEventListener('click', zoomOut);
     document.getElementById('resetZoomBtn').addEventListener('click', resetZoom);
     document.getElementById('saveZonePropertiesBtn').addEventListener('click', saveZoneProperties);
-    
-    // Keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Delete' && selectedZone) {
-            // Could implement zone deletion here
+
+    document.getElementById('snapToGridToggle').addEventListener('change', function(e) {
+        snapToGridEnabled = e.target.checked;
+        showAlert('info', snapToGridEnabled ? translations.snapEnabled : translations.snapDisabled);
+        if (snapToGridEnabled && selectedZones.size) {
+            selectedZones.forEach(zoneId => snapZoneToGrid(zoneId));
         }
+    });
+
+    document.getElementById('gridVisibilityToggle').addEventListener('change', function(e) {
+        gridVisible = e.target.checked;
+        mapContainer.classList.toggle('hide-grid', !gridVisible);
+        showAlert('info', gridVisible ? translations.gridVisible : translations.gridHidden);
+    });
+
+    const colorPicker = document.getElementById('zoneColorPicker');
+    const applyColorBtn = document.getElementById('applyColorBtn');
+    const clearColorBtn = document.getElementById('clearColorBtn');
+
+    if (applyColorBtn && colorPicker) {
+        applyColorBtn.addEventListener('click', function() {
+            if (!selectedZones.size) {
+                showAlert('warning', translations.nothingSelected);
+                return;
+            }
+            applyColorToSelection(colorPicker.value);
+            showAlert('success', translations.colorApplied);
+        });
+    }
+
+    if (clearColorBtn) {
+        clearColorBtn.addEventListener('click', function() {
+            if (!selectedZones.size) {
+                showAlert('warning', translations.nothingSelected);
+                return;
+            }
+            clearColorSelection();
+            showAlert('success', translations.colorCleared);
+        });
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (isSelecting) return;
         if (e.key === 'Escape') {
             clearSelection();
         }
+        if (!selectedZones.size) return;
+
+        if (['ArrowUp','ArrowRight','ArrowDown','ArrowLeft'].includes(e.key)) {
+            e.preventDefault();
+            const step = (snapToGridEnabled && !e.altKey) ? GRID_SIZE : (e.shiftKey ? 10 : 5);
+            nudgeSelectedZones(e.key, step, e.altKey);
+        }
     });
+
+    document.addEventListener('click', function(e) {
+        if (isSelecting) return;
+        if (e.target.id === 'venueMap' || e.target.id === 'mapContainer') {
+            clearSelection();
+        }
+    });
+
+    updateColorDots();
+    updatePositionInfo();
 }
 
 function addZoneEventListeners(zoneElement) {
     const zoneId = zoneElement.dataset.zoneId;
-    
-    // Click to select
+
     zoneElement.addEventListener('click', function(e) {
         e.stopPropagation();
-        selectZone(zoneId);
+        if (e.target.classList.contains('resize-handle')) {
+            return;
+        }
+        const additive = e.ctrlKey || e.metaKey || e.shiftKey;
+        selectZone(zoneId, additive);
     });
-    
-    // Double click for properties
+
     zoneElement.addEventListener('dblclick', function(e) {
         e.stopPropagation();
+        selectZone(zoneId, false);
         showZoneProperties(zoneId);
     });
-    
-    // Drag functionality
+
     zoneElement.addEventListener('mousedown', function(e) {
         if (e.target.classList.contains('resize-handle')) {
             startResize(e, zoneId);
@@ -487,85 +692,222 @@ function addZoneEventListeners(zoneElement) {
     });
 }
 
-function selectZone(zoneId) {
-    // Clear previous selection
-    document.querySelectorAll('.zone-element').forEach(el => {
-        el.classList.remove('selected');
-    });
-    document.querySelectorAll('.zone-list-item').forEach(el => {
-        el.classList.remove('selected');
-    });
-    
-    // Select new zone
-    const zoneElement = document.getElementById(`zone-${zoneId}`);
-    const listItem = document.querySelector(`[data-zone-id="${zoneId}"]`);
-    
-    if (zoneElement) {
-        zoneElement.classList.add('selected');
-        selectedZone = zoneId;
+function selectZone(zoneId, additive = false) {
+    if (!additive) {
+        selectedZones = new Set([zoneId]);
+        primaryZone = zoneId;
+    } else {
+        if (selectedZones.has(zoneId)) {
+            selectedZones.delete(zoneId);
+            if (primaryZone === zoneId) {
+                primaryZone = selectedZones.size ? Array.from(selectedZones).pop() : null;
+            }
+        } else {
+            selectedZones.add(zoneId);
+            primaryZone = zoneId;
+        }
     }
-    
-    if (listItem) {
-        listItem.classList.add('selected');
+
+    if (!selectedZones.size) {
+        primaryZone = null;
+    } else if (!primaryZone || !selectedZones.has(primaryZone)) {
+        primaryZone = Array.from(selectedZones).pop();
+    }
+
+    updateSelectionStyles();
+    updatePositionInfo();
+
+    const colorPicker = document.getElementById('zoneColorPicker');
+    if (colorPicker && primaryZone) {
+        colorPicker.value = getZoneColor(primaryZone);
     }
 }
 
 function clearSelection() {
+    selectedZones = new Set();
+    primaryZone = null;
+    updateSelectionStyles();
+    updatePositionInfo();
+}
+
+function updateSelectionStyles() {
     document.querySelectorAll('.zone-element').forEach(el => {
-        el.classList.remove('selected');
+        el.classList.remove('selected', 'primary-selected', 'dragging');
     });
     document.querySelectorAll('.zone-list-item').forEach(el => {
         el.classList.remove('selected');
     });
-    selectedZone = null;
+
+    selectedZones.forEach(zoneId => {
+        const zoneElement = document.getElementById(`zone-${zoneId}`);
+        const listItem = document.querySelector(`[data-zone-id="${zoneId}"]`);
+        if (zoneElement) {
+            zoneElement.classList.add('selected');
+            if (zoneId === primaryZone) {
+                zoneElement.classList.add('primary-selected');
+            }
+        }
+        if (listItem) {
+            listItem.classList.add('selected');
+        }
+    });
+}
+
+function renderZone(zoneId) {
+    const zone = zones[zoneId];
+    if (!zone) return;
+
+    const zoneElement = document.getElementById(`zone-${zoneId}`);
+    if (!zoneElement) return;
+
+    zoneElement.style.left = zone.x + 'px';
+    zoneElement.style.top = zone.y + 'px';
+    zoneElement.style.width = zone.width + 'px';
+    zoneElement.style.height = zone.height + 'px';
+    zoneElement.style.transform = `rotate(${zone.rotation}deg)`;
+}
+
+function applyZoneColor(zoneId) {
+    const zone = zones[zoneId];
+    if (!zone) return;
+
+    const zoneElement = document.getElementById(`zone-${zoneId}`);
+    const color = getZoneColor(zoneId);
+    const rgb = hexToRgb(color);
+
+    if (zoneElement) {
+        if (rgb) {
+            zoneElement.style.setProperty('--zone-color-rgb', `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+        } else {
+            zoneElement.style.removeProperty('--zone-color-rgb');
+        }
+        zoneElement.setAttribute('data-zone-color', zone.color || '');
+    }
+
+    const dot = document.querySelector(`[data-zone-color-dot="${zoneId}"]`);
+    if (dot) {
+        dot.style.background = color;
+    }
+}
+
+function updateColorDots() {
+    Object.keys(zones).forEach(zoneId => applyZoneColor(zoneId));
+}
+
+function getZoneColor(zoneId) {
+    const zone = zones[zoneId];
+    if (!zone) return DEFAULT_ZONE_COLORS.numbered;
+
+    const sanitized = sanitizeHexColor(zone.color);
+    if (sanitized) {
+        return sanitized;
+    }
+    return DEFAULT_ZONE_COLORS[zone.zone_type] || DEFAULT_ZONE_COLORS.numbered;
+}
+
+function sanitizeHexColor(value) {
+    if (!value) return '';
+    let hex = value.trim();
+    if (!hex.startsWith('#')) {
+        hex = '#' + hex;
+    }
+    if (/^#([0-9a-fA-F]{6})$/.test(hex)) {
+        return hex.toUpperCase();
+    }
+    return '';
+}
+
+function hexToRgb(hex) {
+    const match = /^#?([0-9a-fA-F]{6})$/.exec(hex);
+    if (!match) return null;
+    const intVal = parseInt(match[1], 16);
+    return {
+        r: (intVal >> 16) & 255,
+        g: (intVal >> 8) & 255,
+        b: intVal & 255
+    };
 }
 
 function startDrag(e, zoneId) {
     e.preventDefault();
+
+    if (!selectedZones.has(zoneId)) {
+        selectZone(zoneId, false);
+    } else if (primaryZone !== zoneId) {
+        primaryZone = zoneId;
+        updateSelectionStyles();
+    }
+
     isDragging = true;
-    selectZone(zoneId);
-    
+
     const zoneElement = document.getElementById(`zone-${zoneId}`);
     const rect = zoneElement.getBoundingClientRect();
-    const mapRect = document.getElementById('mapContainer').getBoundingClientRect();
-    
+
     dragOffset.x = e.clientX - rect.left;
     dragOffset.y = e.clientY - rect.top;
-    
+
+    dragStartPositions = {};
+    selectedZones.forEach(id => {
+        const zone = zones[id];
+        dragStartPositions[id] = {
+            x: parseFloat(zone.x) || 0,
+            y: parseFloat(zone.y) || 0
+        };
+    });
+
     zoneElement.classList.add('dragging');
     document.body.style.cursor = 'grabbing';
-    
-    function onMouseMove(e) {
+
+    function onMouseMove(moveEvent) {
         if (!isDragging) return;
-        
+
         const mapRect = document.getElementById('mapContainer').getBoundingClientRect();
-        const x = (e.clientX - mapRect.left - dragOffset.x) / zoomLevel;
-        const y = (e.clientY - mapRect.top - dragOffset.y) / zoomLevel;
-        
-        // Constrain to map bounds
-        const constrainedX = Math.max(0, Math.min(x, mapRect.width / zoomLevel - zones[zoneId].width));
-        const constrainedY = Math.max(0, Math.min(y, mapRect.height / zoomLevel - zones[zoneId].height));
-        
-        zoneElement.style.left = constrainedX + 'px';
-        zoneElement.style.top = constrainedY + 'px';
-        
-        // Update zones data
-        zones[zoneId].x = constrainedX;
-        zones[zoneId].y = constrainedY;
+        const rawX = (moveEvent.clientX - mapRect.left - dragOffset.x) / zoomLevel;
+        const rawY = (moveEvent.clientY - mapRect.top - dragOffset.y) / zoomLevel;
+        const bounds = getMapBounds();
+
+        const constrainedX = clamp(rawX, 0, bounds.maxX(zoneId));
+        const constrainedY = clamp(rawY, 0, bounds.maxY(zoneId));
+
+        const deltaX = constrainedX - dragStartPositions[zoneId].x;
+        const deltaY = constrainedY - dragStartPositions[zoneId].y;
+
+        selectedZones.forEach(id => {
+            const start = dragStartPositions[id];
+            let newX = start.x + deltaX;
+            let newY = start.y + deltaY;
+
+            newX = clamp(newX, 0, bounds.maxX(id));
+            newY = clamp(newY, 0, bounds.maxY(id));
+
+            if (snapToGridEnabled) {
+                newX = clamp(Math.round(newX / GRID_SIZE) * GRID_SIZE, 0, bounds.maxX(id));
+                newY = clamp(Math.round(newY / GRID_SIZE) * GRID_SIZE, 0, bounds.maxY(id));
+            }
+
+            if (!Number.isFinite(newX) || !Number.isFinite(newY)) {
+                return;
+            }
+
+            zones[id].x = newX;
+            zones[id].y = newY;
+            renderZone(id);
+        });
+
+        updatePositionInfo();
     }
-    
+
     function onMouseUp() {
         isDragging = false;
         zoneElement.classList.remove('dragging');
         document.body.style.cursor = '';
-        
+
         document.removeEventListener('mousemove', onMouseMove);
         document.removeEventListener('mouseup', onMouseUp);
-        
-        // Save position
-        updateZonePosition(zoneId);
+
+        updateZonePositionsBulk(selectedZones);
     }
-    
+
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
 }
@@ -574,6 +916,13 @@ function startResize(e, zoneId) {
     e.preventDefault();
     e.stopPropagation();
     isResizing = true;
+
+    if (!selectedZones.has(zoneId)) {
+        selectZone(zoneId, false);
+    } else if (primaryZone !== zoneId) {
+        primaryZone = zoneId;
+        updateSelectionStyles();
+    }
     
     const handle = e.target;
     const zoneElement = document.getElementById(`zone-${zoneId}`);
@@ -588,7 +937,7 @@ function startResize(e, zoneId) {
     
     function onMouseMove(e) {
         if (!isResizing) return;
-        
+        const bounds = getMapBounds();
         const deltaX = (e.clientX - startX) / zoomLevel;
         const deltaY = (e.clientY - startY) / zoomLevel;
         
@@ -619,6 +968,18 @@ function startResize(e, zoneId) {
                 newTop = startTop + (startHeight - newHeight);
                 break;
         }
+
+        if (snapToGridEnabled) {
+            newWidth = Math.max(60, Math.round(newWidth / GRID_SIZE) * GRID_SIZE);
+            newHeight = Math.max(40, Math.round(newHeight / GRID_SIZE) * GRID_SIZE);
+            newLeft = Math.round(newLeft / GRID_SIZE) * GRID_SIZE;
+            newTop = Math.round(newTop / GRID_SIZE) * GRID_SIZE;
+        }
+
+        newLeft = clamp(newLeft, 0, bounds.maxX(zoneId));
+        newTop = clamp(newTop, 0, bounds.maxY(zoneId));
+        newWidth = Math.min(newWidth, bounds.widthRemaining(newLeft));
+        newHeight = Math.min(newHeight, bounds.heightRemaining(newTop));
         
         // Apply changes
         zoneElement.style.width = newWidth + 'px';
@@ -631,6 +992,8 @@ function startResize(e, zoneId) {
         zones[zoneId].height = newHeight;
         zones[zoneId].x = newLeft;
         zones[zoneId].y = newTop;
+        renderZone(zoneId);
+        updatePositionInfo();
     }
     
     function onMouseUp() {
@@ -646,9 +1009,142 @@ function startResize(e, zoneId) {
     document.addEventListener('mouseup', onMouseUp);
 }
 
+function onMapMouseDown(e) {
+    if (e.target.closest('.zone-element')) {
+        return;
+    }
+
+    const mapContainer = document.getElementById('mapContainer');
+    const mapRect = mapContainer.getBoundingClientRect();
+
+    isSelecting = true;
+    selectionAdditive = e.ctrlKey || e.metaKey || e.shiftKey;
+    selectionStart = { x: e.clientX, y: e.clientY };
+
+    selectionRectElement = document.createElement('div');
+    selectionRectElement.className = 'selection-rectangle';
+    selectionRectElement.style.left = (selectionStart.x - mapRect.left) + 'px';
+    selectionRectElement.style.top = (selectionStart.y - mapRect.top) + 'px';
+    selectionRectElement.style.width = '0px';
+    selectionRectElement.style.height = '0px';
+    mapContainer.appendChild(selectionRectElement);
+
+    document.addEventListener('mousemove', handleSelectionMove);
+    document.addEventListener('mouseup', handleSelectionEnd);
+}
+
+function onMapMouseMove(e) {
+    const mapRect = document.getElementById('mapContainer').getBoundingClientRect();
+    const x = Math.round((e.clientX - mapRect.left) / zoomLevel);
+    const y = Math.round((e.clientY - mapRect.top) / zoomLevel);
+    lastPointerPosition = { x, y };
+    if (!isSelecting && !isDragging && !isResizing) {
+        updatePositionInfo(x, y);
+    }
+}
+
+function handleSelectionMove(e) {
+    if (!isSelecting) return;
+
+    const mapContainer = document.getElementById('mapContainer');
+    const mapRect = mapContainer.getBoundingClientRect();
+
+    const currentX = Math.max(mapRect.left, Math.min(e.clientX, mapRect.right));
+    const currentY = Math.max(mapRect.top, Math.min(e.clientY, mapRect.bottom));
+    const startX = Math.max(mapRect.left, Math.min(selectionStart.x, mapRect.right));
+    const startY = Math.max(mapRect.top, Math.min(selectionStart.y, mapRect.bottom));
+
+    const left = Math.min(startX, currentX) - mapRect.left;
+    const top = Math.min(startY, currentY) - mapRect.top;
+    const width = Math.abs(currentX - startX);
+    const height = Math.abs(currentY - startY);
+
+    if (selectionRectElement) {
+        selectionRectElement.style.left = left + 'px';
+        selectionRectElement.style.top = top + 'px';
+        selectionRectElement.style.width = width + 'px';
+        selectionRectElement.style.height = height + 'px';
+    }
+
+    updatePositionInfo(
+        Math.round((currentX - mapRect.left) / zoomLevel),
+        Math.round((currentY - mapRect.top) / zoomLevel)
+    );
+}
+
+function handleSelectionEnd(e) {
+    document.removeEventListener('mousemove', handleSelectionMove);
+    document.removeEventListener('mouseup', handleSelectionEnd);
+
+    const mapContainer = document.getElementById('mapContainer');
+    const mapRect = mapContainer.getBoundingClientRect();
+
+    const endX = Math.max(mapRect.left, Math.min(e.clientX, mapRect.right));
+    const endY = Math.max(mapRect.top, Math.min(e.clientY, mapRect.bottom));
+    const startX = Math.max(mapRect.left, Math.min(selectionStart.x, mapRect.right));
+    const startY = Math.max(mapRect.top, Math.min(selectionStart.y, mapRect.bottom));
+
+    const selectionBounds = {
+        left: Math.min(startX, endX),
+        right: Math.max(startX, endX),
+        top: Math.min(startY, endY),
+        bottom: Math.max(startY, endY)
+    };
+
+    if (selectionRectElement && selectionRectElement.parentNode) {
+        selectionRectElement.parentNode.removeChild(selectionRectElement);
+    }
+    selectionRectElement = null;
+
+    const movedDistance = Math.abs(endX - startX) + Math.abs(endY - startY);
+    if (movedDistance < 5) {
+        isSelecting = false;
+        return;
+    }
+
+    const hovered = new Set();
+    document.querySelectorAll('.zone-element').forEach(zoneElement => {
+        const rect = zoneElement.getBoundingClientRect();
+        if (rectsIntersect(rect, selectionBounds)) {
+            hovered.add(zoneElement.dataset.zoneId);
+        }
+    });
+
+    if (!hovered.size && !selectionAdditive) {
+        clearSelection();
+    } else if (hovered.size) {
+        if (!selectionAdditive) {
+            selectedZones = hovered;
+        } else {
+            hovered.forEach(zoneId => {
+                if (selectedZones.has(zoneId)) {
+                    selectedZones.delete(zoneId);
+                } else {
+                    selectedZones.add(zoneId);
+                }
+            });
+        }
+
+        primaryZone = selectedZones.size ? Array.from(selectedZones).pop() : null;
+        updateSelectionStyles();
+        updatePositionInfo();
+
+        const colorPicker = document.getElementById('zoneColorPicker');
+        if (colorPicker && primaryZone) {
+            colorPicker.value = getZoneColor(primaryZone);
+        }
+    }
+
+    isSelecting = false;
+}
+
+function rectsIntersect(a, b) {
+    return !(b.left > a.right || b.right < a.left || b.top > a.bottom || b.bottom < a.top);
+}
+
 function updateZonePosition(zoneId) {
     const zoneData = zones[zoneId];
-    
+
     fetch(`/zones/zones/${zoneId}/update-position/`, {
         method: 'POST',
         headers: {
@@ -660,20 +1156,25 @@ function updateZonePosition(zoneId) {
             y: zoneData.y,
             width: zoneData.width,
             height: zoneData.height,
-            rotation: zoneData.rotation
+            rotation: zoneData.rotation,
+            color: zoneData.color || ''
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (!data.success) {
-            console.error('Error updating zone position:', data.error);
-            showAlert('danger', 'Error updating zone position');
+    .then(response => response.json().then(data => ({ ok: response.ok, data })))
+    .then(({ ok, data }) => {
+        if (!ok || !data.success) {
+            throw data && data.error ? data.error : translations.errorUpdatingZone;
         }
+        updatePositionInfo();
     })
     .catch(error => {
-        console.error('Error:', error);
-        showAlert('danger', 'Error updating zone position');
+        console.error('Error updating zone position:', error);
+        showAlert('danger', error);
     });
+}
+
+function updateZonePositionsBulk(ids) {
+    Array.from(ids).forEach(zoneId => updateZonePosition(zoneId));
 }
 
 function saveLayout() {
@@ -686,28 +1187,35 @@ function saveLayout() {
             'X-CSRFToken': getCookie('csrftoken')
         },
         body: JSON.stringify({
-            zones: zonesArray
+            zones: zonesArray.map(zone => ({
+                id: zone.id,
+                x: zone.x,
+                y: zone.y,
+                width: zone.width,
+                height: zone.height,
+                rotation: zone.rotation,
+                color: zone.color || ''
+            }))
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showAlert('success', data.message);
+    .then(response => response.json().then(data => ({ ok: response.ok, data })))
+    .then(({ ok, data }) => {
+        if (ok && data.success) {
+            showAlert('success', translations.successSaveLayout);
         } else {
-            showAlert('danger', 'Error saving layout: ' + data.error);
+            throw data && data.error ? data.error : translations.errorSaveLayout;
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showAlert('danger', 'Error saving layout');
+        showAlert('danger', error);
     });
 }
 
 function resetLayout() {
-    if (confirm('Reset all zones to default positions? This cannot be undone.')) {
+    if (confirm(translations.confirmReset)) {
         // Reset all zones to default positions
         Object.keys(zones).forEach((zoneId, index) => {
-            const zoneElement = document.getElementById(`zone-${zoneId}`);
             const defaultX = 100 + (index % 4) * 150;
             const defaultY = 100 + Math.floor(index / 4) * 100;
             
@@ -716,15 +1224,11 @@ function resetLayout() {
             zones[zoneId].width = 120;
             zones[zoneId].height = 80;
             zones[zoneId].rotation = 0;
-            
-            zoneElement.style.left = defaultX + 'px';
-            zoneElement.style.top = defaultY + 'px';
-            zoneElement.style.width = '120px';
-            zoneElement.style.height = '80px';
-            zoneElement.style.transform = 'rotate(0deg)';
+            renderZone(zoneId);
         });
         
         saveLayout();
+        updatePositionInfo();
     }
 }
 
@@ -751,91 +1255,205 @@ function applyZoom() {
 
 function showZoneProperties(zoneId) {
     const zone = zones[zoneId];
+    if (!zone) return;
+
+    const currentColor = sanitizeHexColor(zone.color) || getZoneColor(zoneId);
+
     const content = `
         <div class="row">
             <div class="col-md-6">
-                <h6>Position</h6>
+                <h6>${translations.positionLabel}</h6>
                 <div class="mb-3">
-                    <label class="form-label">X Position</label>
+                    <label class="form-label">${translations.xPosition}</label>
                     <input type="number" class="form-control" id="propX" value="${zone.x}" step="1">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Y Position</label>
+                    <label class="form-label">${translations.yPosition}</label>
                     <input type="number" class="form-control" id="propY" value="${zone.y}" step="1">
                 </div>
             </div>
             <div class="col-md-6">
-                <h6>Size</h6>
+                <h6>${translations.sizeLabel}</h6>
                 <div class="mb-3">
-                    <label class="form-label">Width</label>
+                    <label class="form-label">${translations.width}</label>
                     <input type="number" class="form-control" id="propWidth" value="${zone.width}" step="1" min="60">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Height</label>
+                    <label class="form-label">${translations.height}</label>
                     <input type="number" class="form-control" id="propHeight" value="${zone.height}" step="1" min="40">
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-12">
-                <div class="mb-3">
-                    <label class="form-label">Rotation (degrees)</label>
-                    <input type="number" class="form-control" id="propRotation" value="${zone.rotation}" step="1" min="-180" max="180">
-                </div>
+        <div class="mb-3">
+            <label class="form-label">${translations.rotationLabel}</label>
+            <input type="number" class="form-control" id="propRotation" value="${zone.rotation}" step="1" min="-180" max="180">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">${translations.color}</label>
+            <div class="d-flex align-items-center gap-2">
+                <input type="color" class="form-control form-control-color" id="propColor" value="${currentColor}" title="${translations.chooseColor}">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="propColorClear">
+                    <i class="fas fa-undo"></i> ${translations.clearColor}
+                </button>
             </div>
         </div>
     `;
-    
+
     document.getElementById('zonePropertiesContent').innerHTML = content;
-    document.querySelector('#zonePropertiesModal .modal-title').innerHTML = 
-        `<i class="fas fa-cog"></i> ${zone.name} Properties`;
-    
+    document.querySelector('#zonePropertiesModal .modal-title').innerHTML =
+        `<i class="fas fa-cog"></i> ${zone.name} ${translations.properties}`;
+
+    const propColorInput = document.getElementById('propColor');
+    if (propColorInput) {
+        propColorInput.dataset.cleared = zone.color ? 'false' : 'true';
+        propColorInput.addEventListener('input', function() {
+            propColorInput.dataset.cleared = 'false';
+        });
+    }
+
+    const propColorClear = document.getElementById('propColorClear');
+    if (propColorClear && propColorInput) {
+        propColorClear.addEventListener('click', function() {
+            propColorInput.value = getZoneColor(zoneId);
+            propColorInput.dataset.cleared = 'true';
+        });
+    }
+
     const modal = new bootstrap.Modal(document.getElementById('zonePropertiesModal'));
     modal.show();
 }
 
 function saveZoneProperties() {
-    if (!selectedZone) return;
-    
-    const x = parseFloat(document.getElementById('propX').value);
-    const y = parseFloat(document.getElementById('propY').value);
-    const width = parseFloat(document.getElementById('propWidth').value);
-    const height = parseFloat(document.getElementById('propHeight').value);
+    if (!primaryZone) return;
+
+    let x = parseFloat(document.getElementById('propX').value);
+    let y = parseFloat(document.getElementById('propY').value);
+    let width = parseFloat(document.getElementById('propWidth').value);
+    let height = parseFloat(document.getElementById('propHeight').value);
     const rotation = parseFloat(document.getElementById('propRotation').value);
-    
-    // Update zone data
-    zones[selectedZone].x = x;
-    zones[selectedZone].y = y;
-    zones[selectedZone].width = width;
-    zones[selectedZone].height = height;
-    zones[selectedZone].rotation = rotation;
-    
-    // Update visual element
-    const zoneElement = document.getElementById(`zone-${selectedZone}`);
-    zoneElement.style.left = x + 'px';
-    zoneElement.style.top = y + 'px';
-    zoneElement.style.width = width + 'px';
-    zoneElement.style.height = height + 'px';
-    zoneElement.style.transform = `rotate(${rotation}deg)`;
-    
-    // Save to server
-    updateZonePosition(selectedZone);
-    
-    // Close modal
+
+    const bounds = getMapBounds();
+    if (snapToGridEnabled) {
+        x = Math.round(x / GRID_SIZE) * GRID_SIZE;
+        y = Math.round(y / GRID_SIZE) * GRID_SIZE;
+        width = Math.max(60, Math.round(width / GRID_SIZE) * GRID_SIZE);
+        height = Math.max(40, Math.round(height / GRID_SIZE) * GRID_SIZE);
+    }
+
+    x = clamp(x, 0, bounds.maxX(primaryZone));
+    y = clamp(y, 0, bounds.maxY(primaryZone));
+    width = Math.min(width, bounds.widthRemaining(x));
+    height = Math.min(height, bounds.heightRemaining(y));
+
+        zones[primaryZone].x = x;
+        zones[primaryZone].y = y;
+        zones[primaryZone].width = width;
+        zones[primaryZone].height = height;
+        zones[primaryZone].rotation = rotation;
+    renderZone(primaryZone);
+
+    const propColorInput = document.getElementById('propColor');
+    if (propColorInput) {
+        if (propColorInput.dataset.cleared === 'true') {
+            zones[primaryZone].color = '';
+        } else {
+            zones[primaryZone].color = sanitizeHexColor(propColorInput.value);
+        }
+        applyZoneColor(primaryZone);
+        updateColorDots();
+    }
+
+    updateZonePosition(primaryZone);
+
     bootstrap.Modal.getInstance(document.getElementById('zonePropertiesModal')).hide();
+    updatePositionInfo();
+}
+
+function applyColorToSelection(colorValue) {
+    const sanitized = sanitizeHexColor(colorValue);
+    if (!sanitized) return;
+
+    selectedZones.forEach(zoneId => {
+        zones[zoneId].color = sanitized;
+        applyZoneColor(zoneId);
+    });
+
+    updateColorDots();
+    updateZonePositionsBulk(selectedZones);
+    updateSelectionStyles();
+}
+
+function clearColorSelection() {
+    selectedZones.forEach(zoneId => {
+        zones[zoneId].color = '';
+        applyZoneColor(zoneId);
+    });
+
+    updateColorDots();
+    updateZonePositionsBulk(selectedZones);
+    updateSelectionStyles();
+}
+
+function nudgeSelectedZones(direction, step, disableSnap = false) {
+    const bounds = getMapBounds();
+
+    selectedZones.forEach(zoneId => {
+        const zone = zones[zoneId];
+        if (!zone) return;
+
+        switch (direction) {
+            case 'ArrowUp':
+                zone.y -= step;
+                break;
+            case 'ArrowDown':
+                zone.y += step;
+                break;
+            case 'ArrowLeft':
+                zone.x -= step;
+                break;
+            case 'ArrowRight':
+                zone.x += step;
+                break;
+        }
+
+        zone.x = clamp(zone.x, 0, bounds.maxX(zoneId));
+        zone.y = clamp(zone.y, 0, bounds.maxY(zoneId));
+
+        if (snapToGridEnabled && !disableSnap) {
+            zone.x = clamp(Math.round(zone.x / GRID_SIZE) * GRID_SIZE, 0, bounds.maxX(zoneId));
+            zone.y = clamp(Math.round(zone.y / GRID_SIZE) * GRID_SIZE, 0, bounds.maxY(zoneId));
+        }
+
+        renderZone(zoneId);
+    });
+
+    updateZonePositionsBulk(selectedZones);
+    updatePositionInfo();
 }
 
 function showAlert(type, message) {
+    let content = message;
+    if (typeof message === 'object') {
+        if (Array.isArray(message)) {
+            content = message.join('<br>');
+        } else {
+            content = Object.values(message).flat().join('<br>');
+        }
+    }
+    if (!content) {
+        content = translations.errorUpdatingZone;
+    }
+
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
     alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        ${content}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     `;
-    
+
     const container = document.querySelector('.container-fluid');
     container.insertBefore(alertDiv, container.firstChild);
-    
+
     setTimeout(() => {
         if (alertDiv.parentNode) {
             alertDiv.remove();
@@ -858,11 +1476,57 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// Clear selection when clicking on empty space
-document.addEventListener('click', function(e) {
-    if (e.target.id === 'venueMap' || e.target.id === 'mapContainer') {
-        clearSelection();
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+
+function getMapBounds() {
+    const mapRect = document.getElementById('mapContainer').getBoundingClientRect();
+    const width = mapRect.width / zoomLevel;
+    const height = mapRect.height / zoomLevel;
+
+    return {
+        maxX: (zoneId) => Math.max(0, width - zones[zoneId].width),
+        maxY: (zoneId) => Math.max(0, height - zones[zoneId].height),
+        widthRemaining: (left) => Math.max(0, width - left),
+        heightRemaining: (top) => Math.max(0, height - top)
+    };
+}
+
+function updatePositionInfo(x = lastPointerPosition.x, y = lastPointerPosition.y) {
+    const positionInfo = document.getElementById('positionInfo');
+    if (!positionInfo) return;
+
+    let selectionText = translations.none;
+    let sizeText = '0x0';
+    if (selectedZones.size && primaryZone && zones[primaryZone]) {
+        const zone = zones[primaryZone];
+        selectionText = zone.name;
+        sizeText = `${Math.round(zone.width)}x${Math.round(zone.height)}`;
+        if (selectedZones.size > 1) {
+            selectionText += ` (${selectedZones.size} ${translations.selectionCount})`;
+        }
     }
-});
+
+    positionInfo.textContent =
+        `${translations.position}: (${Math.round(x)}, ${Math.round(y)}) | ` +
+        `${translations.size}: ${sizeText} | ${translations.selected}: ${selectionText}`;
+}
+
+function snapZoneToGrid(zoneId) {
+    const bounds = getMapBounds();
+    const zone = zones[zoneId];
+    if (!zone) return;
+
+    zone.x = clamp(Math.round(zone.x / GRID_SIZE) * GRID_SIZE, 0, bounds.maxX(zoneId));
+    zone.y = clamp(Math.round(zone.y / GRID_SIZE) * GRID_SIZE, 0, bounds.maxY(zoneId));
+    zone.width = Math.max(60, Math.round(zone.width / GRID_SIZE) * GRID_SIZE);
+    zone.height = Math.max(40, Math.round(zone.height / GRID_SIZE) * GRID_SIZE);
+    zone.width = Math.min(zone.width, bounds.widthRemaining(zone.x));
+    zone.height = Math.min(zone.height, bounds.heightRemaining(zone.y));
+
+    renderZone(zoneId);
+    updateZonePosition(zoneId);
+}
 </script>
 {% endblock %}

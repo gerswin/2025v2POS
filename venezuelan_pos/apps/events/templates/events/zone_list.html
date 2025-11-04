@@ -1,7 +1,7 @@
 {% extends 'events/base.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}{{ event.name }} - Zones Management{% endblock %}
+{% block title %}{{ event.name }} - {% trans "Zones Management" %}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -10,18 +10,18 @@
             <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="h3 mb-0">Zone Management</h1>
+                    <h1 class="h3 mb-0">{% trans "Zone Management" %}</h1>
                     <p class="text-muted mb-0">{{ event.name }}</p>
                 </div>
                 <div class="btn-group" role="group">
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createZoneModal">
-                        <i class="fas fa-plus"></i> Create Zone
+                        <i class="fas fa-plus"></i> {% trans "Create Zone" %}
                     </button>
                     <a href="/zones/events/{{ event.id }}/map-editor/" class="btn btn-success">
-                        <i class="fas fa-map"></i> Map Editor
+                        <i class="fas fa-map"></i> {% trans "Map Editor" %}
                     </a>
                     <a href="{% url 'events:event_detail' event.id %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left"></i> Back to Event
+                        <i class="fas fa-arrow-left"></i> {% trans "Back to Event" %}
                     </a>
                 </div>
             </div>
@@ -31,36 +31,36 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3">
-                            <div class="small text-muted">Event Type</div>
+                            <div class="small text-muted">{% trans "Event Type" %}</div>
                             <div class="fw-bold">
                                 {% if event.event_type == 'general_assignment' %}
-                                    <i class="fas fa-users"></i> General Assignment
+                                    <i class="fas fa-users"></i> {% trans "General Assignment" %}
                                 {% elif event.event_type == 'numbered_seat' %}
-                                    <i class="fas fa-chair"></i> Numbered Seating
+                                    <i class="fas fa-chair"></i> {% trans "Numbered Seating" %}
                                 {% elif event.event_type == 'mixed' %}
-                                    <i class="fas fa-layer-group"></i> Mixed Event
+                                    <i class="fas fa-layer-group"></i> {% trans "Mixed Event" %}
                                 {% endif %}
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="small text-muted">Venue</div>
+                            <div class="small text-muted">{% trans "Venue" %}</div>
                             <div class="fw-bold">{{ event.venue.name }}</div>
                         </div>
                         <div class="col-md-3">
-                            <div class="small text-muted">Date</div>
+                            <div class="small text-muted">{% trans "Date" %}</div>
                             <div class="fw-bold">{{ event.start_date|date:"M j, Y" }}</div>
                         </div>
                         <div class="col-md-3">
-                            <div class="small text-muted">Status</div>
+                            <div class="small text-muted">{% trans "Status" %}</div>
                             <div class="fw-bold">
                                 {% if event.status == 'active' %}
-                                    <span class="badge bg-success">Active</span>
+                                    <span class="badge bg-success">{% trans "Active" %}</span>
                                 {% elif event.status == 'draft' %}
-                                    <span class="badge bg-warning">Draft</span>
+                                    <span class="badge bg-warning">{% trans "Draft" %}</span>
                                 {% elif event.status == 'closed' %}
-                                    <span class="badge bg-secondary">Closed</span>
+                                    <span class="badge bg-secondary">{% trans "Closed" %}</span>
                                 {% elif event.status == 'cancelled' %}
-                                    <span class="badge bg-danger">Cancelled</span>
+                                    <span class="badge bg-danger">{% trans "Cancelled" %}</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -74,10 +74,10 @@
                     <i class="fas fa-map fa-2x"></i>
                 </div>
                 <div class="flex-grow-1 ms-3">
-                    <h6 class="alert-heading mb-1">Visual Map Editor Available!</h6>
-                    <p class="mb-2">Use the Map Editor to visually arrange your zones on the venue layout. Drag, resize, and position zones exactly where they should be.</p>
+                    <h6 class="alert-heading mb-1">{% trans "Visual Map Editor Available!" %}</h6>
+                    <p class="mb-2">{% trans "Use the Map Editor to visually arrange your zones on the venue layout. Drag, resize, and position zones exactly where they should be." %}</p>
                     <a href="/zones/events/{{ event.id }}/map-editor/" class="btn btn-sm btn-success">
-                        <i class="fas fa-map"></i> Open Map Editor
+                        <i class="fas fa-map"></i> {% trans "Open Map Editor" %}
                     </a>
                 </div>
             </div>
@@ -86,7 +86,7 @@
             <div id="zones-container">
                 <div class="text-center py-5">
                     <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading zones...</span>
+                        <span class="visually-hidden">{% trans "Loading zones..." %}</span>
                     </div>
                 </div>
             </div>
@@ -96,44 +96,44 @@
 
 <!-- Create Zone Modal -->
 <div class="modal fade" id="createZoneModal" tabindex="-1" aria-labelledby="createZoneModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="createZoneModalLabel">
-                    <i class="fas fa-plus"></i> Create New Zone
+                    <i class="fas fa-plus"></i> {% trans "Create New Zone" %}
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
             </div>
             <form id="createZoneForm">
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="zoneName" class="form-label">Zone Name <span class="text-danger">*</span></label>
+                                <label for="zoneName" class="form-label">{% trans "Zone Name" %} <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="zoneName" name="name" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="zoneType" class="form-label">Zone Type <span class="text-danger">*</span></label>
+                                <label for="zoneType" class="form-label">{% trans "Zone Type" %} <span class="text-danger">*</span></label>
                                 <select class="form-select" id="zoneType" name="zone_type" required>
-                                    <option value="">Select type...</option>
-                                    <option value="general">General Admission</option>
-                                    <option value="numbered">Numbered Seating</option>
+                                    <option value="">{% trans "Select type..." %}</option>
+                                    <option value="general">{% trans "General Admission" %}</option>
+                                    <option value="numbered">{% trans "Numbered Seating" %}</option>
                                 </select>
                             </div>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="zoneDescription" class="form-label">Description</label>
+                        <label for="zoneDescription" class="form-label">{% trans "Description" %}</label>
                         <textarea class="form-control" id="zoneDescription" name="description" rows="2"></textarea>
                     </div>
 
                     <div class="row">
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="basePrice" class="form-label">Base Price <span class="text-danger">*</span></label>
+                                <label for="basePrice" class="form-label">{% trans "Base Price" %} <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
                                     <input type="number" class="form-control" id="basePrice" name="base_price" step="0.01" min="0" required>
@@ -142,16 +142,16 @@
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="displayOrder" class="form-label">Display Order</label>
+                                <label for="displayOrder" class="form-label">{% trans "Display Order" %}</label>
                                 <input type="number" class="form-control" id="displayOrder" name="display_order" value="0" min="0">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="zoneStatus" class="form-label">Status</label>
+                                <label for="zoneStatus" class="form-label">{% trans "Status" %}</label>
                                 <select class="form-select" id="zoneStatus" name="status">
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
+                                    <option value="active">{% trans "Active" %}</option>
+                                    <option value="inactive">{% trans "Inactive" %}</option>
                                 </select>
                             </div>
                         </div>
@@ -161,11 +161,11 @@
                     <div id="generalSettings" style="display: none;">
                         <div class="card">
                             <div class="card-header">
-                                <h6 class="mb-0">General Admission Settings</h6>
+                                <h6 class="mb-0">{% trans "General Admission Settings" %}</h6>
                             </div>
                             <div class="card-body">
                                 <div class="mb-3">
-                                    <label for="capacity" class="form-label">Capacity <span class="text-danger">*</span></label>
+                                    <label for="capacity" class="form-label">{% trans "Capacity" %} <span class="text-danger">*</span></label>
                                     <input type="number" class="form-control" id="capacity" name="capacity" min="1">
                                 </div>
                             </div>
@@ -176,41 +176,41 @@
                     <div id="numberedSettings" style="display: none;">
                         <div class="card">
                             <div class="card-header">
-                                <h6 class="mb-0">Numbered Seating Settings</h6>
+                                <h6 class="mb-0">{% trans "Numbered Seating Settings" %}</h6>
                             </div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="rows" class="form-label">Number of Rows <span class="text-danger">*</span></label>
+                                            <label for="rows" class="form-label">{% trans "Number of Rows" %} <span class="text-danger">*</span></label>
                                             <input type="number" class="form-control" id="rows" name="rows" min="1">
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="seatsPerRow" class="form-label">Seats per Row <span class="text-danger">*</span></label>
+                                            <label for="seatsPerRow" class="form-label">{% trans "Seats per Row" %} <span class="text-danger">*</span></label>
                                             <input type="number" class="form-control" id="seatsPerRow" name="seats_per_row" min="1">
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="calculatedCapacity" class="form-label">Total Capacity</label>
+                                            <label for="calculatedCapacity" class="form-label">{% trans "Total Capacity" %}</label>
                                             <input type="number" class="form-control" id="calculatedCapacity" name="capacity" readonly>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="alert alert-info">
                                     <i class="fas fa-info-circle"></i>
-                                    Seats will be automatically generated based on rows and seats per row.
+                                    {% trans "Seats will be automatically generated based on rows and seats per row." %}
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Create Zone
+                        <i class="fas fa-save"></i> {% trans "Create Zone" %}
                     </button>
                 </div>
             </form>
@@ -220,22 +220,22 @@
 
 <!-- Edit Zone Modal -->
 <div class="modal fade" id="editZoneModal" tabindex="-1" aria-labelledby="editZoneModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editZoneModalLabel">
-                    <i class="fas fa-edit"></i> Edit Zone
+                    <i class="fas fa-edit"></i> {% trans "Edit Zone" %}
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
             </div>
             <form id="editZoneForm">
                 <div class="modal-body" id="editZoneContent">
                     <!-- Content will be loaded dynamically -->
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Update Zone
+                        <i class="fas fa-save"></i> {% trans "Update Zone" %}
                     </button>
                 </div>
             </form>
@@ -248,6 +248,32 @@
 <script>
 const eventId = '{{ event.id }}';
 
+// i18n translations for JavaScript
+const translations = {
+    noZonesConfigured: "{% trans 'No Zones Configured' %}",
+    noZonesMessage: "{% trans 'This event does not have any zones configured yet. Create zones and arrange them visually!' %}",
+    createFirstZone: "{% trans 'Create First Zone' %}",
+    openMapEditor: "{% trans 'Open Map Editor' %}",
+    zonesConfigured: "{% trans 'Zone(s) Configured' %}",
+    totalCapacity: "{% trans 'Total Capacity' %}",
+    numberedSeating: "{% trans 'Numbered Seating' %}",
+    generalAdmission: "{% trans 'General Admission' %}",
+    capacity: "{% trans 'Capacity' %}",
+    available: "{% trans 'Available' %}",
+    price: "{% trans 'Price' %}",
+    availability: "{% trans 'Availability' %}",
+    rows: "{% trans 'rows' %}",
+    seats: "{% trans 'seats' %}",
+    edit: "{% trans 'Edit' %}",
+    seatsButton: "{% trans 'Seats' %}",
+    pricing: "{% trans 'Pricing' %}",
+    deleteButton: "{% trans 'Delete' %}",
+    confirmDelete: "{% trans 'Are you sure you want to delete the zone' %}",
+    confirmDeleteAction: "{% trans 'This action cannot be undone.' %}",
+    active: "{% trans 'Active' %}",
+    inactive: "{% trans 'Inactive' %}"
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     loadZones();
     setupZoneTypeToggle();
@@ -258,6 +284,7 @@ function setupZoneTypeToggle() {
     const zoneTypeSelect = document.getElementById('zoneType');
     const generalSettings = document.getElementById('generalSettings');
     const numberedSettings = document.getElementById('numberedSettings');
+    const capacityInput = document.getElementById('capacity');
     const rowsInput = document.getElementById('rows');
     const seatsPerRowInput = document.getElementById('seatsPerRow');
     const calculatedCapacityInput = document.getElementById('calculatedCapacity');
@@ -266,12 +293,24 @@ function setupZoneTypeToggle() {
         if (this.value === 'general') {
             generalSettings.style.display = 'block';
             numberedSettings.style.display = 'none';
+            // Enable general fields, disable numbered fields
+            capacityInput.required = true;
+            rowsInput.required = false;
+            seatsPerRowInput.required = false;
         } else if (this.value === 'numbered') {
             generalSettings.style.display = 'none';
             numberedSettings.style.display = 'block';
+            // Enable numbered fields, disable general fields
+            capacityInput.required = false;
+            rowsInput.required = true;
+            seatsPerRowInput.required = true;
         } else {
             generalSettings.style.display = 'none';
             numberedSettings.style.display = 'none';
+            // Disable all optional fields
+            capacityInput.required = false;
+            rowsInput.required = false;
+            seatsPerRowInput.required = false;
         }
     });
 
@@ -288,9 +327,34 @@ function setupZoneTypeToggle() {
 
 function setupCreateZoneForm() {
     const form = document.getElementById('createZoneForm');
+    const submitBtn = form.querySelector('button[type="submit"]');
+
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         createZone();
+    });
+
+    // Reset form when modal is opened
+    const createZoneModal = document.getElementById('createZoneModal');
+    createZoneModal.addEventListener('shown.bs.modal', function() {
+        // Reset button to original state
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> {% trans "Create Zone" %}';
+    });
+
+    // Reset form when modal is closed
+    createZoneModal.addEventListener('hidden.bs.modal', function() {
+        form.reset();
+        // Hide all settings sections
+        document.getElementById('generalSettings').style.display = 'none';
+        document.getElementById('numberedSettings').style.display = 'none';
+        // Reset required attributes
+        document.getElementById('capacity').required = false;
+        document.getElementById('rows').required = false;
+        document.getElementById('seatsPerRow').required = false;
+        // Reset button state
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> {% trans "Create Zone" %}';
     });
 }
 
@@ -305,7 +369,7 @@ function loadZones() {
             document.getElementById('zones-container').innerHTML = `
                 <div class="alert alert-danger">
                     <i class="fas fa-exclamation-triangle"></i>
-                    Error loading zones. Please refresh the page.
+                    {% trans "Error loading zones. Please refresh the page." %}
                 </div>
             `;
         });
@@ -313,31 +377,31 @@ function loadZones() {
 
 function displayZones(zones) {
     const container = document.getElementById('zones-container');
-    
+
     if (zones.length === 0) {
         container.innerHTML = `
             <div class="text-center py-5">
                 <i class="fas fa-layer-group fa-4x text-muted mb-4"></i>
-                <h4 class="text-muted">No Zones Configured</h4>
-                <p class="text-muted mb-4">This event doesn't have any zones configured yet. Create zones and arrange them visually!</p>
+                <h4 class="text-muted">${translations.noZonesConfigured}</h4>
+                <p class="text-muted mb-4">${translations.noZonesMessage}</p>
                 <div class="d-flex justify-content-center gap-2">
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createZoneModal">
-                        <i class="fas fa-plus"></i> Create First Zone
+                        <i class="fas fa-plus"></i> ${translations.createFirstZone}
                     </button>
                     <a href="/zones/events/${eventId}/map-editor/" class="btn btn-success">
-                        <i class="fas fa-map"></i> Open Map Editor
+                        <i class="fas fa-map"></i> ${translations.openMapEditor}
                     </a>
                 </div>
             </div>
         `;
         return;
     }
-    
+
     let html = `
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">${zones.length} Zone(s) Configured</h5>
+            <h5 class="mb-0">${zones.length} ${translations.zonesConfigured}</h5>
             <div class="text-muted small">
-                Total Capacity: ${zones.reduce((sum, zone) => sum + zone.capacity, 0)}
+                ${translations.totalCapacity}: ${zones.reduce((sum, zone) => sum + zone.capacity, 0)}
             </div>
         </div>
         <div class="row">
@@ -346,8 +410,9 @@ function displayZones(zones) {
     zones.forEach(zone => {
         const typeIcon = zone.zone_type === 'numbered' ? 'fas fa-chair' : 'fas fa-users';
         const statusBadge = zone.status === 'active' ? 'bg-success' : 'bg-secondary';
+        const statusText = zone.status === 'active' ? translations.active : translations.inactive;
         const availabilityPercent = zone.capacity > 0 ? (zone.available_capacity / zone.capacity * 100) : 0;
-        
+
         html += `
             <div class="col-lg-6 col-xl-4 mb-4">
                 <div class="card h-100">
@@ -355,62 +420,62 @@ function displayZones(zones) {
                         <h6 class="card-title mb-0">
                             <i class="${typeIcon}"></i> ${zone.name}
                         </h6>
-                        <span class="badge ${statusBadge}">${zone.status}</span>
+                        <span class="badge ${statusBadge}">${statusText}</span>
                     </div>
                     <div class="card-body">
                         <p class="card-text small text-muted mb-3">
-                            ${zone.zone_type === 'numbered' ? 'Numbered Seating' : 'General Admission'}
+                            ${zone.zone_type === 'numbered' ? translations.numberedSeating : translations.generalAdmission}
                             ${zone.description ? ' - ' + zone.description : ''}
                         </p>
-                        
+
                         <div class="row text-center mb-3">
                             <div class="col-4">
-                                <div class="small text-muted">Capacity</div>
+                                <div class="small text-muted">${translations.capacity}</div>
                                 <div class="fw-bold">${zone.capacity}</div>
                             </div>
                             <div class="col-4">
-                                <div class="small text-muted">Available</div>
+                                <div class="small text-muted">${translations.available}</div>
                                 <div class="fw-bold text-success">${zone.available_capacity}</div>
                             </div>
                             <div class="col-4">
-                                <div class="small text-muted">Price</div>
+                                <div class="small text-muted">${translations.price}</div>
                                 <div class="fw-bold">$${parseFloat(zone.base_price).toFixed(2)}</div>
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <div class="d-flex justify-content-between small text-muted mb-1">
-                                <span>Availability</span>
+                                <span>${translations.availability}</span>
                                 <span>${availabilityPercent.toFixed(1)}%</span>
                             </div>
                             <div class="progress" style="height: 6px;">
-                                <div class="progress-bar bg-success" role="progressbar" 
-                                     style="width: ${availabilityPercent}%" 
-                                     aria-valuenow="${availabilityPercent}" 
+                                <div class="progress-bar bg-success" role="progressbar"
+                                     style="width: ${availabilityPercent}%"
+                                     aria-valuenow="${availabilityPercent}"
                                      aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                         </div>
 
                         ${zone.zone_type === 'numbered' ? `
                             <div class="small text-muted mb-3">
-                                <i class="fas fa-th"></i> ${zone.rows} rows × ${zone.seats_per_row} seats
+                                <i class="fas fa-th"></i> ${zone.rows} ${translations.rows} × ${zone.seats_per_row} ${translations.seats}
                             </div>
                         ` : ''}
 
                         <div class="d-flex justify-content-between">
                             <button class="btn btn-sm btn-outline-primary" onclick="editZone('${zone.id}')">
-                                <i class="fas fa-edit"></i> Edit
+                                <i class="fas fa-edit"></i> ${translations.edit}
                             </button>
                             ${zone.zone_type === 'numbered' ? `
                                 <button class="btn btn-sm btn-outline-info" onclick="viewSeats('${zone.id}')">
-                                    <i class="fas fa-chair"></i> Seats
+                                    <i class="fas fa-chair"></i> ${translations.seatsButton}
                                 </button>
                                 <button class="btn btn-sm btn-outline-success" onclick="manageRowPricing('${zone.id}')">
-                                    <i class="bi bi-currency-dollar"></i> Pricing
+                                    <i class="bi bi-currency-dollar"></i> ${translations.pricing}
                                 </button>
                             ` : ''}
                             <button class="btn btn-sm btn-outline-danger" onclick="deleteZone('${zone.id}', '${zone.name}')">
-                                <i class="fas fa-trash"></i> Delete
+                                <i class="fas fa-trash"></i> ${translations.deleteButton}
                             </button>
                         </div>
                     </div>
@@ -425,8 +490,14 @@ function displayZones(zones) {
 
 function createZone() {
     const form = document.getElementById('createZoneForm');
+    const submitBtn = form.querySelector('button[type="submit"]');
     const formData = new FormData(form);
-    
+
+    // Disable button and show loading state
+    submitBtn.disabled = true;
+    const originalHTML = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+
     const data = {
         event: eventId,
         name: formData.get('name'),
@@ -455,9 +526,16 @@ function createZone() {
     })
     .then(response => response.json())
     .then(data => {
+        // Re-enable button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalHTML;
+
         if (data.id) {
             // Success
-            bootstrap.Modal.getInstance(document.getElementById('createZoneModal')).hide();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createZoneModal'));
+            if (modal) {
+                modal.hide();
+            }
             form.reset();
             loadZones();
             showAlert('success', 'Zone created successfully!');
@@ -467,6 +545,10 @@ function createZone() {
         }
     })
     .catch(error => {
+        // Re-enable button on error
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalHTML;
+
         console.error('Error creating zone:', error);
         showAlert('danger', 'Error creating zone. Please try again.');
     });
@@ -498,7 +580,7 @@ function manageRowPricing(zoneId) {
 }
 
 function deleteZone(zoneId, zoneName) {
-    if (confirm(`Are you sure you want to delete the zone "${zoneName}"? This action cannot be undone.`)) {
+    if (confirm(`${translations.confirmDelete} "${zoneName}"? ${translations.confirmDeleteAction}`)) {
         fetch(`/api/v1/api/zones/${zoneId}/`, {
             method: 'DELETE',
             headers: {

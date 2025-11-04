@@ -1,0 +1,21 @@
+RECORDATORIO DE PAGO
+
+Estimado/a {{ customer.name }} {{ customer.surname }},
+
+Le recordamos que tiene un pago pendiente para completar su compra de entradas.
+
+INFORMACIÓN DEL PAGO:
+- Evento: {{ event.name }}
+- Fecha del Evento: {{ event.start_date|date:"d/m/Y H:i" }}
+- Monto Pendiente: ${{ remaining_balance }}
+{% if next_payment_date %}- Fecha Límite de Pago: {{ next_payment_date|date:"d/m/Y" }}{% endif %}
+
+IMPORTANTE: Si no completa el pago antes de la fecha límite, su reserva será cancelada automáticamente y las entradas quedarán disponibles para otros compradores.
+
+Para completar su pago, por favor contacte a nuestro equipo de ventas o visite nuestro punto de venta.
+
+¡Gracias por su preferencia!
+
+---
+Venezuelan POS System
+Este es un correo automático, por favor no responda.

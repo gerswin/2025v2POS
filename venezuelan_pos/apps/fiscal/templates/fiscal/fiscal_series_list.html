@@ -1,0 +1,440 @@
+{% extends "fiscal/base.html" %}
+{% load static %}
+
+{% block title %}Fiscal Series Management{% endblock %}
+
+{% block main_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Fiscal Series Management</h1>
+    <div>
+        <button class="btn btn-warning me-2" onclick="generateMissingSeriesReport()">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            Check Missing Series
+        </button>
+        <a href="{% url 'fiscal_web:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>
+            Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Series
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ fiscal_series.paginator.count }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-list-ol fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Valid Series
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% with valid=fiscal_series.object_list|length %}{{ valid }}{% endwith %}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Voided Series
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            0
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-ban fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Current Counter
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ current_counter|default:"N/A" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-counter fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="event" class="form-label">Event</label>
+                <select name="event" id="event" class="form-select">
+                    <option value="">All Events</option>
+                    <!-- Event options would be populated here -->
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="start_date" class="form-label">Start Date</label>
+                <input type="date" name="start_date" id="start_date" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label for="end_date" class="form-label">End Date</label>
+                <input type="date" name="end_date" id="end_date" class="form-control">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-search me-1"></i>
+                    Filter
+                </button>
+                <a href="{% url 'fiscal_web:fiscal_series_list' %}" class="btn btn-outline-secondary">
+                    Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Fiscal Series Table -->
+<div class="card shadow">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Fiscal Series</h6>
+        <div class="dropdown no-arrow">
+            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" 
+               data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in">
+                <div class="dropdown-header">Actions:</div>
+                <a class="dropdown-item" href="#" onclick="exportFiscalSeries()">
+                    <i class="fas fa-download fa-sm fa-fw mr-2 text-gray-400"></i>
+                    Export Series
+                </a>
+                <a class="dropdown-item" href="#" onclick="validateAllSeries()">
+                    <i class="fas fa-check fa-sm fa-fw mr-2 text-gray-400"></i>
+                    Validate All
+                </a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#" onclick="generateMissingSeriesReport()">
+                    <i class="fas fa-exclamation-triangle fa-sm fa-fw mr-2 text-gray-400"></i>
+                    Missing Series Report
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        {% if fiscal_series %}
+            <div class="table-responsive">
+                <table class="table table-bordered" id="fiscalSeriesTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Fiscal Series</th>
+                            <th>Transaction</th>
+                            <th>Event</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for series in fiscal_series %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="mr-3">
+                                        <i class="fas fa-receipt text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-weight-bold">
+                                            <code>{{ series.fiscal_series }}</code>
+                                        </div>
+                                        <small class="text-muted">Series #{{ series.fiscal_series|slice:"-8:" }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="{% url 'sales_web:transaction_detail' series.pk %}">
+                                    {{ series.id|truncatechars:8 }}
+                                </a>
+                                <br>
+                                <small class="text-muted">{{ series.items.count }} item{{ series.items.count|pluralize }}</small>
+                            </td>
+                            <td>
+                                <div class="font-weight-bold">{{ series.event.name }}</div>
+                                <small class="text-muted">{{ series.event.start_date|date:"M d, Y" }}</small>
+                            </td>
+                            <td>
+                                <a href="{% url 'customers_web:customer_detail' series.customer.pk %}">
+                                    {{ series.customer.full_name }}
+                                </a>
+                                <br>
+                                <small class="text-muted">{{ series.customer.email|truncatechars:25 }}</small>
+                            </td>
+                            <td>
+                                <div class="font-weight-bold">${{ series.total_amount|floatformat:2 }}</div>
+                                {% if series.tax_amount > 0 %}
+                                    <small class="text-muted">Tax: ${{ series.tax_amount|floatformat:2 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if series.status == 'completed' %}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check"></i> Completed
+                                    </span>
+                                {% elif series.status == 'voided' %}
+                                    <span class="badge badge-danger">
+                                        <i class="fas fa-ban"></i> Voided
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-secondary">{{ series.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>{{ series.completed_at|date:"M d, Y" }}</div>
+                                <small class="text-muted">{{ series.completed_at|time:"H:i:s" }}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'fiscal_web:fiscal_series_detail' series.pk %}" 
+                                       class="btn btn-sm btn-outline-primary" 
+                                       data-bs-toggle="tooltip" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if series.status == 'completed' %}
+                                        <button class="btn btn-sm btn-outline-warning" 
+                                                onclick="voidFiscalSeries('{{ series.pk }}')"
+                                                data-bs-toggle="tooltip" title="Void Series">
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                    {% endif %}
+                                    <button class="btn btn-sm btn-outline-info" 
+                                            onclick="validateFiscalSeries('{{ series.pk }}')"
+                                            data-bs-toggle="tooltip" title="Validate">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" 
+                                            onclick="printFiscalReceipt('{{ series.pk }}')"
+                                            data-bs-toggle="tooltip" title="Print Receipt">
+                                        <i class="fas fa-print"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if fiscal_series.has_other_pages %}
+                <nav aria-label="Fiscal series pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if fiscal_series.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ fiscal_series.previous_page_number }}">Previous</a>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ fiscal_series.number }} of {{ fiscal_series.paginator.num_pages }}
+                            </span>
+                        </li>
+                        
+                        {% if fiscal_series.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ fiscal_series.next_page_number }}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ fiscal_series.paginator.num_pages }}">Last</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-list-ol fa-4x text-gray-300 mb-4"></i>
+                <h4 class="text-gray-500">No Fiscal Series Found</h4>
+                <p class="text-gray-400 mb-4">
+                    No fiscal series have been generated yet, or none match your current filters.
+                </p>
+                <a href="{% url 'sales_web:transaction_list' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>
+                    View Transactions
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function voidFiscalSeries(transactionId) {
+    const reason = prompt('Enter reason for voiding this fiscal series:');
+    if (reason) {
+        if (confirm(`Are you sure you want to void this fiscal series?\n\nReason: ${reason}\n\nThis action cannot be undone.`)) {
+            fetch(`/fiscal/void-fiscal-series/${transactionId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    reason: reason
+                })
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Failed to void fiscal series');
+                }
+            });
+        }
+    }
+}
+
+function validateFiscalSeries(transactionId) {
+    fetch(`/api/v1/fiscal/validate-series/${transactionId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    }).then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              alert(`Fiscal series validation:\n\nSeries: ${data.fiscal_series}\nStatus: ${data.is_valid ? 'Valid' : 'Invalid'}\n\n${data.message || ''}`);
+          } else {
+              alert('Validation failed: ' + (data.error || 'Unknown error'));
+          }
+      });
+}
+
+function validateAllSeries() {
+    if (confirm('Validate all fiscal series? This may take a few minutes.')) {
+        const button = event.target;
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Validating...';
+        
+        fetch('/api/v1/fiscal/validate-all-series/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        }).then(response => response.json())
+          .then(data => {
+              button.disabled = false;
+              button.innerHTML = '<i class="fas fa-check me-1"></i>Validate All';
+              
+              if (data.success) {
+                  alert(`Validation completed:\n\nTotal: ${data.total_series}\nValid: ${data.valid_series}\nInvalid: ${data.invalid_series}`);
+                  location.reload();
+              } else {
+                  alert('Validation failed: ' + (data.error || 'Unknown error'));
+              }
+          });
+    }
+}
+
+function printFiscalReceipt(transactionId) {
+    window.open(`/sales/transactions/${transactionId}/receipt/`, '_blank');
+}
+
+function exportFiscalSeries() {
+    // Get current filters
+    const params = new URLSearchParams(window.location.search);
+    params.set('export', 'csv');
+    
+    window.location.href = '?' + params.toString();
+}
+
+function generateMissingSeriesReport() {
+    fetch('/api/v1/fiscal/missing-series-report/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    }).then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              if (data.missing_series && data.missing_series.length > 0) {
+                  let message = `Missing Fiscal Series Report:\n\n`;
+                  message += `Total missing: ${data.missing_series.length}\n\n`;
+                  message += `Missing series:\n`;
+                  data.missing_series.slice(0, 10).forEach(series => {
+                      message += `- ${series}\n`;
+                  });
+                  if (data.missing_series.length > 10) {
+                      message += `... and ${data.missing_series.length - 10} more\n`;
+                  }
+                  alert(message);
+              } else {
+                  alert('No missing fiscal series found. All series are consecutive.');
+              }
+          } else {
+              alert('Report generation failed: ' + (data.error || 'Unknown error'));
+          }
+      });
+}
+
+// Initialize DataTable if available
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof $ !== 'undefined' && $.fn.DataTable) {
+        $('#fiscalSeriesTable').DataTable({
+            "pageLength": 25,
+            "order": [[ 6, "desc" ]], // Sort by date
+            "columnDefs": [
+                { "orderable": false, "targets": 7 } // Actions column
+            ]
+        });
+    }
+});
+</script>
+
+{% csrf_token %}
+{% endblock %}

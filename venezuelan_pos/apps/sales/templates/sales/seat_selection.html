@@ -1,4 +1,5 @@
 {% extends 'events/base.html' %}
+{% load static %}
 {% load i18n %}
 {% load l10n %}
 
@@ -21,6 +22,42 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     border-color: var(--primary-color);
+}
+
+#zoneModal {
+    --zone-modal-padding: clamp(1rem, 2vw, 2rem);
+}
+
+#zoneModal.show {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: var(--zone-modal-padding);
+    min-height: 100vh;
+}
+
+#zoneModal .modal-dialog {
+    width: 100%;
+    max-width: min(95vw, 1320px);
+    margin: 0 auto;
+}
+
+#zoneModal .modal-dialog.modal-dialog-centered {
+    display: flex;
+    align-items: center;
+    min-height: calc(100vh - 2 * var(--zone-modal-padding));
+}
+
+#zoneModal .modal-content {
+    width: 100%;
+    border-radius: 18px;
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.15);
+}
+
+#zoneModal .modal-body {
+    max-height: min(85vh, 900px);
+    overflow-y: auto;
+    padding: 1.75rem;
 }
 
 .zone-card.sold-out {
@@ -197,6 +234,42 @@
     margin-left: 5px;
 }
 
+/* Stage-related styles */
+.stage-badge {
+    font-size: 0.7rem;
+    margin-top: 0.25rem;
+}
+
+.stage-info {
+    font-size: 9px;
+    font-weight: bold;
+    margin-top: 2px;
+}
+
+.price-updated {
+    animation: priceUpdate 2s ease-in-out;
+}
+
+@keyframes priceUpdate {
+    0% { background-color: rgba(255, 193, 7, 0.3); }
+    50% { background-color: rgba(255, 193, 7, 0.6); }
+    100% { background-color: transparent; }
+}
+
+.stage-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.refresh-indicator {
+    margin-bottom: 1rem;
+    border-left: 4px solid #17a2b8;
+}
+
 @media (max-width: 768px) {
     .cart-sidebar {
         position: static;
@@ -212,6 +285,14 @@
         min-width: 60px;
         min-height: 40px;
         font-size: 10px;
+    }
+    
+    .stage-notification {
+        position: relative;
+        top: auto;
+        right: auto;
+        margin: 1rem;
+        max-width: none;
     }
 }
 </style>
@@ -305,6 +386,9 @@
                             </div>
                             <div class="zone-info">
                                 ${{ zone.base_price|floatformat:0 }}
+                                {% if zone.current_stage %}
+                                <br><span class="badge bg-success">{{ zone.current_stage.name }}</span>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -366,6 +450,9 @@
                             <div class="text-end">
                                 <div class="zone-price">${{ zone.base_price|floatformat:2 }}</div>
                                 <small class="text-muted">{% trans "from" %}</small>
+                                {% if zone.current_stage %}
+                                <br><span class="badge bg-success">{{ zone.current_stage.name }}</span>
+                                {% endif %}
                             </div>
                         </div>
                         
@@ -484,7 +571,7 @@
 
 <!-- Zone Selection Modal -->
 <div class="modal fade" id="zoneModal" tabindex="-1">
-    <div class="modal-dialog modal-xl">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="zoneModalTitle">{% trans "Select Seats" %}</h5>
@@ -502,6 +589,8 @@
 <script>
 let currentEventId = '{{ event.id }}';
 let cartUpdateInterval;
+let stageMonitoringInterval;
+let lastKnownStages = {};
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize view toggle
@@ -522,6 +611,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Start cart update polling
     startCartPolling();
+    
+    // Start stage monitoring
+    startStageMonitoring();
 });
 
 function showMapView() {
@@ -663,14 +755,24 @@ function selectZone(zoneId, zoneType) {
             modalBody.setAttribute('data-zone-id', zoneId);
             console.log('🎯 Zone ID confirmed after content load:', zoneId);
             
-            // Trigger any initialization scripts in the loaded content
-            const scripts = modalBody.querySelectorAll('script');
-            scripts.forEach(script => {
-                if (script.innerHTML) {
+            // Execute only inline scripts (external scripts are already loaded globally)
+            const scripts = Array.from(modalBody.querySelectorAll('script'));
+
+            scripts.forEach((script, index) => {
+                if (!script.src && script.innerHTML) {
+                    // Only execute inline scripts
                     try {
+                        console.log(`🔍 DEBUG: Executing script ${index + 1}/${scripts.length}`);
+                        console.log('📝 Script content (first 200 chars):', script.innerHTML.substring(0, 200));
+
+                        // Execute in global scope using eval
                         eval(script.innerHTML);
+
+                        console.log(`✅ Script ${index + 1} executed successfully`);
                     } catch (e) {
-                        console.log('Script execution error:', e);
+                        console.error(`❌ Script ${index + 1} execution error:`, e);
+                        console.error('💥 Full script content:', script.innerHTML);
+                        console.error('📍 Error location:', e.stack);
                     }
                 }
             });
@@ -732,7 +834,16 @@ function clearCart() {
     }
 }
 
+// Prevent multiple simultaneous cart updates
+let isUpdatingCart = false;
+
 function updateCartDisplay() {
+    if (isUpdatingCart) {
+        console.log('⏳ Cart update already in progress, skipping...');
+        return;
+    }
+    
+    isUpdatingCart = true;
     console.log('🔄 Updating cart display...');
     
     fetch('{% url "sales_web:ajax_cart_update" %}')
@@ -816,6 +927,10 @@ function updateCartDisplay() {
                     }
                 }
                 
+                if (typeof window.syncGeneralAdmissionCart === 'function') {
+                    window.syncGeneralAdmissionCart(data.cart_items || []);
+                }
+                
                 console.log('✅ Cart display updated successfully');
             } else {
                 console.error('❌ Cart update failed:', data.error);
@@ -823,12 +938,138 @@ function updateCartDisplay() {
         })
         .catch(error => {
             console.error('❌ Error updating cart display:', error);
+        })
+        .finally(() => {
+            isUpdatingCart = false;
         });
 }
 
 function startCartPolling() {
     // Update cart every 10 seconds
     cartUpdateInterval = setInterval(updateCartDisplay, 10000);
+}
+
+function startStageMonitoring() {
+    // Monitor stage transitions every 30 seconds
+    stageMonitoringInterval = setInterval(checkStageTransitions, 30000);
+}
+
+function checkStageTransitions() {
+    console.log('🔄 Checking for stage transitions...');
+    
+    fetch(`/api/v1/sales/check-stage-transitions/?event_id=${currentEventId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.transitions_occurred) {
+                console.log('⚡ Stage transitions detected:', data.transitions);
+                handleStageTransitions(data);
+            }
+        })
+        .catch(error => {
+            console.log('Error checking stage transitions:', error);
+        });
+}
+
+function handleStageTransitions(transitionData) {
+    // Show notification about stage transitions
+    const transitionCount = transitionData.transitions_count || 0;
+    const message = `Price stage updated! ${transitionCount} transition(s) occurred. Prices may have changed.`;
+    
+    showMessage(message, 'warning');
+    
+    // Update pricing displays if we have pricing updates
+    if (transitionData.pricing_updates) {
+        updatePricingDisplays(transitionData.pricing_updates);
+    }
+    
+    // Refresh cart to show updated prices
+    updateCartDisplay();
+    
+    // If modal is open, refresh its content
+    const modal = document.getElementById('zoneModal');
+    if (modal && modal.classList.contains('show')) {
+        const modalBody = document.getElementById('zoneModalBody');
+        const zoneId = modalBody.getAttribute('data-zone-id');
+        if (zoneId) {
+            console.log('🔄 Refreshing modal content due to stage transition');
+            // Reload zone content to show updated prices
+            selectZone(zoneId, 'numbered'); // Assuming numbered, but this could be improved
+        }
+    }
+}
+
+function updatePricingDisplays(pricingUpdates) {
+    // Update zone pricing displays in the main view
+    Object.keys(pricingUpdates).forEach(zoneId => {
+        const stageInfo = pricingUpdates[zoneId];
+        
+        // Update zone cards if they exist
+        const zoneCards = document.querySelectorAll(`[data-zone-id="${zoneId}"]`);
+        zoneCards.forEach(card => {
+            updateZoneCardStageInfo(card, stageInfo);
+        });
+        
+        // Update map zones if they exist
+        const mapZones = document.querySelectorAll(`.map-zone[data-zone-id="${zoneId}"]`);
+        mapZones.forEach(mapZone => {
+            updateMapZoneStageInfo(mapZone, stageInfo);
+        });
+    });
+}
+
+function updateZoneCardStageInfo(card, stageInfo) {
+    if (!stageInfo.has_active_stage) return;
+    
+    const stage = stageInfo.stage;
+    
+    // Find or create stage badge
+    let stageBadge = card.querySelector('.stage-badge');
+    if (!stageBadge) {
+        stageBadge = document.createElement('span');
+        stageBadge.className = 'badge bg-success stage-badge';
+        
+        // Insert after zone price
+        const zonePrice = card.querySelector('.zone-price');
+        if (zonePrice && zonePrice.parentNode) {
+            zonePrice.parentNode.appendChild(stageBadge);
+        }
+    }
+    
+    stageBadge.textContent = stage.name;
+    
+    // Update stage badge color based on modifier
+    if (stage.modifier_value > 0) {
+        stageBadge.className = 'badge bg-warning stage-badge'; // Price increase
+    } else if (stage.modifier_value < 0) {
+        stageBadge.className = 'badge bg-success stage-badge'; // Discount
+    } else {
+        stageBadge.className = 'badge bg-info stage-badge'; // No change
+    }
+}
+
+function updateMapZoneStageInfo(mapZone, stageInfo) {
+    if (!stageInfo.has_active_stage) return;
+    
+    const stage = stageInfo.stage;
+    
+    // Find zone info div
+    const zoneInfo = mapZone.querySelector('.zone-info');
+    if (zoneInfo) {
+        // Remove existing stage info
+        const existingStage = zoneInfo.querySelector('.stage-info');
+        if (existingStage) {
+            existingStage.remove();
+        }
+        
+        // Add new stage info
+        const stageDiv = document.createElement('div');
+        stageDiv.className = 'stage-info';
+        stageDiv.style.fontSize = '9px';
+        stageDiv.style.color = stage.modifier_value < 0 ? '#28a745' : '#ffc107';
+        stageDiv.textContent = stage.name;
+        
+        zoneInfo.appendChild(stageDiv);
+    }
 }
 
 function showMessage(message, type) {
@@ -1076,6 +1317,30 @@ window.addEventListener('beforeunload', function() {
     if (cartUpdateInterval) {
         clearInterval(cartUpdateInterval);
     }
+    if (stageMonitoringInterval) {
+        clearInterval(stageMonitoringInterval);
+    }
+});
+
+// Disable back/forward cache (bfcache)
+// Detect if page was restored from bfcache and reload
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        console.log('Page restored from bfcache, reloading...');
+        window.location.reload();
+    }
+});
+
+// Additional bfcache prevention
+window.addEventListener('pagehide', function() {
+    // Empty handler to prevent bfcache
+});
+
+// Prevent bfcache by adding unload event
+window.addEventListener('unload', function() {
+    // Empty handler to prevent bfcache
 });
 </script>
+<script src="{% static 'js/general_admission.js' %}"></script>
+<script src="{% static 'js/stage_monitoring.js' %}"></script>
 {% endblock %}

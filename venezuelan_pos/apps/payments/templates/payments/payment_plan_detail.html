@@ -1,0 +1,494 @@
+{% extends "payments/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Payment Plan" %} - {{ payment_plan.customer.full_name }}{% endblock %}
+
+{% block main_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">{% trans "Payment Plan Details" %}</h1>
+    <div>
+        <a href="{% url 'payments_web:payment_plan_list' %}" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-arrow-left me-1"></i>
+            {% trans "Back to List" %}
+        </a>
+        {% if payment_plan.is_active %}
+            <a href="{% url 'payments_web:create_payment' payment_plan.transaction.pk %}" class="btn btn-success">
+                <i class="fas fa-plus me-1"></i>
+                {% trans "Add Payment" %}
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <!-- Payment Plan Information -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">{% trans "Plan Information" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="fw-bold">{% trans "Customer:" %}</td>
+                                <td>
+                                    <a href="{% url 'customers_web:customer_detail' payment_plan.customer.pk %}">
+                                        {{ payment_plan.customer.full_name }}
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">{{ payment_plan.customer.email }}</small>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">{% trans "Transaction:" %}</td>
+                                <td>
+                                    <a href="{% url 'sales_web:transaction_detail' payment_plan.transaction.pk %}">
+                                        {{ payment_plan.transaction.fiscal_series|default:_("Pending") }}
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">{{ payment_plan.transaction.event.name }}</small>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">{% trans "Plan Type:" %}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ payment_plan.get_plan_type_display }}</span>
+                                    {% if payment_plan.plan_type == 'installment' %}
+                                        <br>
+                                        <small class="text-muted">
+                                            {% blocktrans count counter=payment_plan.installment_count with amount=payment_plan.installment_amount %}
+                                            {{ counter }} installment of ${{ amount }} each
+                                            {% plural %}
+                                            {{ counter }} installments of ${{ amount }} each
+                                            {% endblocktrans %}
+                                        </small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">{% trans "Status:" %}</td>
+                                <td>
+                                    {% if payment_plan.status == 'active' %}
+                                        <span class="badge bg-success">{% trans "Active" %}</span>
+                                    {% elif payment_plan.status == 'completed' %}
+                                        <span class="badge bg-primary">{% trans "Completed" %}</span>
+                                        <br>
+                                        <small class="text-muted">{% trans "Completed on" %} {{ payment_plan.completed_at|date:"M d, Y H:i" }}</small>
+                                    {% elif payment_plan.status == 'expired' %}
+                                        <span class="badge bg-danger">{% trans "Expired" %}</span>
+                                    {% elif payment_plan.status == 'cancelled' %}
+                                        <span class="badge bg-secondary">{% trans "Cancelled" %}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="fw-bold">{% trans "Total Amount:" %}</td>
+                                <td class="h5 text-primary">${{ payment_plan.total_amount }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">{% trans "Paid Amount:" %}</td>
+                                <td class="h5 text-success">${{ payment_plan.paid_amount }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">{% trans "Remaining Balance:" %}</td>
+                                <td class="h5 text-warning">${{ payment_plan.remaining_balance }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">{% trans "Progress:" %}</td>
+                                <td>
+                                    <div class="progress mb-2" style="height: 20px; background-color: #e9ecef;">
+                                        <div class="progress-bar {% if payment_plan.completion_percentage == 100 %}bg-success{% elif payment_plan.completion_percentage >= 75 %}bg-info{% elif payment_plan.completion_percentage >= 50 %}bg-primary{% elif payment_plan.completion_percentage >= 25 %}bg-warning{% else %}bg-danger{% endif %}"
+                                             role="progressbar"
+                                             style="width: {{ payment_plan.completion_percentage }}%"
+                                             aria-valuenow="{{ payment_plan.completion_percentage }}"
+                                             aria-valuemin="0" aria-valuemax="100">
+                                            <span class="fw-bold" style="font-size: 12px;">{{ payment_plan.completion_percentage|floatformat:1 }}%</span>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="fas fa-circle-check text-success"></i>
+                                        ${{ payment_plan.paid_amount }} of ${{ payment_plan.total_amount }} paid
+                                    </small>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Installment Progress (for installment plans) -->
+                {% if payment_plan.plan_type == 'installment' %}
+                    <div class="mt-4">
+                        <h6>{% trans "Installment Progress" %}</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center p-3 border rounded">
+                                    <div class="h4 text-success">{{ payment_plan.installments_paid }}</div>
+                                    <small class="text-muted">{% trans "Paid" %}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 border rounded">
+                                    <div class="h4 text-warning">{{ payment_plan.installments_remaining }}</div>
+                                    <small class="text-muted">{% trans "Remaining" %}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 border rounded">
+                                    <div class="h4 text-primary">${{ payment_plan.next_installment_amount|default:0 }}</div>
+                                    <small class="text-muted">{% trans "Next Payment" %}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Timing Information -->
+                <div class="mt-4">
+                    <h6>{% trans "Timing" %}</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong>{% trans "Created:" %}</strong><br>
+                            <small class="text-muted">{{ payment_plan.created_at|date:"M d, Y H:i" }}</small>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>{% trans "Expires:" %}</strong><br>
+                            <small class="{% if payment_plan.is_expired %}text-danger{% else %}text-muted{% endif %}">
+                                {{ payment_plan.expires_at|date:"M d, Y H:i" }}
+                                {% if payment_plan.is_expired %}({% trans "Expired" %}){% endif %}
+                            </small>
+                        </div>
+                        {% if payment_plan.completed_at %}
+                            <div class="col-md-4">
+                                <strong>{% trans "Completed:" %}</strong><br>
+                                <small class="text-success">{{ payment_plan.completed_at|date:"M d, Y H:i" }}</small>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if payment_plan.notes %}
+                    <div class="mt-4">
+                        <h6>{% trans "Notes" %}</h6>
+                        <p class="text-muted">{{ payment_plan.notes }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Payment History -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{% trans "Payment History" %}</h5>
+                <span class="badge bg-primary">
+                    {% blocktrans count counter=payments|length %}
+                    {{ counter }} payment
+                    {% plural %}
+                    {{ counter }} payments
+                    {% endblocktrans %}
+                </span>
+            </div>
+            <div class="card-body">
+                {% if payments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Method" %}</th>
+                                    <th>{% trans "Amount" %}</th>
+                                    <th>{% trans "Reference" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments %}
+                                <tr>
+                                    <td>{{ payment.created_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">
+                                            {{ payment.payment_method.name }}
+                                        </span>
+                                    </td>
+                                    <td class="fw-bold">${{ payment.amount }}</td>
+                                    <td>
+                                        {% if payment.reference_number %}
+                                            <code>{{ payment.reference_number }}</code>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if payment.status == 'completed' %}
+                                            <span class="badge bg-success">{% trans "Completed" %}</span>
+                                        {% elif payment.status == 'failed' %}
+                                            <span class="badge bg-danger">{% trans "Failed" %}</span>
+                                        {% elif payment.status == 'pending' %}
+                                            <span class="badge bg-warning">{% trans "Pending" %}</span>
+                                        {% elif payment.status == 'processing' %}
+                                            <span class="badge bg-info">{% trans "Processing" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ payment.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'payments_web:payment_detail' payment.pk %}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if payment.status == 'pending' %}
+                                            <a href="{% url 'payments_web:process_payment' payment.pk %}"
+                                               class="btn btn-sm btn-success ms-1"
+                                               onclick="return confirm('{% trans "Mark this payment as completed?" %}')">
+                                                <i class="fas fa-check"></i>
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-money-bill-wave fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">{% trans "No Payments Yet" %}</h5>
+                        <p class="text-muted">{% trans "No payments have been made for this plan." %}</p>
+                        {% if payment_plan.is_active %}
+                            <a href="{% url 'payments_web:create_payment' payment_plan.transaction.pk %}"
+                               class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>
+                                {% trans "Add First Payment" %}
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        {% if payment_plan.is_active %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% trans "Quick Actions" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'payments_web:create_payment' payment_plan.transaction.pk %}"
+                           class="btn btn-success">
+                            <i class="fas fa-plus me-1"></i>
+                            {% trans "Add Payment" %}
+                        </a>
+                        {% if payment_plan.plan_type == 'installment' and payment_plan.next_installment_amount %}
+                            <button class="btn btn-outline-primary" onclick="quickPayment({{ payment_plan.next_installment_amount }})">
+                                <i class="fas fa-bolt me-1"></i>
+                                {% trans "Quick Pay" %} ${{ payment_plan.next_installment_amount }}
+                            </button>
+                        {% endif %}
+                        <button class="btn btn-outline-warning" onclick="extendExpiry()">
+                            <i class="fas fa-clock me-1"></i>
+                            {% trans "Extend Expiry" %}
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="cancelPlan()">
+                            <i class="fas fa-times me-1"></i>
+                            {% trans "Cancel Plan" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Fiscal Information -->
+        {% if audit_info %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% trans "Fiscal Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>{% trans "Fiscal Series:" %}</strong><br>
+                        {% if payment_plan.transaction.fiscal_series %}
+                            <code>{{ payment_plan.transaction.fiscal_series }}</code>
+                        {% else %}
+                            <span class="text-muted">{% trans "Will be generated when completed" %}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>{% trans "Fiscal Status:" %}</strong><br>
+                        {% if audit_info.is_fiscally_complete %}
+                            <span class="badge bg-success">{% trans "Fiscally Complete" %}</span>
+                        {% else %}
+                            <span class="badge bg-warning">{% trans "Pending Completion" %}</span>
+                        {% endif %}
+                    </div>
+
+                    {% if audit_info.payment_summary %}
+                        <div class="mb-3">
+                            <strong>{% trans "Payment Summary:" %}</strong><br>
+                            <small class="text-muted">
+                                {% trans "Total:" %} ${{ audit_info.payment_summary.total_amount }}<br>
+                                {% trans "Completed:" %} ${{ audit_info.payment_summary.completed_amount }}<br>
+                                {% trans "Pending:" %} ${{ audit_info.payment_summary.pending_amount }}
+                            </small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Reserved Tickets -->
+        {% if payment_plan.transaction.reserved_tickets.exists %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% trans "Reserved Tickets" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% for reservation in payment_plan.transaction.reserved_tickets.all %}
+                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                            <div>
+                                {% if reservation.seat %}
+                                    <strong>{{ reservation.seat.seat_label }}</strong><br>
+                                    <small class="text-muted">{{ reservation.zone.name }}</small>
+                                {% else %}
+                                    <strong>{{ reservation.zone.name }}</strong><br>
+                                    <small class="text-muted">{% trans "Qty:" %} {{ reservation.quantity }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="text-end">
+                                {% if reservation.status == 'active' %}
+                                    <span class="badge bg-success">{% trans "Reserved" %}</span>
+                                {% elif reservation.status == 'expired' %}
+                                    <span class="badge bg-danger">{% trans "Expired" %}</span>
+                                {% elif reservation.status == 'completed' %}
+                                    <span class="badge bg-primary">{% trans "Completed" %}</span>
+                                {% endif %}
+                                <br>
+                                <small class="text-muted">
+                                    {% trans "Until" %} {{ reservation.reserved_until|date:"M d, H:i" }}
+                                </small>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- JavaScript for Quick Actions -->
+<script>
+function quickPayment(amount) {
+    if (confirm(`Create a quick payment of $${amount}?`)) {
+        window.location.href = "{% url 'payments_web:create_payment' payment_plan.transaction.pk %}?amount=" + amount;
+    }
+}
+
+function extendExpiry() {
+    const newDate = prompt('Enter new expiry date (YYYY-MM-DD HH:MM):');
+    if (!newDate) {
+        return;
+    }
+
+    // Validate date format
+    const datePattern = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
+    if (!datePattern.test(newDate)) {
+        alert('Invalid date format. Please use YYYY-MM-DD HH:MM');
+        return;
+    }
+
+    // Get CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+                      document.querySelector('meta[name="csrf-token"]')?.content ||
+                      getCookie('csrftoken');
+
+    // Make AJAX request
+    fetch("{% url 'payments_web:extend_payment_plan_expiry' payment_plan.pk %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken
+        },
+        body: new URLSearchParams({
+            'new_expiry': newDate
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message || 'Payment plan expiry extended successfully.');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.error || 'Failed to extend expiry.'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while extending the expiry.');
+    });
+}
+
+function cancelPlan() {
+    if (!confirm('Are you sure you want to cancel this payment plan? This will release all reserved tickets.')) {
+        return;
+    }
+
+    // Get CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+                      document.querySelector('meta[name="csrf-token"]')?.content ||
+                      getCookie('csrftoken');
+
+    // Make AJAX request
+    fetch("{% url 'payments_web:cancel_payment_plan' payment_plan.pk %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message || 'Payment plan cancelled successfully.');
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            } else {
+                window.location.href = "{% url 'payments_web:payment_plan_list' %}";
+            }
+        } else {
+            alert('Error: ' + (data.error || 'Failed to cancel payment plan.'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while cancelling the payment plan.');
+    });
+}
+
+// Helper function to get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

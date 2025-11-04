@@ -7,6 +7,17 @@ from .models import Venue, Event, EventConfiguration
 from venezuelan_pos.apps.zones.models import Zone
 
 
+class DateTimeLocalInput(forms.DateTimeInput):
+    """HTML5 datetime-local widget with consistent formatting."""
+    
+    input_type = 'datetime-local'
+    
+    def __init__(self, attrs=None, format=None):
+        if format is None:
+            format = '%Y-%m-%dT%H:%M'
+        super().__init__(attrs=attrs, format=format)
+
+
 class VenueForm(forms.ModelForm):
     """Formulario para crear y editar venues."""
     
@@ -130,22 +141,10 @@ class EventForm(forms.ModelForm):
             'venue': forms.Select(attrs={
                 'class': 'form-select'
             }),
-            'start_date': forms.DateTimeInput(attrs={
-                'class': 'form-control',
-                'type': 'datetime-local'
-            }),
-            'end_date': forms.DateTimeInput(attrs={
-                'class': 'form-control',
-                'type': 'datetime-local'
-            }),
-            'sales_start_date': forms.DateTimeInput(attrs={
-                'class': 'form-control',
-                'type': 'datetime-local'
-            }),
-            'sales_end_date': forms.DateTimeInput(attrs={
-                'class': 'form-control',
-                'type': 'datetime-local'
-            }),
+            'start_date': DateTimeLocalInput(attrs={'class': 'form-control'}),
+            'end_date': DateTimeLocalInput(attrs={'class': 'form-control'}),
+            'sales_start_date': DateTimeLocalInput(attrs={'class': 'form-control'}),
+            'sales_end_date': DateTimeLocalInput(attrs={'class': 'form-control'}),
             'base_currency': forms.Select(attrs={
                 'class': 'form-select'
             }, choices=[
@@ -172,6 +171,29 @@ class EventForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        
+        datetime_fields = [
+            'start_date',
+            'end_date',
+            'sales_start_date',
+            'sales_end_date'
+        ]
+        local_input_format = '%Y-%m-%dT%H:%M'
+
+        for field_name in datetime_fields:
+            field = self.fields[field_name]
+            input_formats = list(field.input_formats or [])
+            if local_input_format not in input_formats:
+                field.input_formats = [local_input_format] + input_formats
+
+        if not self.is_bound:
+            for field_name in datetime_fields:
+                value = self.initial.get(field_name) or getattr(self.instance, field_name, None)
+                if not value or isinstance(value, str):
+                    continue
+                if timezone.is_aware(value):
+                    value = timezone.localtime(value)
+                self.initial[field_name] = value.strftime(local_input_format)
         
         # Filtrar venues por tenant del usuario
         if self.user:
@@ -268,6 +290,7 @@ class EventConfigurationForm(forms.ModelForm):
         fields = [
             'partial_payments_enabled', 'installment_plans_enabled', 'flexible_payments_enabled',
             'max_installments', 'min_down_payment_percentage', 'payment_plan_expiry_days',
+            'cash_enabled', 'credit_card_enabled', 'debit_card_enabled', 'bank_transfer_enabled', 'mobile_payment_enabled',
             'notifications_enabled', 'email_notifications', 'sms_notifications', 'whatsapp_notifications',
             'send_purchase_confirmation', 'send_payment_reminders', 'send_event_reminders', 'event_reminder_days',
             'digital_tickets_enabled', 'qr_codes_enabled', 'pdf_tickets_enabled',
@@ -293,6 +316,11 @@ class EventConfigurationForm(forms.ModelForm):
                 'class': 'form-control',
                 'min': '1'
             }),
+            'cash_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'credit_card_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'debit_card_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'bank_transfer_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'mobile_payment_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'notifications_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'email_notifications': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'sms_notifications': forms.CheckboxInput(attrs={'class': 'form-check-input'}),

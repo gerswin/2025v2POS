@@ -1,0 +1,125 @@
+{% extends "fiscal/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-1">{% trans "Generate Fiscal Report" %}</h1>
+                <p class="text-muted mb-0">
+                    {% trans "Create an X-Report (daily summary) or a Z-Report (fiscal closure)." %}
+                </p>
+            </div>
+            <a href="{% url 'fiscal:fiscal_reports_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Reports" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.report_type.id_for_label }}" class="form-label fw-semibold">
+                                {{ form.report_type.label }}
+                            </label>
+                            {{ form.report_type }}
+                            {% if form.report_type.help_text %}
+                                <div class="form-text">{{ form.report_type.help_text }}</div>
+                            {% endif %}
+                            {% if form.report_type.errors %}
+                                <div class="text-danger small">{{ form.report_type.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.fiscal_date.id_for_label }}" class="form-label fw-semibold">
+                                {{ form.fiscal_date.label }}
+                            </label>
+                            {{ form.fiscal_date }}
+                            {% if form.fiscal_date.help_text %}
+                                <div class="form-text">{{ form.fiscal_date.help_text }}</div>
+                            {% endif %}
+                            {% if form.fiscal_date.errors %}
+                                <div class="text-danger small">{{ form.fiscal_date.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="alert alert-info">
+                            <div class="d-flex">
+                                <span class="me-3">
+                                    <i class="fas fa-lightbulb fa-lg"></i>
+                                </span>
+                                <div>
+                                    <h5 class="alert-heading">{% trans "Before you generate" %}</h5>
+                                    <ul class="mb-0 small">
+                                        <li>{% trans "X-Reports provide a snapshot of the current fiscal day without closing it." %}</li>
+                                        <li>{% trans "Z-Reports close the fiscal day and must be generated at the end of operations." %}</li>
+                                        <li>{% trans "Ensure all transactions are synchronized before generating a Z-Report." %}</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'fiscal:fiscal_reports_list' %}" class="btn btn-outline-secondary">
+                                {% trans "Cancel" %}
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-file-export me-2"></i>{% trans "Generate Report" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h5 class="card-title fw-semibold mb-3">
+                        <i class="fas fa-receipt text-primary me-2"></i>{% trans "Report Types" %}
+                    </h5>
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-1 text-primary">{% trans "X-Report" %}</h6>
+                        <p class="text-muted mb-0 small">
+                            {% trans "Daily summary report. Does not close the fiscal day, so you can generate multiple X-Reports during the day to monitor sales." %}
+                        </p>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1 text-success">{% trans "Z-Report" %}</h6>
+                        <p class="text-muted mb-0 small">
+                            {% trans "End-of-day fiscal closure report. Generates a fiscal audit trail and locks further transactions until a new fiscal day starts." %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title fw-semibold mb-3">
+                        <i class="fas fa-shield-alt text-warning me-2"></i>{% trans "Compliance Checklist" %}
+                    </h5>
+                    <ul class="list-unstyled mb-0 small">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            {% trans "Verify that all POS terminals have synchronized their sales." %}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            {% trans "Confirm that fiscal printers are operational." %}
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            {% trans "Keep a printed or exported backup of each Z-Report for your audit records." %}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -6,6 +6,7 @@ from django.db.models import Q, Prefetch
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -415,14 +416,22 @@ def update_zone_position(request, zone_id):
         zone.map_width = data.get('width', zone.map_width)
         zone.map_height = data.get('height', zone.map_height)
         zone.map_rotation = data.get('rotation', zone.map_rotation)
+        color_value = data.get('color')
+        if color_value is not None:
+            zone.map_color = color_value.strip() if color_value else ''
         
+        zone.full_clean()
         zone.save()
         
         return JsonResponse({
             'success': True,
             'message': f'Updated position for zone {zone.name}'
         })
-        
+    except ValidationError as e:
+        return JsonResponse({
+            'success': False,
+            'error': e.message_dict
+        }, status=400)
     except Exception as e:
         return JsonResponse({
             'success': False,
@@ -470,6 +479,11 @@ def save_zone_layout(request, event_id):
                     zone.map_width = zone_data.get('width', zone.map_width)
                     zone.map_height = zone_data.get('height', zone.map_height)
                     zone.map_rotation = zone_data.get('rotation', zone.map_rotation)
+                    color_value = zone_data.get('color')
+                    if color_value is not None:
+                        zone.map_color = color_value.strip() if color_value else ''
+                    
+                    zone.full_clean()
                     zone.save()
                     updated_count += 1
                 except Zone.DoesNotExist:
@@ -480,7 +494,11 @@ def save_zone_layout(request, event_id):
             'message': f'Updated layout for {updated_count} zones',
             'updated_count': updated_count
         })
-        
+    except ValidationError as e:
+        return JsonResponse({
+            'success': False,
+            'error': e.message_dict
+        }, status=400)
     except Exception as e:
         return JsonResponse({
             'success': False,

@@ -1,0 +1,357 @@
+{% extends "reports/base.html" %}
+{% load static %}
+
+{% block title %}{{ analysis.name }} - Análisis de Ocupación - Venezuelan POS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">{{ analysis.name }}</h1>
+                    <p class="text-muted">
+                        Análisis de ocupación generado el {{ analysis.created_at|date:"d/m/Y H:i" }}
+                        {% if analysis.event %}para {{ analysis.event.name }}{% endif %}
+                        {% if analysis.zone %}({{ analysis.zone.name }}){% endif %}
+                    </p>
+                </div>
+                <div>
+                    <a href="{% url 'reports:occupancy_analysis_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+                    <button class="btn btn-primary" onclick="exportAnalysis()">
+                        <i class="fas fa-download"></i> Exportar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis Summary -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="chart-container text-center">
+                <h6 class="text-muted mb-2">Ocupación Promedio</h6>
+                <div class="display-4 text-primary">{{ analysis.average_occupancy|floatformat:1 }}%</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="chart-container text-center">
+                <h6 class="text-muted mb-2">Pico de Ocupación</h6>
+                <div class="display-4 text-success">{{ analysis.peak_occupancy|floatformat:1 }}%</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="chart-container text-center">
+                <h6 class="text-muted mb-2">Eventos Analizados</h6>
+                <div class="display-4 text-info">{{ analysis.events_analyzed }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="chart-container text-center">
+                <h6 class="text-muted mb-2">Período</h6>
+                <div class="h5 text-warning">
+                    {{ analysis.analysis_start|date:"d/m" }} - {{ analysis.analysis_end|date:"d/m" }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis Details -->
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Occupancy Trend Chart -->
+            <div class="chart-container mb-4">
+                <h5 class="mb-3">
+                    <i class="fas fa-chart-line text-primary"></i>
+                    Tendencia de Ocupación
+                </h5>
+                <canvas id="occupancyTrendChart" height="300"></canvas>
+            </div>
+
+            <!-- Zone Performance -->
+            {% if analysis.zone_performance %}
+            <div class="chart-container mb-4">
+                <h5 class="mb-3">
+                    <i class="fas fa-map text-info"></i>
+                    Rendimiento por Zona
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Zona</th>
+                                <th>Ocupación Promedio</th>
+                                <th>Pico de Ocupación</th>
+                                <th>Eventos</th>
+                                <th>Rendimiento</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for zone_data in analysis.zone_performance %}
+                            <tr>
+                                <td>
+                                    <strong>{{ zone_data.zone_name }}</strong>
+                                    <br><small class="text-muted">{{ zone_data.zone_type }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ zone_data.avg_occupancy|floatformat:1 }}%</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">{{ zone_data.peak_occupancy|floatformat:1 }}%</span>
+                                </td>
+                                <td>{{ zone_data.events_count }}</td>
+                                <td>
+                                    {% if zone_data.performance_score >= 80 %}
+                                        <span class="badge bg-success">Excelente</span>
+                                    {% elif zone_data.performance_score >= 60 %}
+                                        <span class="badge bg-warning">Bueno</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Mejorable</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Time-based Analysis -->
+            {% if analysis.time_patterns %}
+            <div class="chart-container mb-4">
+                <h5 class="mb-3">
+                    <i class="fas fa-clock text-warning"></i>
+                    Patrones Temporales
+                </h5>
+                <canvas id="timePatternChart" height="250"></canvas>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <!-- Analysis Info -->
+            <div class="chart-container mb-4">
+                <h5 class="mb-3">
+                    <i class="fas fa-info-circle text-info"></i>
+                    Información del Análisis
+                </h5>
+                
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>Tipo de Análisis:</span>
+                        <strong>{{ analysis.get_analysis_type_display }}</strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>Estado:</span>
+                        <span class="badge bg-{{ analysis.status|lower }}">{{ analysis.get_status_display }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>Generado por:</span>
+                        <strong>{{ analysis.generated_by.get_full_name|default:analysis.generated_by.username }}</strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>Fecha de creación:</span>
+                        <strong>{{ analysis.created_at|date:"d/m/Y H:i" }}</strong>
+                    </div>
+                    {% if analysis.event %}
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>Evento:</span>
+                        <strong>{{ analysis.event.name }}</strong>
+                    </div>
+                    {% endif %}
+                    {% if analysis.zone %}
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>Zona:</span>
+                        <strong>{{ analysis.zone.name }}</strong>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Key Insights -->
+            {% if analysis.insights %}
+            <div class="chart-container mb-4">
+                <h5 class="mb-3">
+                    <i class="fas fa-lightbulb text-warning"></i>
+                    Insights Clave
+                </h5>
+                
+                <div class="list-group list-group-flush">
+                    {% for insight in analysis.insights %}
+                    <div class="list-group-item">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-{{ insight.icon|default:'info' }} text-{{ insight.type|default:'info' }} me-2 mt-1"></i>
+                            <div>
+                                <h6 class="mb-1">{{ insight.title }}</h6>
+                                <p class="mb-0 small text-muted">{{ insight.description }}</p>
+                                {% if insight.value %}
+                                <span class="badge bg-light text-dark mt-1">{{ insight.value }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recommendations -->
+            {% if analysis.recommendations %}
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-thumbs-up text-success"></i>
+                    Recomendaciones
+                </h5>
+                
+                <div class="list-group list-group-flush">
+                    {% for recommendation in analysis.recommendations %}
+                    <div class="list-group-item">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-{{ recommendation.icon|default:'arrow-right' }} text-{{ recommendation.priority|default:'info' }} me-2 mt-1"></i>
+                            <div>
+                                <h6 class="mb-1">{{ recommendation.title }}</h6>
+                                <p class="mb-0 small text-muted">{{ recommendation.description }}</p>
+                                {% if recommendation.impact %}
+                                <span class="badge bg-{{ recommendation.priority|default:'secondary' }} mt-1">
+                                    Impacto: {{ recommendation.impact }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Occupancy Trend Chart
+    {% if analysis.occupancy_trend %}
+    const occupancyCtx = document.getElementById('occupancyTrendChart').getContext('2d');
+    new Chart(occupancyCtx, {
+        type: 'line',
+        data: {
+            labels: {{ analysis.occupancy_trend.labels|safe }},
+            datasets: [{
+                label: 'Ocupación (%)',
+                data: {{ analysis.occupancy_trend.data|safe }},
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                tension: 0.1,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Ocupación: ' + context.parsed.y + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // Time Pattern Chart
+    {% if analysis.time_patterns %}
+    const timeCtx = document.getElementById('timePatternChart').getContext('2d');
+    new Chart(timeCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ analysis.time_patterns.labels|safe }},
+            datasets: [{
+                label: 'Ocupación Promedio (%)',
+                data: {{ analysis.time_patterns.data|safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Ocupación: ' + context.parsed.y + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+});
+
+function exportAnalysis() {
+    // Create export URL
+    const exportUrl = `{% url 'reports:occupancy_analysis_detail' analysis.id %}?export=pdf`;
+    
+    // Show loading
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exportando...';
+    btn.disabled = true;
+    
+    // Create temporary link and trigger download
+    const link = document.createElement('a');
+    link.href = exportUrl;
+    link.download = `analisis_ocupacion_${new Date().toISOString().split('T')[0]}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Restore button
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }, 2000);
+}
+</script>
+{% endblock %}

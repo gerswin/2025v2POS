@@ -65,9 +65,9 @@
                     <thead>
                         <tr>
                             <th>{% trans "Order" %}</th>
-                            <th>{% trans "Name" %}</th>
-                            <th>{% trans "Period" %}</th>
-                            <th>{% trans "Markup" %}</th>
+                            <th>{% trans "Name & Scope" %}</th>
+                            <th>{% trans "Period & Limits" %}</th>
+                            <th>{% trans "Modifier" %}</th>
                             <th>{% trans "Status" %}</th>
                             <th>{% trans "Stage Status" %}</th>
                             <th class="text-center">{% trans "Actions" %}</th>
@@ -84,15 +84,39 @@
                                 {% if stage.description %}
                                     <br><small class="text-muted">{{ stage.description|truncatechars:50 }}</small>
                                 {% endif %}
+                                <br>
+                                <div class="mt-1">
+                                    {% if stage.scope == 'zone' and stage.zone %}
+                                        <span class="badge bg-info">{{ stage.zone.name }}</span>
+                                    {% else %}
+                                        <span class="badge bg-primary">{% trans "Event-wide" %}</span>
+                                    {% endif %}
+                                    {% if stage.quantity_limit %}
+                                        <span class="badge bg-warning">{% trans "Qty Limit:" %} {{ stage.quantity_limit }}</span>
+                                    {% endif %}
+                                </div>
                             </td>
                             <td>
                                 <div class="small">
                                     <div><strong>{% trans "Start:" %}</strong> {{ stage.start_date|date:"M d, Y H:i" }}</div>
                                     <div><strong>{% trans "End:" %}</strong> {{ stage.end_date|date:"M d, Y H:i" }}</div>
+                                    {% if stage.quantity_limit %}
+                                        <div class="text-info">
+                                            <strong>{% trans "Sold:" %}</strong> {{ stage.get_sold_quantity }}/{{ stage.quantity_limit }}
+                                            {% if stage.remaining_quantity %}
+                                                ({{ stage.remaining_quantity }} {% trans "left" %})
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
                                 </div>
                             </td>
                             <td>
-                                <span class="badge bg-primary">+{{ stage.percentage_markup }}%</span>
+                                {% if stage.modifier_type == 'percentage' %}
+                                    <span class="badge bg-primary">{{ stage.modifier_value|floatformat:1 }}%</span>
+                                {% else %}
+                                    <span class="badge bg-primary">${{ stage.modifier_value }}</span>
+                                {% endif %}
+                                <br><small class="text-muted">{{ stage.get_modifier_type_display }}</small>
                             </td>
                             <td>
                                 {% if stage.is_active %}
@@ -100,20 +124,33 @@
                                 {% else %}
                                     <span class="badge bg-secondary">{% trans "Inactive" %}</span>
                                 {% endif %}
+                                {% if stage.auto_transition %}
+                                    <br><small class="text-muted">{% trans "Auto-transition" %}</small>
+                                {% endif %}
                             </td>
                             <td>
                                 {% if stage.is_current %}
                                     <span class="badge bg-success">
                                         <i class="bi bi-play-fill"></i> {% trans "Current" %}
                                     </span>
+                                    {% if stage.quantity_limit and stage.remaining_quantity %}
+                                        <br><small class="text-success">{{ stage.remaining_quantity }} {% trans "tickets left" %}</small>
+                                    {% endif %}
+                                    {% if stage.days_remaining > 0 %}
+                                        <br><small class="text-success">{{ stage.days_remaining }} {% trans "days left" %}</small>
+                                    {% endif %}
                                 {% elif stage.is_upcoming %}
                                     <span class="badge bg-warning">
                                         <i class="bi bi-clock"></i> {% trans "Upcoming" %}
                                     </span>
+                                    <br><small class="text-warning">{% trans "Starts in" %} {{ stage.days_remaining }} {% trans "days" %}</small>
                                 {% elif stage.is_past %}
                                     <span class="badge bg-secondary">
                                         <i class="bi bi-check"></i> {% trans "Past" %}
                                     </span>
+                                    {% if stage.quantity_limit %}
+                                        <br><small class="text-muted">{{ stage.get_sold_quantity }}/{{ stage.quantity_limit }} {% trans "sold" %}</small>
+                                    {% endif %}
                                 {% else %}
                                     <span class="badge bg-light text-dark">{% trans "Scheduled" %}</span>
                                 {% endif %}
@@ -183,7 +220,7 @@
 
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">{% trans "Confirm Delete" %}</h5>

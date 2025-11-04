@@ -1,0 +1,189 @@
+{% extends "payments/base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block main_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">{{ title }}</h1>
+    <a href="{% url 'payments:payment_method_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>
+        Back to List
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.method_type.id_for_label }}" class="form-label">
+                                    Payment Type *
+                                </label>
+                                {{ form.method_type }}
+                                {% if form.method_type.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.method_type.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">
+                                    Display Name *
+                                </label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.name.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            Description
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.description.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.processing_fee_percentage.id_for_label }}" class="form-label">
+                                    Processing Fee (%)
+                                </label>
+                                {{ form.processing_fee_percentage }}
+                                <div class="form-text">{{ form.processing_fee_percentage.help_text }}</div>
+                                {% if form.processing_fee_percentage.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.processing_fee_percentage.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.processing_fee_fixed.id_for_label }}" class="form-label">
+                                    Fixed Fee ($)
+                                </label>
+                                {{ form.processing_fee_fixed }}
+                                <div class="form-text">{{ form.processing_fee_fixed.help_text }}</div>
+                                {% if form.processing_fee_fixed.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.processing_fee_fixed.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    {{ form.requires_reference }}
+                                    <label for="{{ form.requires_reference.id_for_label }}" class="form-check-label">
+                                        Requires Reference Number
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    {{ form.allows_partial }}
+                                    <label for="{{ form.allows_partial.id_for_label }}" class="form-check-label">
+                                        Allows Partial Payments
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    {{ form.is_active }}
+                                    <label for="{{ form.is_active.id_for_label }}" class="form-check-label">
+                                        Active
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.sort_order.id_for_label }}" class="form-label">
+                            Sort Order
+                        </label>
+                        {{ form.sort_order }}
+                        <div class="form-text">Lower numbers appear first in lists</div>
+                        {% if form.sort_order.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.sort_order.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>
+                            Save Payment Method
+                        </button>
+                        <a href="{% url 'payments:payment_method_list' %}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Payment Method Guide</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6>Processing Fees</h6>
+                    <p class="small text-muted">
+                        Configure fees charged for this payment method. 
+                        Total fee = (Amount × Percentage) + Fixed Fee
+                    </p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Features</h6>
+                    <ul class="small text-muted">
+                        <li><strong>Requires Reference:</strong> Payment needs external reference number</li>
+                        <li><strong>Allows Partial:</strong> Can be used for installment payments</li>
+                        <li><strong>Active:</strong> Available for new transactions</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Common Types</h6>
+                    <ul class="small text-muted">
+                        <li><strong>Cash:</strong> No fees, no reference needed</li>
+                        <li><strong>Credit Card:</strong> 2-4% fee, requires auth code</li>
+                        <li><strong>Bank Transfer:</strong> Fixed fee, requires reference</li>
+                        <li><strong>Pago Móvil:</strong> Low fee, requires reference</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -47,11 +47,22 @@ class Tenant(models.Model):
     
     objects = TenantManager()
     
+    # Import optimized manager
+    @property
+    def optimized_objects(self):
+        from .optimizations import OptimizedTenantManager
+        return OptimizedTenantManager()
+    
     class Meta:
         db_table = 'tenants'
         verbose_name = 'Tenant'
         verbose_name_plural = 'Tenants'
         ordering = ['name']
+        indexes = [
+            models.Index(fields=['slug']),
+            models.Index(fields=['is_active']),
+            models.Index(fields=['created_at']),
+        ]
     
     def __str__(self):
         return self.name
@@ -104,6 +115,12 @@ class TenantAwareModel(models.Model):
     )
     
     objects = TenantAwareManager()
+    
+    # Import optimized manager
+    @classmethod
+    def get_optimized_objects(cls):
+        from .optimizations import OptimizedTenantAwareManager
+        return OptimizedTenantAwareManager()
     
     class Meta:
         abstract = True
@@ -162,6 +179,19 @@ class User(AbstractUser):
         db_table = 'users'
         verbose_name = 'User'
         verbose_name_plural = 'Users'
+        indexes = [
+            models.Index(fields=['tenant', 'role']),
+            models.Index(fields=['tenant', 'is_active']),
+            models.Index(fields=['email']),
+            models.Index(fields=['username']),
+            models.Index(fields=['created_at']),
+        ]
+    
+    # Add optimized manager
+    @classmethod
+    def get_optimized_objects(cls):
+        from .optimizations import OptimizedUserManager
+        return OptimizedUserManager()
     
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
@@ -228,6 +258,11 @@ class TenantUser(models.Model):
         verbose_name = 'Tenant User'
         verbose_name_plural = 'Tenant Users'
         unique_together = ['user', 'tenant']
+        indexes = [
+            models.Index(fields=['user', 'tenant']),
+            models.Index(fields=['tenant', 'role']),
+            models.Index(fields=['is_active']),
+        ]
     
     def __str__(self):
         return f"{self.user.username} - {self.tenant.name} ({self.get_role_display()})"

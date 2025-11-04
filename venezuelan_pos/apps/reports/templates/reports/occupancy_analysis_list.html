@@ -1,0 +1,245 @@
+{% extends "reports/base.html" %}
+{% load static %}
+
+{% block title %}Análisis de Ocupación - Venezuelan POS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">Análisis de Ocupación</h1>
+                    <p class="text-muted">Gestiona y visualiza análisis de ocupación y rendimiento de zonas</p>
+                </div>
+                <div>
+                    <a href="{% url 'reports:occupancy_analysis_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Nuevo Análisis
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="filter-panel">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Buscar</label>
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Buscar análisis..." value="{{ request.GET.search }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Tipo</label>
+                        <select name="analysis_type" class="form-select">
+                            <option value="">Todos los tipos</option>
+                            <option value="zone" {% if request.GET.analysis_type == 'zone' %}selected{% endif %}>Zona</option>
+                            <option value="event" {% if request.GET.analysis_type == 'event' %}selected{% endif %}>Evento</option>
+                            <option value="comparative" {% if request.GET.analysis_type == 'comparative' %}selected{% endif %}>Comparativo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Evento</label>
+                        <select name="event_id" class="form-select">
+                            <option value="">Todos los eventos</option>
+                            {% for event in events_for_filter %}
+                                <option value="{{ event.id }}" 
+                                        {% if request.GET.event_id == event.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ event.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label>&nbsp;</label>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Filtrar
+                            </button>
+                            <a href="{% url 'reports:occupancy_analysis_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Limpiar
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis List -->
+    <div class="row">
+        <div class="col-12">
+            {% if analyses %}
+                <div class="chart-container">
+                    <h5 class="mb-3">
+                        <i class="fas fa-list"></i>
+                        Lista de Análisis ({{ total_analyses }} total)
+                    </h5>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Tipo</th>
+                                    <th>Evento/Zona</th>
+                                    <th>Ocupación</th>
+                                    <th>Velocidad de Ventas</th>
+                                    <th>Rendimiento</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for analysis in analyses %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ analysis.name }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            {{ analysis.get_analysis_type_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if analysis.zone %}
+                                            <strong>{{ analysis.zone.name }}</strong>
+                                            <br><small class="text-muted">{{ analysis.zone.event.name }}</small>
+                                        {% elif analysis.event %}
+                                            <strong>{{ analysis.event.name }}</strong>
+                                            <br><small class="text-muted">Análisis completo del evento</small>
+                                        {% else %}
+                                            <span class="text-muted">Análisis comparativo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar" 
+                                                 role="progressbar" 
+                                                 style="width: {{ analysis.fill_rate }}%"
+                                                 aria-valuenow="{{ analysis.fill_rate }}" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100">
+                                                {{ analysis.fill_rate }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold">{{ analysis.sales_velocity|floatformat:1 }}</span>
+                                        <small class="text-muted">tickets/día</small>
+                                    </td>
+                                    <td>
+                                        <span class="performance-grade {{ analysis.performance_rating|lower }}">
+                                            {{ analysis.performance_rating }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {{ analysis.created_at|date:"d/m/Y H:i" }}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'reports:occupancy_analysis_detail' analysis.id %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if analysis.zone %}
+                                                <button class="btn btn-sm btn-outline-success" 
+                                                        onclick="generateHeatMap('{{ analysis.zone.id }}')">
+                                                    <i class="fas fa-fire"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                    <nav aria-label="Paginación de análisis" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+
+            {% else %}
+                <div class="chart-container">
+                    <div class="text-center py-5">
+                        <i class="fas fa-chart-area fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">No hay análisis disponibles</h4>
+                        <p class="text-muted mb-4">
+                            {% if request.GET %}
+                                No se encontraron análisis que coincidan con los filtros aplicados.
+                            {% else %}
+                                Aún no has generado ningún análisis de ocupación.
+                            {% endif %}
+                        </p>
+                        <div>
+                            {% if request.GET %}
+                                <a href="{% url 'reports:occupancy_analysis_list' %}" class="btn btn-outline-primary me-2">
+                                    <i class="fas fa-times"></i> Limpiar Filtros
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'reports:occupancy_analysis_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Crear Primer Análisis
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+function generateHeatMap(zoneId) {
+    window.open('{% url "reports:heat_map_generator" %}?zone_id=' + zoneId, '_blank');
+}
+</script>
+{% endblock %}

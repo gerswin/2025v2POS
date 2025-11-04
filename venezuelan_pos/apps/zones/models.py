@@ -1,8 +1,10 @@
+import re
 import uuid
 from decimal import Decimal
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from venezuelan_pos.apps.tenants.models import TenantAwareModel
 from venezuelan_pos.apps.events.models import Event
 
@@ -114,6 +116,11 @@ class Zone(TenantAwareModel):
         default=0.0,
         help_text="Rotation angle in degrees"
     )
+    map_color = models.CharField(
+        max_length=7,
+        blank=True,
+        help_text="Hex color code used to render this zone on the map (e.g. #3B5BDB)"
+    )
     
     # Configuration
     configuration = models.JSONField(
@@ -132,6 +139,13 @@ class Zone(TenantAwareModel):
         verbose_name_plural = 'Zones'
         ordering = ['display_order', 'name']
         unique_together = ['event', 'name']
+        indexes = [
+            models.Index(fields=['tenant', 'event', 'status']),
+            models.Index(fields=['tenant', 'zone_type']),
+            models.Index(fields=['event', 'zone_type']),
+            models.Index(fields=['status']),
+            models.Index(fields=['display_order']),
+        ]
     
     def __str__(self):
         return f"{self.event.name} - {self.name}"
@@ -190,8 +204,14 @@ class Zone(TenantAwareModel):
                     raise ValidationError({
                         'capacity': f'Capacity must equal rows × seats per row ({calculated_capacity}) for numbered zones'
                     })
+
+        if self.map_color:
+            if not re.match(r'^#(?:[0-9a-fA-F]{6})$', self.map_color.strip()):
+                raise ValidationError({
+                    'map_color': 'Map color must be a valid HEX value in the format #RRGGBB'
+                })
         
-        elif self.zone_type == self.ZoneType.GENERAL:
+        if self.zone_type == self.ZoneType.GENERAL:
             if self.capacity <= 0:
                 raise ValidationError({'capacity': 'General zones must have capacity greater than 0'})
     
@@ -251,11 +271,30 @@ class Zone(TenantAwareModel):
     def available_capacity(self):
         """Get available capacity for this zone."""
         if self.zone_type == self.ZoneType.NUMBERED:
-            return self.seats.filter(status=Seat.Status.AVAILABLE).count()
+            # For numbered zones, exclude locked seats
+            try:
+                from ..sales.models_cart_lock import CartItemLock
+                from django.utils import timezone
+                
+                locked_seats = CartItemLock.objects.filter(
+                    zone=self,
+                    seat__isnull=False,
+                    status=CartItemLock.Status.ACTIVE,
+                    expires_at__gt=timezone.now()
+                ).values_list('seat_id', flat=True)
+                
+                return self.seats.filter(
+                    status=Seat.Status.AVAILABLE
+                ).exclude(id__in=locked_seats).count()
+                
+            except ImportError:
+                # Fallback if cart lock models not available
+                return self.seats.filter(status=Seat.Status.AVAILABLE).count()
         else:
-            # For general zones, we need to calculate based on sold tickets
-            # This would be implemented when we have the sales models
-            return self.capacity
+            # For general zones, subtract sold tickets and locked tickets
+            sold_tickets = self.get_sold_tickets_count()
+            locked_tickets = self.get_locked_capacity()
+            return max(self.capacity - sold_tickets - locked_tickets, 0)
     
     @property
     def sold_capacity(self):
@@ -263,9 +302,28 @@ class Zone(TenantAwareModel):
         if self.zone_type == self.ZoneType.NUMBERED:
             return self.seats.filter(status__in=[Seat.Status.SOLD, Seat.Status.RESERVED]).count()
         else:
-            # For general zones, we need to calculate based on sold tickets
-            # This would be implemented when we have the sales models
-            return 0
+            # For general zones, calculate based on sold tickets
+            return self.get_sold_tickets_count()
+    
+    def get_sold_tickets_count(self):
+        """Get the total number of sold tickets for this zone (general admission)."""
+        from ..sales.models import TransactionItem, Transaction
+        
+        # Count completed transaction items for this zone
+        sold_count = TransactionItem.objects.filter(
+            zone=self,
+            transaction__status=Transaction.Status.COMPLETED,
+            transaction__tenant=self.tenant
+        ).aggregate(
+            total=models.Sum('quantity')
+        )['total'] or 0
+        
+        return sold_count
+    
+    def get_locked_capacity(self):
+        """Get the number of locked items for this zone."""
+        from ..sales.cart_lock_service import CartLockService
+        return CartLockService.get_zone_locked_capacity(self)
     
     @property
     def is_sold_out(self):
@@ -353,6 +411,12 @@ class Seat(TenantAwareModel):
         verbose_name_plural = 'Seats'
         ordering = ['row_number', 'seat_number']
         unique_together = ['zone', 'row_number', 'seat_number']
+        indexes = [
+            models.Index(fields=['tenant', 'zone', 'status']),
+            models.Index(fields=['zone', 'status']),
+            models.Index(fields=['zone', 'row_number']),
+            models.Index(fields=['status']),
+        ]
     
     def __str__(self):
         return f"{self.zone.name} - Row {self.row_number}, Seat {self.seat_number}"
@@ -391,7 +455,7 @@ class Seat(TenantAwareModel):
     @property
     def seat_label(self):
         """Get a human-readable seat label."""
-        return f"Row {self.row_number}, Seat {self.seat_number}"
+        return f"{_('Row')} {self.row_number}, {_('Seat')} {self.seat_number}"
     
     @property
     def is_available(self):
@@ -465,6 +529,12 @@ class Table(TenantAwareModel):
         verbose_name_plural = 'Tables'
         ordering = ['display_order', 'name']
         unique_together = ['zone', 'name']
+        indexes = [
+            models.Index(fields=['tenant', 'zone', 'status']),
+            models.Index(fields=['zone', 'status']),
+            models.Index(fields=['status']),
+            models.Index(fields=['display_order']),
+        ]
     
     def __str__(self):
         return f"{self.zone.name} - {self.name}"
@@ -551,6 +621,10 @@ class TableSeat(TenantAwareModel):
         verbose_name_plural = 'Table Seats'
         ordering = ['position']
         unique_together = ['table', 'seat']
+        indexes = [
+            models.Index(fields=['tenant', 'table']),
+            models.Index(fields=['table', 'position']),
+        ]
     
     def __str__(self):
         return f"{self.table.name} - {self.seat.seat_label}"

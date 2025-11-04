@@ -1,0 +1,8 @@
+Test Notification from Venezuelan POS
+
+{{ test_message }}
+
+This is a test email to verify that the notification system is working correctly.
+
+---
+Venezuelan POS System - Notification Service

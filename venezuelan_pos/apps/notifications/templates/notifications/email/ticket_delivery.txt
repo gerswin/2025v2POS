@@ -1,0 +1,30 @@
+SUS ENTRADAS DIGITALES
+
+Estimado/a {{ customer.name }} {{ customer.surname }},
+
+¡Sus entradas digitales están listas! Adjunto encontrará sus entradas en formato PDF.
+
+INFORMACIÓN DEL EVENTO:
+- Evento: {{ event.name }}
+- Fecha: {{ event.start_date|date:"d/m/Y H:i" }}
+{% if event.venue %}- Lugar: {{ event.venue.name }}{% if event.venue.address %}
+- Dirección: {{ event.venue.address }}{% endif %}{% endif %}
+
+SUS ENTRADAS:
+- Número de Serie: {{ transaction.fiscal_series }}
+- Cantidad de Entradas: {{ ticket_count }}
+
+{% for item in items %}Entrada {{ forloop.counter }}: {% if item.seat %}{{ item.seat.zone.name }} - Fila {{ item.seat.row_number }}, Asiento {{ item.seat.seat_number }}{% else %}{{ item.zone.name }} - Admisión General{% endif %}
+{% endfor %}
+
+INSTRUCCIONES IMPORTANTES:
+- Presente sus entradas digitales o impresas en la entrada
+- Traiga su documento de identidad
+- Llegue con suficiente anticipación
+- Cada entrada tiene un código QR único para validación
+
+¡Disfrute del evento!
+
+---
+Venezuelan POS System
+Este es un correo automático, por favor no responda.

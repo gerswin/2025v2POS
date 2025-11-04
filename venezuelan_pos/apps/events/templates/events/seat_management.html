@@ -1,7 +1,7 @@
 {% extends 'events/base.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}{{ zone.name }} - Seat Management{% endblock %}
+{% block title %}{{ zone.name }} - {% trans "Seat Management" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -155,18 +155,18 @@
             <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="h3 mb-0">Seat Management</h1>
+                    <h1 class="h3 mb-0">{% trans "Seat Management" %}</h1>
                     <p class="text-muted mb-0">{{ zone.name }} - {{ zone.event.name }}</p>
                 </div>
                 <div>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTableModal">
-                        <i class="fas fa-plus"></i> Create Table
+                        <i class="fas fa-plus"></i> {% trans "Create Table" %}
                     </button>
                     <button class="btn btn-outline-info" onclick="toggleTableView()">
-                        <i class="fas fa-table"></i> <span id="tableViewToggle">Show Tables</span>
+                        <i class="fas fa-table"></i> <span id="tableViewToggle">{% trans "Show Tables" %}</span>
                     </button>
                     <a href="{% url 'events:event_detail' zone.event.id %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left"></i> Back to Event
+                        <i class="fas fa-arrow-left"></i> {% trans "Back to Event" %}
                     </a>
                 </div>
             </div>
@@ -176,29 +176,29 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-2">
-                            <div class="small text-muted">Zone Type</div>
+                            <div class="small text-muted">{% trans "Zone Type" %}</div>
                             <div class="fw-bold">
-                                <i class="fas fa-chair"></i> Numbered Seating
+                                <i class="fas fa-chair"></i> {% trans "Numbered Seating" %}
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <div class="small text-muted">Total Capacity</div>
+                            <div class="small text-muted">{% trans "Total Capacity" %}</div>
                             <div class="fw-bold">{{ zone.capacity }}</div>
                         </div>
                         <div class="col-md-2">
-                            <div class="small text-muted">Available</div>
+                            <div class="small text-muted">{% trans "Available" %}</div>
                             <div class="fw-bold text-success" id="availableCount">-</div>
                         </div>
                         <div class="col-md-2">
-                            <div class="small text-muted">Reserved</div>
+                            <div class="small text-muted">{% trans "Reserved" %}</div>
                             <div class="fw-bold text-warning" id="reservedCount">-</div>
                         </div>
                         <div class="col-md-2">
-                            <div class="small text-muted">Sold</div>
+                            <div class="small text-muted">{% trans "Sold" %}</div>
                             <div class="fw-bold text-danger" id="soldCount">-</div>
                         </div>
                         <div class="col-md-2">
-                            <div class="small text-muted">Base Price</div>
+                            <div class="small text-muted">{% trans "Base Price" %}</div>
                             <div class="fw-bold">${{ zone.base_price }}</div>
                         </div>
                     </div>
@@ -209,51 +209,51 @@
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-tools"></i> Management Tools
+                        <i class="fas fa-tools"></i> {% trans "Management Tools" %}
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Bulk Actions</label>
+                                <label class="form-label">{% trans "Bulk Actions" %}</label>
                                 <div class="btn-group" role="group">
                                     <button type="button" class="btn btn-outline-success" onclick="bulkUpdateStatus('available')">
-                                        <i class="fas fa-check"></i> Make Available
+                                        <i class="fas fa-check"></i> {% trans "Make Available" %}
                                     </button>
                                     <button type="button" class="btn btn-outline-warning" onclick="bulkUpdateStatus('reserved')">
-                                        <i class="fas fa-clock"></i> Reserve
+                                        <i class="fas fa-clock"></i> {% trans "Reserve" %}
                                     </button>
                                     <button type="button" class="btn btn-outline-secondary" onclick="bulkUpdateStatus('blocked')">
-                                        <i class="fas fa-ban"></i> Block
+                                        <i class="fas fa-ban"></i> {% trans "Block" %}
                                     </button>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Selection Tools</label>
+                                <label class="form-label">{% trans "Selection Tools" %}</label>
                                 <div class="btn-group" role="group">
                                     <button type="button" class="btn btn-outline-primary" onclick="selectAll()">
-                                        <i class="fas fa-check-square"></i> Select All
+                                        <i class="fas fa-check-square"></i> {% trans "Select All" %}
                                     </button>
                                     <button type="button" class="btn btn-outline-secondary" onclick="clearSelection()">
-                                        <i class="fas fa-square"></i> Clear Selection
+                                        <i class="fas fa-square"></i> {% trans "Clear Selection" %}
                                     </button>
                                     <button type="button" class="btn btn-outline-info" onclick="selectRow()">
-                                        <i class="fas fa-arrows-alt-h"></i> Select Row
+                                        <i class="fas fa-arrows-alt-h"></i> {% trans "Select Row" %}
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-12">
                             <div class="alert alert-info mb-0">
                                 <i class="fas fa-info-circle"></i>
-                                <strong>Selected seats:</strong> <span id="selectedCount">0</span> |
-                                <strong>Instructions:</strong> Click seats to select them, then use bulk actions above.
+                                <strong>{% trans "Selected seats:" %}</strong> <span id="selectedCount">0</span> |
+                                <strong>{% trans "Instructions:" %}</strong> {% trans "Click seats to select them, then use bulk actions above." %}
                             </div>
                         </div>
                     </div>
@@ -264,7 +264,7 @@
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-map"></i> Seat Map
+                        <i class="fas fa-map"></i> {% trans "Seat Map" %}
                     </h5>
                 </div>
                 <div class="card-body">
@@ -272,36 +272,36 @@
                     <div class="seat-legend">
                         <div class="legend-item">
                             <div class="legend-seat available" style="background-color: #d4edda; border-color: #28a745;"></div>
-                            <span>Available</span>
+                            <span>{% trans "Available" %}</span>
                         </div>
                         <div class="legend-item">
                             <div class="legend-seat reserved" style="background-color: #fff3cd; border-color: #ffc107;"></div>
-                            <span>Reserved</span>
+                            <span>{% trans "Reserved" %}</span>
                         </div>
                         <div class="legend-item">
                             <div class="legend-seat sold" style="background-color: #f8d7da; border-color: #dc3545;"></div>
-                            <span>Sold</span>
+                            <span>{% trans "Sold" %}</span>
                         </div>
                         <div class="legend-item">
                             <div class="legend-seat blocked" style="background-color: #e2e3e5; border-color: #6c757d;"></div>
-                            <span>Blocked</span>
+                            <span>{% trans "Blocked" %}</span>
                         </div>
                         <div class="legend-item">
                             <div class="legend-seat selected" style="background-color: #cce5ff; border-color: #007bff;"></div>
-                            <span>Selected</span>
+                            <span>{% trans "Selected" %}</span>
                         </div>
                     </div>
 
                     <!-- Stage -->
                     <div class="stage">
-                        <i class="fas fa-music"></i> STAGE
+                        <i class="fas fa-music"></i> {% trans "STAGE" %}
                     </div>
 
                     <!-- Seat Map Container -->
                     <div class="seat-map" id="seatMap">
                         <div class="text-center py-5">
                             <div class="spinner-border" role="status">
-                                <span class="visually-hidden">Loading seats...</span>
+                                <span class="visually-hidden">{% trans "Loading seats..." %}</span>
                             </div>
                         </div>
                     </div>
@@ -313,46 +313,46 @@
 
 <!-- Create Table Modal -->
 <div class="modal fade" id="createTableModal" tabindex="-1" aria-labelledby="createTableModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="createTableModalLabel">
-                    <i class="fas fa-plus"></i> Create Table
+                    <i class="fas fa-plus"></i> {% trans "Create Table" %}
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
             </div>
             <form id="createTableForm">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="tableName" class="form-label">Table Name <span class="text-danger">*</span></label>
+                        <label for="tableName" class="form-label">{% trans "Table Name" %} <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="tableName" name="name" required>
                     </div>
-                    
+
                     <div class="mb-3">
-                        <label for="tableDescription" class="form-label">Description</label>
+                        <label for="tableDescription" class="form-label">{% trans "Description" %}</label>
                         <textarea class="form-control" id="tableDescription" name="description" rows="2"></textarea>
                     </div>
 
                     <div class="mb-3">
-                        <label for="saleMode" class="form-label">Sale Mode</label>
+                        <label for="saleMode" class="form-label">{% trans "Sale Mode" %}</label>
                         <select class="form-select" id="saleMode" name="sale_mode">
-                            <option value="individual_allowed">Individual Seats Allowed</option>
-                            <option value="complete_only">Complete Table Only</option>
+                            <option value="individual_allowed">{% trans "Individual Seats Allowed" %}</option>
+                            <option value="complete_only">{% trans "Complete Table Only" %}</option>
                         </select>
                         <div class="form-text">
-                            Complete table only means all seats must be purchased together.
+                            {% trans "Complete table only means all seats must be purchased together." %}
                         </div>
                     </div>
 
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle"></i>
-                        After creating the table, select seats on the map and assign them to this table.
+                        {% trans "After creating the table, select seats on the map and assign them to this table." %}
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Create Table
+                        <i class="fas fa-save"></i> {% trans "Create Table" %}
                     </button>
                 </div>
             </form>
@@ -362,21 +362,21 @@
 
 <!-- Seat Details Modal -->
 <div class="modal fade" id="seatDetailsModal" tabindex="-1" aria-labelledby="seatDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="seatDetailsModalLabel">
-                    <i class="fas fa-chair"></i> Seat Details
+                    <i class="fas fa-chair"></i> {% trans "Seat Details" %}
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
             </div>
             <div class="modal-body" id="seatDetailsContent">
                 <!-- Content will be loaded dynamically -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
                 <button type="button" class="btn btn-primary" id="saveSeatChanges">
-                    <i class="fas fa-save"></i> Save Changes
+                    <i class="fas fa-save"></i> {% trans "Save Changes" %}
                 </button>
             </div>
         </div>
@@ -435,7 +435,7 @@ function loadAllSeats(url, allSeats = []) {
             document.getElementById('seatMap').innerHTML = `
                 <div class="alert alert-danger">
                     <i class="fas fa-exclamation-triangle"></i>
-                    Error loading seats. Please refresh the page.
+                    {% trans "Error loading seats. Please refresh the page." %}
                 </div>
             `;
         });
@@ -459,8 +459,8 @@ function renderSeatMap() {
         seatMap.innerHTML = `
             <div class="text-center py-5">
                 <i class="fas fa-chair fa-4x text-muted mb-4"></i>
-                <h5 class="text-muted">No Seats Found</h5>
-                <p class="text-muted">Seats should be automatically generated for numbered zones.</p>
+                <h5 class="text-muted">{% trans "No Seats Found" %}</h5>
+                <p class="text-muted">{% trans "Seats should be automatically generated for numbered zones." %}</p>
             </div>
         `;
         return;
@@ -574,7 +574,7 @@ function clearSelection() {
 }
 
 function selectRow() {
-    const rowNumber = prompt('Enter row number to select:');
+    const rowNumber = prompt('{% trans "Enter row number to select:" %}');
     if (rowNumber) {
         selectedSeats.clear();
         seats.forEach(seat => {
@@ -589,11 +589,11 @@ function selectRow() {
 
 function bulkUpdateStatus(newStatus) {
     if (selectedSeats.size === 0) {
-        alert('Please select seats first');
+        alert('{% trans "Please select seats first" %}');
         return;
     }
 
-    if (confirm(`Update ${selectedSeats.size} selected seats to ${newStatus}?`)) {
+    if (confirm('{% trans "Update" %} ' + selectedSeats.size + ' {% trans "selected seats to" %} ' + newStatus + '?')) {
         const promises = Array.from(selectedSeats).map(seatId => {
             return fetch(`/api/v1/api/seats/${seatId}/update_status/`, {
                 method: 'POST',
@@ -608,13 +608,13 @@ function bulkUpdateStatus(newStatus) {
         Promise.all(promises)
             .then(responses => {
                 const successCount = responses.filter(r => r.ok).length;
-                showAlert('success', `Updated ${successCount} seats successfully`);
+                showAlert('success', '{% trans "Updated" %} ' + successCount + ' {% trans "seats successfully" %}');
                 selectedSeats.clear();
                 loadSeats();
             })
             .catch(error => {
                 console.error('Error updating seats:', error);
-                showAlert('danger', 'Error updating seats');
+                showAlert('danger', '{% trans "Error updating seats" %}');
             });
     }
 }
@@ -626,23 +626,23 @@ function showSeatDetails(seatId) {
     const content = `
         <div class="row">
             <div class="col-md-6">
-                <h6>Position</h6>
-                <p>Row ${seat.row_number}, Seat ${seat.seat_number}</p>
-                
-                <h6>Status</h6>
+                <h6>{% trans "Position" %}</h6>
+                <p>{% trans "Row" %} ${seat.row_number}, {% trans "Seat" %} ${seat.seat_number}</p>
+
+                <h6>{% trans "Status" %}</h6>
                 <select class="form-select" id="seatStatus">
-                    <option value="available" ${seat.status === 'available' ? 'selected' : ''}>Available</option>
-                    <option value="reserved" ${seat.status === 'reserved' ? 'selected' : ''}>Reserved</option>
-                    <option value="sold" ${seat.status === 'sold' ? 'selected' : ''}>Sold</option>
-                    <option value="blocked" ${seat.status === 'blocked' ? 'selected' : ''}>Blocked</option>
+                    <option value="available" ${seat.status === 'available' ? 'selected' : ''}>{% trans "Available" %}</option>
+                    <option value="reserved" ${seat.status === 'reserved' ? 'selected' : ''}>{% trans "Reserved" %}</option>
+                    <option value="sold" ${seat.status === 'sold' ? 'selected' : ''}>{% trans "Sold" %}</option>
+                    <option value="blocked" ${seat.status === 'blocked' ? 'selected' : ''}>{% trans "Blocked" %}</option>
                 </select>
             </div>
             <div class="col-md-6">
-                <h6>Price Modifier (%)</h6>
-                <input type="number" class="form-control" id="priceModifier" 
+                <h6>{% trans "Price Modifier (%)" %}</h6>
+                <input type="number" class="form-control" id="priceModifier"
                        value="${seat.price_modifier}" step="0.01">
-                
-                <h6 class="mt-3">Final Price</h6>
+
+                <h6 class="mt-3">{% trans "Final Price" %}</h6>
                 <p class="fw-bold">$${parseFloat(seat.calculated_price || 0).toFixed(2)}</p>
             </div>
         </div>
@@ -675,14 +675,14 @@ function saveSeatChanges(seatId) {
         if (data.id) {
             bootstrap.Modal.getInstance(document.getElementById('seatDetailsModal')).hide();
             loadSeats();
-            showAlert('success', 'Seat updated successfully');
+            showAlert('success', '{% trans "Seat updated successfully" %}');
         } else {
-            showAlert('danger', 'Error updating seat');
+            showAlert('danger', '{% trans "Error updating seat" %}');
         }
     })
     .catch(error => {
         console.error('Error updating seat:', error);
-        showAlert('danger', 'Error updating seat');
+        showAlert('danger', '{% trans "Error updating seat" %}');
     });
 }
 
@@ -721,14 +721,14 @@ function createTable() {
             bootstrap.Modal.getInstance(document.getElementById('createTableModal')).hide();
             form.reset();
             loadTables();
-            showAlert('success', 'Table created successfully!');
+            showAlert('success', '{% trans "Table created successfully!" %}');
         } else {
-            showAlert('danger', 'Error creating table: ' + JSON.stringify(data));
+            showAlert('danger', '{% trans "Error creating table:" %} ' + JSON.stringify(data));
         }
     })
     .catch(error => {
         console.error('Error creating table:', error);
-        showAlert('danger', 'Error creating table');
+        showAlert('danger', '{% trans "Error creating table" %}');
     });
 }
 
@@ -736,7 +736,7 @@ function toggleTableView() {
     showTables = !showTables;
     const toggleElement = document.getElementById('tableViewToggle');
     if (toggleElement) {
-        toggleElement.textContent = showTables ? 'Hide Tables' : 'Show Tables';
+        toggleElement.textContent = showTables ? '{% trans "Hide Tables" %}' : '{% trans "Show Tables" %}';
     }
     renderSeatMap();
 }

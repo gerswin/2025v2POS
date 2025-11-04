@@ -1,57 +1,56 @@
 {% extends 'events/base.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Events - Tiquemax{% endblock %}
+{% block title %}{% trans "Events" %} - Tiquemax{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 class="h3 mb-0">Events</h1>
-                    <p class="text-muted mb-0">Manage your events and ticket sales</p>
-                </div>
-                <div>
-                    <a href="{% url 'events:event_create' %}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Create Event
-                    </a>
-                </div>
-            </div>
+<!-- Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+    <div>
+        <h1 class="h3 mb-1">{% trans "Events" %}</h1>
+        <p class="text-muted mb-0">{% trans "Manage your events and ticket sales" %}</p>
+    </div>
+    <div>
+        <a href="{% url 'events:event_create' %}" class="btn btn-modern btn-primary-modern">
+            <i class="bi bi-plus-circle"></i>
+            <span>{% trans "Create Event" %}</span>
+        </a>
+    </div>
+</div>
 
-            <!-- Filters -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <form method="get" class="row g-3">
-                        <div class="col-md-3">
-                            <label for="search" class="form-label">Search</label>
-                            <input type="text" class="form-control" id="search" name="search" 
-                                   value="{{ request.GET.search }}" placeholder="Event name...">
+<!-- Filters -->
+<div class="card-modern mb-4">
+    <div class="card-body-modern">
+        <form method="get" class="row g-3">
+                        <div class="col-12 col-md-3">
+                            <label for="search" class="form-label-modern">{% trans "Search" %}</label>
+                            <input type="text" class="form-control-modern" id="search" name="search"
+                                   value="{{ request.GET.search }}" placeholder="{% trans 'Event name...' %}">
                         </div>
-                        <div class="col-md-2">
-                            <label for="status" class="form-label">Status</label>
-                            <select class="form-select" id="status" name="status">
-                                <option value="">All Statuses</option>
-                                <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>Draft</option>
-                                <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
-                                <option value="closed" {% if request.GET.status == 'closed' %}selected{% endif %}>Closed</option>
-                                <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        <div class="col-6 col-md-2">
+                            <label for="status" class="form-label-modern">{% trans "Status" %}</label>
+                            <select class="form-select-modern" id="status" name="status">
+                                <option value="">{% trans "All Statuses" %}</option>
+                                <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>{% trans "Draft" %}</option>
+                                <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>{% trans "Active" %}</option>
+                                <option value="closed" {% if request.GET.status == 'closed' %}selected{% endif %}>{% trans "Closed" %}</option>
+                                <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>{% trans "Cancelled" %}</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <label for="event_type" class="form-label">Type</label>
-                            <select class="form-select" id="event_type" name="event_type">
-                                <option value="">All Types</option>
-                                <option value="general_assignment" {% if request.GET.event_type == 'general_assignment' %}selected{% endif %}>General Assignment</option>
-                                <option value="numbered_seat" {% if request.GET.event_type == 'numbered_seat' %}selected{% endif %}>Numbered Seating</option>
-                                <option value="mixed" {% if request.GET.event_type == 'mixed' %}selected{% endif %}>Mixed</option>
+                        <div class="col-6 col-md-2">
+                            <label for="event_type" class="form-label-modern">{% trans "Type" %}</label>
+                            <select class="form-select-modern" id="event_type" name="event_type">
+                                <option value="">{% trans "All Types" %}</option>
+                                <option value="general_assignment" {% if request.GET.event_type == 'general_assignment' %}selected{% endif %}>{% trans "General Assignment" %}</option>
+                                <option value="numbered_seat" {% if request.GET.event_type == 'numbered_seat' %}selected{% endif %}>{% trans "Numbered Seating" %}</option>
+                                <option value="mixed" {% if request.GET.event_type == 'mixed' %}selected{% endif %}>{% trans "Mixed" %}</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
-                            <label for="venue" class="form-label">Venue</label>
-                            <select class="form-select" id="venue" name="venue">
-                                <option value="">All Venues</option>
+                        <div class="col-12 col-md-3">
+                            <label for="venue" class="form-label-modern">{% trans "Venue" %}</label>
+                            <select class="form-select-modern" id="venue" name="venue">
+                                <option value="">{% trans "All Venues" %}</option>
                                 {% for venue in venues %}
                                     <option value="{{ venue.id }}" {% if request.GET.venue == venue.id|stringformat:"s" %}selected{% endif %}>
                                         {{ venue.name }}
@@ -59,11 +58,12 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">&nbsp;</label>
+                        <div class="col-12 col-md-2">
+                            <label class="form-label-modern d-none d-md-block">&nbsp;</label>
                             <div class="d-grid">
-                                <button type="submit" class="btn btn-outline-primary">
-                                    <i class="fas fa-search"></i> Filter
+                                <button type="submit" class="btn btn-modern btn-primary-modern">
+                                    <i class="bi bi-funnel"></i>
+                                    <span>{% trans "Filter" %}</span>
                                 </button>
                             </div>
                         </div>
@@ -71,164 +71,182 @@
                 </div>
             </div>
 
-            <!-- Events List -->
-            {% if events %}
-                <div class="row">
-                    {% for event in events %}
-                        <div class="col-lg-6 col-xl-4 mb-4">
-                            <div class="card h-100">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h6 class="card-title mb-0">{{ event.name|truncatechars:30 }}</h6>
-                                    {% if event.status == 'active' %}
-                                        <span class="badge bg-success">Active</span>
-                                    {% elif event.status == 'draft' %}
-                                        <span class="badge bg-warning">Draft</span>
-                                    {% elif event.status == 'closed' %}
-                                        <span class="badge bg-secondary">Closed</span>
-                                    {% elif event.status == 'cancelled' %}
-                                        <span class="badge bg-danger">Cancelled</span>
+<!-- Events List -->
+{% if events %}
+    <div class="row g-3">
+        {% for event in events %}
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="card-modern card-interactive h-100 d-flex flex-column">
+                    <div class="card-header-modern d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-semibold">{{ event.name|truncatechars:30 }}</h6>
+                        {% if event.status == 'active' %}
+                            <span class="table-badge badge-success">{% trans "Active" %}</span>
+                        {% elif event.status == 'draft' %}
+                            <span class="table-badge badge-warning">{% trans "Draft" %}</span>
+                        {% elif event.status == 'closed' %}
+                            <span class="table-badge badge-secondary">{% trans "Closed" %}</span>
+                        {% elif event.status == 'cancelled' %}
+                            <span class="table-badge badge-danger">{% trans "Cancelled" %}</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body-modern flex-grow-1">
+                        <div class="mb-3 pb-3" style="border-bottom: 1px solid var(--border-color);">
+                            <div class="d-flex align-items-center gap-2 text-muted small">
+                                <i class="bi bi-geo-alt-fill"></i>
+                                <div>
+                                    <div>{{ event.venue.name }}</div>
+                                    {% if event.venue.city %}
+                                        <div class="text-muted">{{ event.venue.city }}</div>
                                     {% endif %}
                                 </div>
-                                <div class="card-body">
-                                    <div class="mb-3">
-                                        <small class="text-muted">
-                                            <i class="fas fa-map-marker-alt"></i> {{ event.venue.name }}
-                                        </small>
-                                        {% if event.venue.city %}
-                                            <br><small class="text-muted">{{ event.venue.city }}</small>
-                                        {% endif %}
-                                    </div>
+                            </div>
+                        </div>
 
-                                    <div class="mb-3">
-                                        <div class="small text-muted">Start Date</div>
-                                        <div class="fw-bold">
-                                            <i class="fas fa-calendar-alt"></i> {{ event.start_date|date:"M j, Y" }}
-                                        </div>
-                                        <div class="small">
-                                            <i class="fas fa-clock"></i> {{ event.start_date|time:"g:i A" }}
-                                        </div>
-                                    </div>
+                        <div class="mb-3 pb-3" style="border-bottom: 1px solid var(--border-color);">
+                            <div class="small text-muted mb-1">{% trans "Start Date" %}</div>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-calendar3" style="color: var(--primary-500);"></i>
+                                <span class="fw-semibold">{{ event.start_date|date:"M j, Y" }}</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <i class="bi bi-clock" style="color: var(--primary-500);"></i>
+                                <span class="small">{{ event.start_date|time:"g:i A" }}</span>
+                            </div>
+                        </div>
 
-                                    <div class="mb-3">
-                                        <div class="small text-muted">Event Type</div>
-                                        <div>
-                                            {% if event.event_type == 'general_assignment' %}
-                                                <i class="fas fa-users"></i> General Assignment
-                                            {% elif event.event_type == 'numbered_seat' %}
-                                                <i class="fas fa-chair"></i> Numbered Seating
-                                            {% elif event.event_type == 'mixed' %}
-                                                <i class="fas fa-layer-group"></i> Mixed Event
-                                            {% endif %}
-                                        </div>
-                                    </div>
+                        <div class="mb-3">
+                            <div class="small text-muted mb-1">{% trans "Event Type" %}</div>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if event.event_type == 'general_assignment' %}
+                                    <i class="bi bi-people-fill" style="color: var(--info);"></i>
+                                    <span>{% trans "General Assignment" %}</span>
+                                {% elif event.event_type == 'numbered_seat' %}
+                                    <i class="bi bi-grid-3x3-gap" style="color: var(--success);"></i>
+                                    <span>{% trans "Numbered Seating" %}</span>
+                                {% elif event.event_type == 'mixed' %}
+                                    <i class="bi bi-layers-fill" style="color: var(--warning);"></i>
+                                    <span>{% trans "Mixed Event" %}</span>
+                                {% endif %}
+                            </div>
+                        </div>
 
-                                    {% if event.description %}
-                                        <div class="mb-3">
-                                            <div class="small text-muted">Description</div>
-                                            <div class="small">{{ event.description|truncatechars:100 }}</div>
-                                        </div>
-                                    {% endif %}
+                        {% if event.description %}
+                            <div class="mb-3">
+                                <div class="small text-muted">{{ event.description|truncatechars:100 }}</div>
+                            </div>
+                        {% endif %}
 
-                                    <div class="row text-center mb-3">
-                                        <div class="col-6">
-                                            <div class="small text-muted">Currency</div>
-                                            <div class="fw-bold">{{ event.base_currency }}</div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="small text-muted">Sales</div>
-                                            <div class="fw-bold">
-                                                {% if event.is_sales_active %}
-                                                    <span class="text-success">Active</span>
-                                                {% else %}
-                                                    <span class="text-muted">Inactive</span>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    </div>
+                        <div class="row g-2 text-center mt-auto">
+                            <div class="col-6">
+                                <div class="p-2 rounded" style="background-color: var(--surface-tertiary);">
+                                    <div class="small text-muted">{% trans "Currency" %}</div>
+                                    <div class="fw-semibold">{{ event.base_currency }}</div>
                                 </div>
-                                <div class="card-footer">
-                                    <div class="d-flex justify-content-between">
-                                        <a href="{% url 'events:event_detail' event.id %}" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i> View
-                                        </a>
-                                        <a href="{% url 'events:event_edit' event.id %}" class="btn btn-sm btn-outline-secondary">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </a>
-                                        {% if event.status == 'draft' %}
-                                            <form method="post" action="{% url 'events:event_activate' event.id %}" style="display: inline;">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('¿Activar este evento?')">
-                                                    <i class="fas fa-play"></i> Activate
-                                                </button>
-                                            </form>
-                                        {% elif event.status == 'active' %}
-                                            <form method="post" action="{% url 'events:event_deactivate' event.id %}" style="display: inline;">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('¿Pausar este evento?')">
-                                                    <i class="fas fa-pause"></i> Pause
-                                                </button>
-                                            </form>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 rounded" style="background-color: var(--surface-tertiary);">
+                                    <div class="small text-muted">{% trans "Sales" %}</div>
+                                    <div class="fw-semibold">
+                                        {% if event.is_sales_active %}
+                                            <span style="color: var(--success);">{% trans "Active" %}</span>
+                                        {% else %}
+                                            <span class="text-muted">{% trans "Inactive" %}</span>
                                         {% endif %}
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    {% endfor %}
-                </div>
-
-                <!-- Pagination -->
-                {% if is_paginated %}
-                    <nav aria-label="Events pagination">
-                        <ul class="pagination justify-content-center">
-                            {% if page_obj.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.event_type %}event_type={{ request.GET.event_type }}&{% endif %}{% if request.GET.venue %}venue={{ request.GET.venue }}&{% endif %}page={{ page_obj.previous_page_number }}">
-                                        <i class="fas fa-chevron-left"></i> Previous
-                                    </a>
-                                </li>
+                    </div>
+                    <div class="card-footer-modern">
+                        <div class="d-flex gap-1 flex-wrap">
+                            <a href="{% url 'events:event_detail' event.id %}" class="btn btn-modern btn-sm-modern" style="flex: 1; background-color: var(--info-light); color: var(--info); border: none;">
+                                <i class="bi bi-eye"></i>
+                                <span>{% trans "View" %}</span>
+                            </a>
+                            <a href="{% url 'events:event_edit' event.id %}" class="btn btn-modern btn-sm-modern btn-secondary-modern" style="flex: 1;">
+                                <i class="bi bi-pencil"></i>
+                                <span>{% trans "Edit" %}</span>
+                            </a>
+                            <a href="{% url 'fiscal_web:tax_configuration_create' %}?event={{ event.id }}" class="btn btn-modern btn-sm-modern" style="flex: 1; background-color: var(--warning-light); color: var(--warning); border: none;" title="{% trans 'Configure Taxes' %}">
+                                <i class="bi bi-percent"></i>
+                                <span class="d-none d-lg-inline">{% trans "Tax" %}</span>
+                            </a>
+                            {% if event.status == 'draft' %}
+                                <form method="post" action="{% url 'events:event_activate' event.id %}" style="flex: 1;" class="no-loading">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-modern btn-success-modern btn-sm-modern w-100" onclick="return confirm('{% trans "Activate this event?" %}')">
+                                        <i class="bi bi-play-fill"></i>
+                                        <span>{% trans "Activate" %}</span>
+                                    </button>
+                                </form>
+                            {% elif event.status == 'active' %}
+                                <form method="post" action="{% url 'events:event_deactivate' event.id %}" style="flex: 1;" class="no-loading">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-modern btn-warning-modern btn-sm-modern w-100" onclick="return confirm('{% trans "Pause this event?" %}')">
+                                        <i class="bi bi-pause-fill"></i>
+                                        <span>{% trans "Pause" %}</span>
+                                    </button>
+                                </form>
                             {% endif %}
-
-                            {% for num in page_obj.paginator.page_range %}
-                                {% if page_obj.number == num %}
-                                    <li class="page-item active">
-                                        <span class="page-link">{{ num }}</span>
-                                    </li>
-                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.event_type %}event_type={{ request.GET.event_type }}&{% endif %}{% if request.GET.venue %}venue={{ request.GET.venue }}&{% endif %}page={{ num }}">{{ num }}</a>
-                                    </li>
-                                {% endif %}
-                            {% endfor %}
-
-                            {% if page_obj.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.event_type %}event_type={{ request.GET.event_type }}&{% endif %}{% if request.GET.venue %}venue={{ request.GET.venue }}&{% endif %}page={{ page_obj.next_page_number }}">
-                                        Next <i class="fas fa-chevron-right"></i>
-                                    </a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                {% endif %}
-            {% else %}
-                <!-- Empty State -->
-                <div class="text-center py-5">
-                    <i class="fas fa-calendar-alt fa-4x text-muted mb-4"></i>
-                    <h4 class="text-muted">No Events Found</h4>
-                    {% if request.GET.search or request.GET.status or request.GET.event_type or request.GET.venue %}
-                        <p class="text-muted mb-4">No events match your current filters.</p>
-                        <a href="{% url 'events:event_list' %}" class="btn btn-outline-primary me-2">
-                            <i class="fas fa-times"></i> Clear Filters
-                        </a>
-                    {% else %}
-                        <p class="text-muted mb-4">You haven't created any events yet.</p>
-                    {% endif %}
-                    <a href="{% url 'events:event_create' %}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Create Your First Event
-                    </a>
+                        </div>
+                    </div>
                 </div>
-            {% endif %}
-        </div>
+            </div>
+        {% endfor %}
     </div>
-</div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+        <nav aria-label="Events pagination" class="mt-4">
+            <ul class="pagination-modern justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="pagination-item">
+                        <a class="pagination-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.event_type %}event_type={{ request.GET.event_type }}&{% endif %}{% if request.GET.venue %}venue={{ request.GET.venue }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="pagination-item active">
+                            <span class="pagination-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="pagination-item">
+                            <a class="pagination-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.event_type %}event_type={{ request.GET.event_type }}&{% endif %}{% if request.GET.venue %}venue={{ request.GET.venue }}&{% endif %}page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="pagination-item">
+                        <a class="pagination-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.event_type %}event_type={{ request.GET.event_type }}&{% endif %}{% if request.GET.venue %}venue={{ request.GET.venue }}&{% endif %}page={{ page_obj.next_page_number }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+        <i class="bi bi-calendar-x" style="font-size: 4rem; color: var(--secondary-400); opacity: 0.5;"></i>
+        <h4 class="mt-4 mb-2" style="color: var(--secondary-600);">{% trans "No Events Found" %}</h4>
+        {% if request.GET.search or request.GET.status or request.GET.event_type or request.GET.venue %}
+            <p class="text-muted mb-4">{% trans "No events match your current filters." %}</p>
+            <a href="{% url 'events:event_list' %}" class="btn btn-modern btn-outline-modern me-2">
+                <i class="bi bi-x-circle"></i>
+                <span>{% trans "Clear Filters" %}</span>
+            </a>
+        {% else %}
+            <p class="text-muted mb-4">{% trans "You haven't created any events yet." %}</p>
+        {% endif %}
+        <a href="{% url 'events:event_create' %}" class="btn btn-modern btn-primary-modern">
+            <i class="bi bi-plus-circle"></i>
+            <span>{% trans "Create Your First Event" %}</span>
+        </a>
+    </div>
+{% endif %}
 {% endblock %}

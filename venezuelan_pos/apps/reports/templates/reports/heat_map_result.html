@@ -1,0 +1,198 @@
+{% extends "reports/base.html" %}
+{% load i18n humanize %}
+
+{% block title %}{% trans "Heat Map Result" %} - Venezuelan POS{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .seat-demand-very_high { background: #b71c1c; color: #fff; }
+    .seat-demand-high { background: #d84315; color: #fff; }
+    .seat-demand-medium { background: #ef6c00; color: #fff; }
+    .seat-demand-low { background: #fdd835; color: #333; }
+    .seat-demand-very_low { background: #c5e1a5; color: #2d572c; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-1">{% trans "Heat Map Result" %}</h1>
+                <p class="text-muted mb-0">
+                    {% if heat_map_data.event_name %}
+                        {% blocktrans with zone=heat_map_data.zone_name event=heat_map_data.event_name %}
+                            Zone {{ zone }} · Event {{ event }}
+                        {% endblocktrans %}
+                    {% else %}
+                        {% blocktrans with zone=heat_map_data.zone_name %}Zone {{ zone }}{% endblocktrans %}
+                    {% endif %}
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'reports:heat_map_generator' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Generator" %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if heat_map_data.error %}
+        <div class="alert alert-danger">
+            <i class="fas fa-times-circle me-2"></i>{{ heat_map_data.error }}
+        </div>
+    {% else %}
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="metric-card revenue h-100">
+                <div class="metric-value">${{ heat_map_data.summary.total_revenue|floatformat:2|intcomma }}</div>
+                <div class="metric-label">{% trans "Total revenue" %}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card transactions h-100">
+                <div class="metric-value">{{ heat_map_data.summary.total_sold|intcomma }}</div>
+                <div class="metric-label">{% trans "Seats sold" %}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card tickets h-100">
+                <div class="metric-value">{{ heat_map_data.summary.fill_rate|floatformat:1 }}%</div>
+                <div class="metric-label">{% trans "Fill rate" %}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card performance h-100">
+                <div class="metric-value">${{ heat_map_data.summary.average_price|floatformat:2|intcomma }}</div>
+                <div class="metric-label">{% trans "Average price (sold seats)" %}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="heat-map-container mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">{% trans "Seat Occupancy Heat Map" %}</h5>
+                    <span class="badge bg-secondary">
+                        {% blocktrans with rows=heat_map_data.rows capacity=heat_map_data.total_capacity %}
+                            {{ rows }} rows · Capacity {{ capacity }}
+                        {% endblocktrans %}
+                    </span>
+                </div>
+
+                {% for row, seats in heat_map_data.grid.items %}
+                <div class="mb-2">
+                    <div class="fw-semibold mb-1">
+                        {% blocktrans with number=row %}Row {{ number }}{% endblocktrans %}
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center">
+                        {% for seat_number, seat_data in seats.items %}
+                        <div class="heat-map-seat seat-demand-{{ seat_data.demand_level|replace:'_','-' }}"
+                             data-bs-toggle="tooltip"
+                             data-bs-html="true"
+                             title="<strong>{% trans 'Seat' %}: {{ seat_number }}</strong><br>
+                                    {% if show_sales_count %}
+                                        {% trans 'Sales' %}: {{ seat_data.sales_count }}<br>
+                                    {% endif %}
+                                    {% if show_prices %}
+                                        {% trans 'Price' %}: ${{ seat_data.price|floatformat:2 }}<br>
+                                    {% endif %}
+                                    {% trans 'Revenue' %}: ${{ seat_data.total_revenue|floatformat:2 }}<br>
+                                    {% trans 'Demand' %}: {{ seat_data.demand_level|title }}<br>
+                                    {% if seat_data.last_sold %}{% trans 'Last sold' %}: {{ seat_data.last_sold }}{% endif %}">
+                            {{ seat_number }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="heat-map-legend">
+                    <div class="legend-item">
+                        <span class="legend-color seat-demand-very_high"></span>
+                        <span>{% trans "Very high demand" %}</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color seat-demand-high"></span>
+                        <span>{% trans "High demand" %}</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color seat-demand-medium"></span>
+                        <span>{% trans "Medium demand" %}</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color seat-demand-low"></span>
+                        <span>{% trans "Low demand" %}</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color seat-demand-very_low"></span>
+                        <span>{% trans "Very low demand" %}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">{% trans "Row Performance" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if heat_map_data.popularity_metrics %}
+                        <ul class="list-group list-group-flush">
+                            {% for key, metrics in heat_map_data.popularity_metrics.items %}
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <strong>{% trans "Row" %} {{ key|cut:"row_" }}</strong>
+                                    <span class="badge bg-primary-subtle text-primary">
+                                        {{ metrics.fill_rate|floatformat:1 }}%
+                                    </span>
+                                </div>
+                                <div class="small text-muted mt-1">
+                                    {% trans "Avg. sales" %}: {{ metrics.average_sales_per_seat|floatformat:2 }} ·
+                                    {% trans "Avg. revenue" %}: ${{ metrics.average_revenue_per_seat|floatformat:2 }}<br>
+                                    {% trans "Total revenue" %}: ${{ metrics.total_revenue|floatformat:2|intcomma }}
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted mb-0">{% trans "No sales recorded for this zone yet." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">{% trans "Demand Distribution" %}</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small mb-0">
+                        {% for level, count in heat_map_data.summary.demand_distribution.items %}
+                        <li class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge seat-demand-{{ level|replace:'_','-' }}">
+                                {{ level|replace:"_":" "|title }}
+                            </span>
+                            <span class="fw-semibold">{{ count }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

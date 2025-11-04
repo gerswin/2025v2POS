@@ -1,0 +1,289 @@
+{% extends "fiscal/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{{ tax_config.name }}</h1>
+                <div>
+                    <a href="{% url 'fiscal:tax_configuration_edit' tax_config.id %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> {% trans "Edit" %}
+                    </a>
+                    <a href="{% url 'fiscal:tax_configurations_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> {% trans "Back to List" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Tax Configuration Details -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "Tax Configuration Details" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">{% trans "Name" %}:</dt>
+                                <dd class="col-sm-8">{{ tax_config.name }}</dd>
+                                
+                                <dt class="col-sm-4">{% trans "Type" %}:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge bg-info">{{ tax_config.get_tax_type_display }}</span>
+                                </dd>
+                                
+                                <dt class="col-sm-4">{% trans "Scope" %}:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge bg-secondary">{{ tax_config.get_scope_display }}</span>
+                                </dd>
+                                
+                                {% if tax_config.event %}
+                                <dt class="col-sm-4">{% trans "Event" %}:</dt>
+                                <dd class="col-sm-8">
+                                    <a href="{% url 'events:event_detail' tax_config.event.id %}">
+                                        {{ tax_config.event.name }}
+                                    </a>
+                                </dd>
+                                {% endif %}
+                            </dl>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <dl class="row">
+                                {% if tax_config.tax_type == 'PERCENTAGE' or tax_config.tax_type == 'COMPOUND' %}
+                                <dt class="col-sm-4">{% trans "Rate" %}:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="tax-rate">{{ tax_config.rate|floatformat:4 }}</span>
+                                    <small class="text-muted">({{ tax_config.rate|floatformat:2 }}%)</small>
+                                </dd>
+                                {% endif %}
+                                
+                                {% if tax_config.tax_type == 'FIXED' %}
+                                <dt class="col-sm-4">{% trans "Fixed Amount" %}:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="currency">{{ tax_config.fixed_amount|floatformat:2 }}</span>
+                                </dd>
+                                {% endif %}
+                                
+                                <dt class="col-sm-4">{% trans "Status" %}:</dt>
+                                <dd class="col-sm-8">
+                                    {% if tax_config.is_active %}
+                                    <span class="badge bg-success">{% trans "Active" %}</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">{% trans "Inactive" %}</span>
+                                    {% endif %}
+                                </dd>
+                                
+                                <dt class="col-sm-4">{% trans "Created By" %}:</dt>
+                                <dd class="col-sm-8">{{ tax_config.created_by.get_full_name|default:tax_config.created_by.username }}</dd>
+                                
+                                <dt class="col-sm-4">{% trans "Created" %}:</dt>
+                                <dd class="col-sm-8">{{ tax_config.created_at|date:"M d, Y H:i" }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    
+                    {% if tax_config.description %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>{% trans "Description" %}</h6>
+                            <p class="text-muted">{{ tax_config.description }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+
+            
+            <!-- Calculation History -->
+            {% if calculation_history %}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "Recent Calculations" %}</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Transaction" %}</th>
+                                    <th>{% trans "Base Amount" %}</th>
+                                    <th>{% trans "Tax Amount" %}</th>
+                                    <th>{% trans "Calculated By" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for calc in calculation_history %}
+                                <tr>
+                                    <td>{{ calc.calculated_at|date:"M d, H:i" }}</td>
+                                    <td>
+                                        {% if calc.transaction %}
+                                        <a href="{% url 'sales:transaction_detail' calc.transaction.id %}">
+                                            #{{ calc.transaction.id|slice:":8" }}
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">{% trans "Manual Calculation" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="currency">{{ calc.base_amount|floatformat:2 }}</td>
+                                    <td class="currency">{{ calc.tax_amount|floatformat:2 }}</td>
+                                    <td>{{ calc.calculated_by.get_full_name|default:calc.calculated_by.username }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Tax Calculator -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">{% trans "Tax Calculator" %}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Base Amount" %}</label>
+                        <input type="number" id="calc-base-amount" class="form-control" value="100.00" step="0.01">
+                    </div>
+                    <div id="calc-result" class="alert alert-info">
+                        <div class="d-flex justify-content-between">
+                            <span>{% trans "Base Amount" %}:</span>
+                            <span id="calc-base">$100.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>{% trans "Tax Amount" %}:</span>
+                            <span id="calc-tax">$0.00</span>
+                        </div>
+                        <hr class="my-2">
+                        <div class="d-flex justify-content-between">
+                            <strong>{% trans "Total Amount" %}:</strong>
+                            <strong id="calc-total">$100.00</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Configuration Summary -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">{% trans "Configuration Summary" %}</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li><strong>{% trans "Type" %}:</strong> {{ tax_config.get_tax_type_display }}</li>
+                        <li><strong>{% trans "Scope" %}:</strong> {{ tax_config.get_scope_display }}</li>
+                        {% if tax_config.tax_type == 'PERCENTAGE' %}
+                        <li><strong>{% trans "Rate" %}:</strong> {{ tax_config.rate|floatformat:2 }}%</li>
+                        {% elif tax_config.tax_type == 'FIXED' %}
+                        <li><strong>{% trans "Amount" %}:</strong> ${{ tax_config.fixed_amount|floatformat:2 }}</li>
+                        {% elif tax_config.tax_type == 'COMPOUND' %}
+                        <li><strong>{% trans "Rate" %}:</strong> {{ tax_config.rate|floatformat:2 }}% (compound)</li>
+                        {% endif %}
+                        <li><strong>{% trans "Status" %}:</strong> 
+                            {% if tax_config.is_active %}
+                            <span class="text-success">{% trans "Active" %}</span>
+                            {% else %}
+                            <span class="text-danger">{% trans "Inactive" %}</span>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">{% trans "Actions" %}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'fiscal:tax_configuration_edit' tax_config.id %}" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> {% trans "Edit Configuration" %}
+                        </a>
+                        <a href="{% url 'fiscal:tax_calculator' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-calculator"></i> {% trans "Tax Calculator" %}
+                        </a>
+                        {% if tax_config.event %}
+                        <a href="{% url 'events:event_detail' tax_config.event.id %}" class="btn btn-outline-info">
+                            <i class="fas fa-calendar"></i> {% trans "View Event" %}
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const baseAmountInput = document.getElementById('calc-base-amount');
+    const calcBase = document.getElementById('calc-base');
+    const calcTax = document.getElementById('calc-tax');
+    const calcTotal = document.getElementById('calc-total');
+    
+    // Tax configuration data
+    const taxConfig = {
+        type: '{{ tax_config.tax_type }}',
+        rate: {{ tax_config.rate|default:0 }},
+        fixedAmount: {{ tax_config.fixed_amount|default:0 }}
+    };
+    
+    function calculateTax() {
+        const baseAmount = parseFloat(baseAmountInput.value) || 0;
+        let taxAmount = 0;
+        
+        switch (taxConfig.type) {
+            case 'PERCENTAGE':
+                taxAmount = baseAmount * taxConfig.rate;
+                break;
+            case 'FIXED':
+                taxAmount = taxConfig.fixedAmount;
+                break;
+            case 'COMPOUND':
+                const baseTax = baseAmount * taxConfig.rate;
+                const compoundTax = baseTax * taxConfig.rate;
+                taxAmount = baseTax + compoundTax;
+                break;
+        }
+        
+        const totalAmount = baseAmount + taxAmount;
+        
+        // Update display
+        calcBase.textContent = '$' + baseAmount.toFixed(2);
+        calcTax.textContent = '$' + taxAmount.toFixed(2);
+        calcTotal.textContent = '$' + totalAmount.toFixed(2);
+    }
+    
+    // Event listener
+    baseAmountInput.addEventListener('input', calculateTax);
+    
+    // Initial calculation
+    calculateTax();
+    
+    // Format currency values
+    const currencyElements = document.querySelectorAll('.currency');
+    currencyElements.forEach(element => {
+        const value = parseFloat(element.textContent);
+        if (!isNaN(value)) {
+            element.textContent = '$' + value.toFixed(2);
+        }
+    });
+});
+</script>
+{% endblock %}

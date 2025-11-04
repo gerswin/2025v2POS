@@ -154,14 +154,31 @@ venezuelan_pos/
 #### 4. Dynamic Pricing Engine (`apps.pricing`)
 
 **Models:**
-- `PriceStage`: Time-based pricing periods
-- `RowPricing`: Row-specific price modifiers
-- `ZonePricing`: Base pricing per zone
+- `PriceStage`: Hybrid time and quantity-based pricing periods with automatic transitions
+- `RowPricing`: Row-specific price modifiers within numbered zones
+- `ZonePricing`: Base pricing per zone with stage override capabilities
+- `StageTransition`: Audit log for automatic stage changes and pricing history
 
 **Key Features:**
-- Sequential price stages with percentage markups
-- Row-based pricing with configurable percentages
-- Automatic price calculation: Base + Stage + Row
+- **Hybrid pricing stages** with both date ranges and quantity limits
+- **Automatic stage transitions** when either date expires OR quantity limit reached
+- **Event-wide or zone-specific** stage application with independent tracking
+- **Real-time stage monitoring** with remaining quantity and time calculations
+- **Price modifier flexibility** supporting both percentage and fixed amount adjustments
+- **Stage validation system** preventing overlapping dates and capacity conflicts
+- **Transition audit trail** for pricing analysis and business intelligence
+
+**Pricing Calculation Logic:**
+```
+Final Price = Base Zone Price × (1 + Stage Modifier) × (1 + Row Modifier)
+```
+
+**Stage Transition Algorithm:**
+1. Check current date against stage date ranges
+2. Check sold quantity against stage quantity limits
+3. Transition to next stage if either condition met
+4. Apply final stage pricing if no more stages available
+5. Log transition with timestamp and trigger reason
 
 #### 5. Sales Engine (`apps.sales`)
 
@@ -243,7 +260,157 @@ venezuelan_pos/
 - X/Z reports with user-specific closures
 - America/Caracas timezone enforcement
 
+### Pricing Stage System Design
+
+#### Stage Configuration Architecture
+
+```mermaid
+graph TB
+    subgraph "Event Configuration"
+        EVENT[Event]
+        ZONES[Event Zones]
+    end
+    
+    subgraph "Pricing Stage System"
+        STAGE_CONFIG[Stage Configuration]
+        STAGE_1[Stage 1: Early Bird]
+        STAGE_2[Stage 2: Regular]
+        STAGE_3[Stage 3: Last Minute]
+    end
+    
+    subgraph "Transition Logic"
+        DATE_CHECK[Date Range Check]
+        QUANTITY_CHECK[Quantity Limit Check]
+        TRANSITION[Stage Transition]
+    end
+    
+    subgraph "Price Calculation"
+        BASE_PRICE[Base Zone Price]
+        STAGE_MODIFIER[Stage Modifier]
+        ROW_MODIFIER[Row Modifier]
+        FINAL_PRICE[Final Ticket Price]
+    end
+    
+    EVENT --> STAGE_CONFIG
+    ZONES --> STAGE_CONFIG
+    STAGE_CONFIG --> STAGE_1
+    STAGE_CONFIG --> STAGE_2
+    STAGE_CONFIG --> STAGE_3
+    
+    STAGE_1 --> DATE_CHECK
+    STAGE_1 --> QUANTITY_CHECK
+    DATE_CHECK --> TRANSITION
+    QUANTITY_CHECK --> TRANSITION
+    
+    BASE_PRICE --> FINAL_PRICE
+    STAGE_MODIFIER --> FINAL_PRICE
+    ROW_MODIFIER --> FINAL_PRICE
+```
+
+#### Stage Transition State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> Stage1
+    Stage1 --> Stage2 : Date Expired OR Quantity Reached
+    Stage2 --> Stage3 : Date Expired OR Quantity Reached
+    Stage3 --> FinalStage : Date Expired OR Quantity Reached
+    FinalStage --> FinalStage : Maintain Final Pricing
+    
+    note right of Stage1
+        Early Bird: -25%
+        May 10-15 OR 100 tickets
+    end note
+    
+    note right of Stage2
+        Regular: 0%
+        May 16-20 OR 200 tickets
+    end note
+    
+    note right of Stage3
+        Last Minute: +15%
+        May 21-25 OR 150 tickets
+    end note
+```
+
+#### Real-time Stage Monitoring
+
+**Stage Status API Response:**
+```json
+{
+    "current_stage": {
+        "id": "uuid",
+        "name": "Early Bird",
+        "modifier_type": "percentage",
+        "modifier_value": -0.25,
+        "start_date": "2025-05-10T00:00:00Z",
+        "end_date": "2025-05-15T23:59:59Z",
+        "quantity_limit": 100,
+        "sold_quantity": 67,
+        "remaining_quantity": 33,
+        "days_remaining": 3,
+        "hours_remaining": 72
+    },
+    "next_stage": {
+        "name": "Regular",
+        "modifier_value": 0.00,
+        "transition_trigger": "date_or_quantity"
+    },
+    "zone_specific": false,
+    "auto_transition": true
+}
+```
+
 ## Data Models
+
+### Enhanced Pricing Models
+
+```mermaid
+erDiagram
+    Event ||--o{ PriceStage : defines
+    Zone ||--o{ PriceStage : "can have specific"
+    PriceStage ||--o{ StageTransition : "logs transitions"
+    PriceStage ||--o{ StageSales : "tracks sales"
+    
+    PriceStage {
+        uuid id PK
+        uuid event_id FK
+        uuid zone_id FK "nullable for event-wide"
+        string name
+        integer stage_order
+        datetime start_date
+        datetime end_date
+        integer quantity_limit "nullable"
+        string modifier_type "percentage|fixed"
+        decimal modifier_value
+        string scope "event|zone"
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    StageTransition {
+        uuid id PK
+        uuid stage_from_id FK
+        uuid stage_to_id FK
+        uuid event_id FK
+        uuid zone_id FK "nullable"
+        string trigger_reason "date_expired|quantity_reached"
+        integer sold_quantity
+        timestamp transition_at
+        jsonb metadata
+    }
+    
+    StageSales {
+        uuid id PK
+        uuid stage_id FK
+        uuid zone_id FK "nullable"
+        date sales_date
+        integer tickets_sold
+        decimal revenue_generated
+        timestamp last_updated
+    }
+```
 
 ### Core Entity Relationships
 
@@ -422,15 +589,77 @@ All API endpoints return consistent error responses:
    - Service layer functionality
    - Utility functions and calculations
    - Payment processing logic
+   - **Pricing stage transition logic**
+   - **Stage modifier calculations**
+   - **Quantity limit validation**
 
 2. **Integration Tests** (20%)
    - API endpoint testing
    - Database integration
    - External service mocking
    - Multi-tenant data isolation
+   - **Stage transition automation**
+   - **Real-time pricing calculations**
+   - **Cross-zone stage synchronization**
 
 3. **End-to-End Tests** (10%)
    - Complete user workflows
+   - **Pricing stage lifecycle testing**
+   - **Automatic transition scenarios**
+
+### Pricing Stage Test Scenarios
+
+#### Critical Test Cases
+
+1. **Date-Based Transition Testing**
+   ```python
+   def test_automatic_date_transition():
+       # Create stage: May 10-15, -25%
+       # Advance time to May 16
+       # Verify automatic transition to next stage
+       # Validate pricing calculations
+   ```
+
+2. **Quantity-Based Transition Testing**
+   ```python
+   def test_quantity_limit_transition():
+       # Create stage with 100 ticket limit
+       # Sell 100 tickets
+       # Verify immediate transition to next stage
+       # Validate remaining customers get new pricing
+   ```
+
+3. **Hybrid Transition Testing**
+   ```python
+   def test_hybrid_transition_scenarios():
+       # Test date expires before quantity reached
+       # Test quantity reached before date expires
+       # Verify correct transition trigger logging
+   ```
+
+4. **Zone-Specific Stage Testing**
+   ```python
+   def test_zone_specific_stages():
+       # Configure different stages per zone
+       # Verify independent quantity tracking
+       # Test cross-zone pricing isolation
+   ```
+
+5. **Edge Case Testing**
+   ```python
+   def test_stage_edge_cases():
+       # No more stages available
+       # Overlapping date validation
+       # Quantity exceeds zone capacity
+       # Concurrent purchase race conditions
+   ```
+
+#### Performance Test Requirements
+
+- **Stage calculation latency**: < 50ms for pricing lookup
+- **Transition processing**: < 100ms for stage changes
+- **Concurrent purchases**: Handle 100 simultaneous transactions during stage transition
+- **Cache consistency**: Redis stage cache updates within 10ms
    - Payment processing flows
    - Notification delivery
    - Offline synchronization

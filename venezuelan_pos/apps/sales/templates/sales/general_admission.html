@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load l10n %}
 {% load static %}
 
 <!-- Zone Header with Modern Design -->
@@ -42,8 +43,9 @@
         <div class="availability-indicator">
             <div class="availability-bar">
                 <div class="availability-fill" 
-                     style="width: {{ zone.occupancy_percentage }}%"
-                     data-percentage="{{ zone.occupancy_percentage }}">
+                     id="availabilityFill"
+                     style="width: {{ occupancy_percentage|floatformat:2 }}%"
+                     data-percentage="{{ occupancy_percentage|floatformat:2 }}">
                 </div>
             </div>
             <div class="availability-text mt-2">
@@ -51,12 +53,12 @@
                     <div class="col-6">
                         <small class="text-success">
                             <i class="bi bi-check-circle"></i>
-                            <strong>{{ available_capacity }}</strong> {% trans "Available" %}
+                            <strong id="availableSeatsValue">{{ available_capacity }}</strong> {% trans "Available" %}
                         </small>
                     </div>
                     <div class="col-6 text-end">
                         <small class="text-muted">
-                            <strong>{{ sold_count }}</strong> {% trans "Sold" %}
+                            <strong id="soldSeatsValue">{{ sold_count }}</strong> {% trans "Sold" %}
                         </small>
                     </div>
                 </div>
@@ -81,16 +83,30 @@
                     </button>
                     <input type="number" class="form-control text-center" 
                            id="ticketQuantity" 
-                           value="1" 
-                           min="1" 
-                           max="{{ available_capacity }}"
+                           value="{% if effective_available_capacity > 0 %}1{% else %}0{% endif %}" 
+                           min="{% if effective_available_capacity > 0 %}1{% else %}0{% endif %}" 
+                           max="{{ effective_available_capacity }}"
                            onchange="updateTotal()">
                     <button class="btn btn-outline-secondary" type="button" onclick="increaseQuantity()">
                         <i class="bi bi-plus"></i>
                     </button>
                 </div>
-                <small class="text-muted mt-1 d-block">
-                    {% trans "Maximum" %}: {{ available_capacity }} {% trans "tickets" %}
+                <small class="text-muted mt-1 d-block" id="maxTicketsText"
+                       data-template="{% trans 'Maximum' %}: __max__ {% trans 'tickets' %}">
+                    {% trans "Maximum" %}: {{ effective_available_capacity }} {% trans "tickets" %}
+                </small>
+                <small class="text-muted mt-2 d-block"
+                       id="cartReservationNotice"
+                       data-message-singular="{% trans 'You already have 1 ticket from this zone in your cart.' %}"
+                       data-message-plural="{% trans 'You already have __count__ tickets from this zone in your cart.' %}"
+                       {% if not cart_quantity %}hidden{% endif %}>
+                    {% if cart_quantity %}
+                        {% blocktrans count cart_quantity as count %}
+You already have {{ count }} ticket from this zone in your cart.
+                        {% plural %}
+You already have {{ count }} tickets from this zone in your cart.
+                        {% endblocktrans %}
+                    {% endif %}
                 </small>
             </div>
             
@@ -99,14 +115,14 @@
                 <small class="text-muted d-block mb-2">{% trans "Quick select:" %}</small>
                 <div class="btn-group" role="group">
                     {% for qty in "12345"|make_list %}
-                        {% if qty|add:0 <= available_capacity %}
+                        {% if qty|add:0 <= effective_available_capacity %}
                         <button type="button" class="btn btn-outline-primary btn-sm" 
                                 onclick="setQuantity({{ qty }})">
                             {{ qty }}
                         </button>
                         {% endif %}
                     {% endfor %}
-                    {% if available_capacity >= 10 %}
+                    {% if effective_available_capacity >= 10 %}
                     <button type="button" class="btn btn-outline-primary btn-sm" 
                             onclick="setQuantity(10)">
                         10
@@ -128,23 +144,35 @@
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                     <span>{% trans "Quantity:" %}</span>
-                    <span id="summaryQuantity">1</span>
+                    <span id="summaryQuantity">{% if effective_available_capacity > 0 %}1{% else %}0{% endif %}</span>
                 </div>
                 <hr>
                 <div class="d-flex justify-content-between mb-3">
                     <strong>{% trans "Total:" %}</strong>
-                    <strong class="text-success" id="totalPrice">${{ zone_price|floatformat:2 }}</strong>
+                    <strong class="text-success" id="totalPrice">
+                        {% if effective_available_capacity > 0 %}
+                            ${{ zone_price|floatformat:2 }}
+                        {% else %}
+                            $0.00
+                        {% endif %}
+                    </strong>
                 </div>
             </div>
             
             <div class="d-grid">
                 <button class="btn btn-modern btn-primary-modern btn-lg-modern"
                         id="addToCartBtn"
+                        data-label-default="{% trans 'Add to Cart' %}"
+                        data-label-soldout="{% trans 'Sold Out' %}"
+                        data-label-incart="{% trans 'In Cart' %}"
+                        data-icon-default="bi bi-cart-plus"
+                        data-icon-soldout="bi bi-x-circle"
+                        data-icon-locked="bi bi-lock"
                         onclick="addGeneralTicketsToCart()"
-                        {% if available_capacity == 0 %}disabled{% endif %}>
-                    <i class="bi bi-cart-plus"></i>
-                    <span>
-                        {% if available_capacity == 0 %}
+                        {% if effective_available_capacity == 0 %}disabled{% endif %}>
+                    <i class="bi bi-cart-plus" id="addToCartIcon"></i>
+                    <span id="addToCartText">
+                        {% if effective_available_capacity == 0 %}
                             {% trans "Sold Out" %}
                         {% else %}
                             {% trans "Add to Cart" %}
@@ -327,10 +355,21 @@
 }
 </style>
 
-<script src="{% static 'js/general_admission.js' %}"></script>
+<script src="{% static 'js/general_admission.js' %}?v={{ zone.id|slice:':8' }}"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize general admission functionality
-    initGeneralAdmission({{ zone_price }}, {{ available_capacity }}, '{{ zone.id }}');
-});
+(function initGeneralAdmissionWhenReady() {
+    if (typeof initGeneralAdmission === 'function') {
+        initGeneralAdmission({
+            unitPrice: {{ zone_price|unlocalize|default:0 }},
+            zoneId: '{{ zone.id|default:"" }}',
+            zoneAvailableCapacity: {{ available_capacity|default:0 }},
+            effectiveAvailableCapacity: {{ effective_available_capacity|default:0 }},
+            totalCapacity: {{ zone.capacity|default:0 }},
+            cartQuantity: {{ cart_quantity|default:0 }},
+            soldCount: {{ sold_count|default:0 }}
+        });
+    } else {
+        setTimeout(initGeneralAdmissionWhenReady, 50);
+    }
+})();
 </script>

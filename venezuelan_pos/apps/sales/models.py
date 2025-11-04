@@ -9,6 +9,9 @@ from venezuelan_pos.apps.events.models import Event
 from venezuelan_pos.apps.zones.models import Zone, Seat
 from venezuelan_pos.apps.customers.models import Customer
 
+# Import cart locking models
+from .models_cart_lock import CartItemLock
+
 
 class FiscalSeriesManager(models.Manager):
     """Manager for fiscal series with consecutive numbering."""
@@ -17,28 +20,29 @@ class FiscalSeriesManager(models.Manager):
         """
         Get the next consecutive fiscal series number for a tenant.
         Uses select_for_update to prevent race conditions.
+
+        Note: This method should be called within a transaction.atomic() block.
         """
-        with transaction.atomic():
-            # Get or create fiscal series counter for tenant
-            # Use the base manager to avoid tenant filtering issues
-            series_counter, created = self.model._base_manager.select_for_update().get_or_create(
-                tenant=tenant,
-                event=event,
-                defaults={'current_series': 0}
-            )
-            
-            # Increment and save
-            series_counter.current_series = F('current_series') + 1
-            series_counter.save(update_fields=['current_series'])
-            
-            # Refresh to get the actual value
-            series_counter.refresh_from_db()
-            
-            # Format series number with tenant prefix if available
-            prefix = tenant.fiscal_series_prefix or ''
-            series_number = f"{prefix}{series_counter.current_series:08d}"
-            
-            return series_number
+        # Get or create fiscal series counter for tenant
+        # Use the base manager to avoid tenant filtering issues
+        series_counter, created = self.model._base_manager.select_for_update().get_or_create(
+            tenant=tenant,
+            event=event,
+            defaults={'current_series': 0}
+        )
+
+        # Increment and save
+        series_counter.current_series = F('current_series') + 1
+        series_counter.save(update_fields=['current_series'])
+
+        # Refresh to get the actual value
+        series_counter.refresh_from_db()
+
+        # Format series number with tenant prefix if available
+        prefix = tenant.fiscal_series_prefix or ''
+        series_number = f"{prefix}{series_counter.current_series:08d}"
+
+        return series_number
 
 
 class FiscalSeriesCounter(TenantAwareModel):
@@ -103,49 +107,175 @@ class TransactionManager(models.Manager):
             )
             
             # Create transaction items
-            total_amount = Decimal('0.00')
+            subtotal = Decimal('0.00')
             for item_data in items_data:
                 item = TransactionItem.objects.create(
                     tenant=tenant,
                     transaction=transaction_obj,
                     **item_data
                 )
-                total_amount += item.total_price
+                subtotal += item.total_price
             
-            # Update transaction total
-            transaction_obj.total_amount = total_amount
-            transaction_obj.save(update_fields=['total_amount'])
+            # Calculate taxes using fiscal service
+            tax_amount = Decimal('0.00')
+            if event:
+                from venezuelan_pos.apps.fiscal.services import TaxCalculationService
+                try:
+                    tax_amount, tax_details, tax_history = TaxCalculationService.calculate_taxes(
+                        base_amount=subtotal,
+                        tenant=tenant,
+                        event=event,
+                        user=None,  # Will be set when completing transaction
+                        transaction=transaction_obj
+                    )
+                    # Save tax calculation history
+                    TaxCalculationService.save_tax_calculations(tax_history)
+                except Exception as e:
+                    # Log error but don't break transaction creation
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Tax calculation error in transaction creation: {e}")
+            
+            # Update transaction totals
+            transaction_obj.subtotal_amount = subtotal
+            transaction_obj.tax_amount = tax_amount
+            transaction_obj.total_amount = subtotal + tax_amount
+            transaction_obj.save(update_fields=['subtotal_amount', 'tax_amount', 'total_amount'])
             
             return transaction_obj
     
+    def create_transaction_fast(self, tenant, event, customer, items_data, **kwargs):
+        """
+        Fast transaction creation - optimized for performance.
+        Minimal operations, no external calls.
+
+        Note: This method should be called within a transaction.atomic() block.
+        """
+        # Create transaction
+        transaction_obj = self.create(
+            tenant=tenant,
+            event=event,
+            customer=customer,
+            status=Transaction.Status.PENDING,
+            **kwargs
+        )
+
+        # Bulk create transaction items
+        items_to_create = []
+        subtotal = Decimal('0.00')
+
+        for item_data in items_data:
+            unit_price = item_data['unit_price']
+            quantity = item_data['quantity']
+            subtotal_price = unit_price * quantity
+            tax_amount = subtotal_price * Decimal('0.16')  # 16% IVA
+            total_price = subtotal_price + tax_amount
+
+            subtotal += subtotal_price
+
+            items_to_create.append(TransactionItem(
+                tenant=tenant,
+                transaction=transaction_obj,
+                zone=item_data['zone'],
+                seat=item_data.get('seat'),
+                quantity=quantity,
+                unit_price=unit_price,
+                subtotal_price=subtotal_price,
+                tax_rate=Decimal('0.1600'),
+                tax_amount=tax_amount,
+                total_price=total_price,
+                item_type=TransactionItem.ItemType.NUMBERED_SEAT if item_data.get('seat') else TransactionItem.ItemType.GENERAL_ADMISSION
+            ))
+
+        # Bulk create all items at once
+        TransactionItem.objects.bulk_create(items_to_create)
+
+        # Calculate totals from items
+        total_tax = sum(item.tax_amount for item in items_to_create)
+        total_amount = sum(item.total_price for item in items_to_create)
+
+        # Update totals
+        transaction_obj.subtotal_amount = subtotal
+        transaction_obj.tax_amount = total_tax
+        transaction_obj.total_amount = total_amount
+        transaction_obj.save(update_fields=['subtotal_amount', 'tax_amount', 'total_amount'])
+
+        return transaction_obj
+    
+    def complete_transaction_fast(self, transaction_obj):
+        """
+        Fast transaction completion - only critical operations.
+        Non-critical operations moved to background tasks.
+        """
+        if transaction_obj.status == Transaction.Status.COMPLETED:
+            return transaction_obj
+        
+        # Generate fiscal series (critical operation)
+        fiscal_series = FiscalSeriesCounter.objects.get_next_series(
+            tenant=transaction_obj.tenant,
+            event=transaction_obj.event
+        )
+        
+        # Update transaction status (critical operation)
+        transaction_obj.fiscal_series = fiscal_series
+        transaction_obj.status = Transaction.Status.COMPLETED
+        transaction_obj.completed_at = timezone.now()
+        transaction_obj.save(update_fields=['fiscal_series', 'status', 'completed_at'])
+        
+        # Note: Seat status updates and notifications moved to calling function
+        # for better control and performance
+        
+        return transaction_obj
+
     def complete_transaction(self, transaction_obj):
         """
         Complete a transaction by generating fiscal series.
         Only called when payment is fully completed.
+
+        Note: This method should be called within a transaction.atomic() block
         """
-        with transaction.atomic():
-            if transaction_obj.status == Transaction.Status.COMPLETED:
-                return transaction_obj
-            
-            # Generate fiscal series
-            fiscal_series = FiscalSeriesCounter.objects.get_next_series(
-                tenant=transaction_obj.tenant,
-                event=transaction_obj.event
-            )
-            
-            # Update transaction
-            transaction_obj.fiscal_series = fiscal_series
-            transaction_obj.status = Transaction.Status.COMPLETED
-            transaction_obj.completed_at = timezone.now()
-            transaction_obj.save(update_fields=['fiscal_series', 'status', 'completed_at'])
-            
-            # Update seat statuses to SOLD
-            for item in transaction_obj.items.all():
-                if item.seat:
-                    item.seat.status = Seat.Status.SOLD
-                    item.seat.save(update_fields=['status'])
-            
+        if transaction_obj.status == Transaction.Status.COMPLETED:
             return transaction_obj
+
+        # Generate fiscal series
+        fiscal_series = FiscalSeriesCounter.objects.get_next_series(
+            tenant=transaction_obj.tenant,
+            event=transaction_obj.event
+        )
+
+        # Update transaction
+        transaction_obj.fiscal_series = fiscal_series
+        transaction_obj.status = Transaction.Status.COMPLETED
+        transaction_obj.completed_at = timezone.now()
+        transaction_obj.save(update_fields=['fiscal_series', 'status', 'completed_at'])
+
+        # Update seat statuses to SOLD
+        for item in transaction_obj.items.all():
+            if item.seat:
+                item.seat.status = Seat.Status.SOLD
+                item.seat.save(update_fields=['status'])
+
+        # Send purchase confirmation notification
+        self._send_purchase_confirmation(transaction_obj)
+
+        return transaction_obj
+    
+    def _send_purchase_confirmation(self, transaction_obj):
+        """Send purchase confirmation notification after transaction completion."""
+        try:
+            from venezuelan_pos.apps.notifications.services import NotificationService
+            
+            # Send purchase confirmation
+            NotificationService.send_purchase_confirmation(transaction_obj)
+            
+            # Send ticket delivery notification (separate email with digital tickets)
+            NotificationService.send_ticket_delivery(transaction_obj)
+            
+        except Exception as e:
+            # Log error but don't fail transaction completion
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send purchase notifications for transaction {transaction_obj.id}: {e}")
 
 
 class Transaction(TenantAwareModel):
@@ -205,6 +335,13 @@ class Transaction(TenantAwareModel):
         decimal_places=2,
         default=Decimal('0.00'),
         help_text="Subtotal before taxes"
+    )
+    
+    # Processing tracking
+    processing_completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When background processing (notifications, tickets) was completed"
     )
     tax_amount = models.DecimalField(
         max_digits=10,

@@ -55,6 +55,12 @@ class Venue(TenantAwareModel):
         verbose_name_plural = 'Venues'
         ordering = ['name']
         unique_together = ['tenant', 'name']
+        indexes = [
+            models.Index(fields=['tenant', 'is_active']),
+            models.Index(fields=['tenant', 'venue_type']),
+            models.Index(fields=['city', 'state']),
+            models.Index(fields=['created_at']),
+        ]
     
     def __str__(self):
         return f"{self.name} ({self.city})"
@@ -155,6 +161,15 @@ class Event(TenantAwareModel):
         verbose_name_plural = 'Events'
         ordering = ['-start_date']
         unique_together = ['tenant', 'name', 'start_date']
+        indexes = [
+            models.Index(fields=['tenant', 'status']),
+            models.Index(fields=['tenant', 'start_date']),
+            models.Index(fields=['tenant', 'event_type']),
+            models.Index(fields=['venue', 'start_date']),
+            models.Index(fields=['start_date', 'end_date']),
+            models.Index(fields=['sales_start_date', 'sales_end_date']),
+            models.Index(fields=['created_at']),
+        ]
     
     def __str__(self):
         return f"{self.name} - {self.start_date.strftime('%Y-%m-%d')}"
@@ -265,7 +280,29 @@ class EventConfiguration(TenantAwareModel):
         default=30,
         help_text="Days until payment plan expires"
     )
-    
+
+    # Payment methods configuration
+    cash_enabled = models.BooleanField(
+        default=True,
+        help_text="Accept cash payments"
+    )
+    credit_card_enabled = models.BooleanField(
+        default=True,
+        help_text="Accept credit card payments"
+    )
+    debit_card_enabled = models.BooleanField(
+        default=True,
+        help_text="Accept debit card payments"
+    )
+    bank_transfer_enabled = models.BooleanField(
+        default=True,
+        help_text="Accept bank transfer payments"
+    )
+    mobile_payment_enabled = models.BooleanField(
+        default=False,
+        help_text="Accept mobile payment (Pago Móvil, Zelle, etc.)"
+    )
+
     # Notification configuration
     notifications_enabled = models.BooleanField(
         default=True,
@@ -331,6 +368,10 @@ class EventConfiguration(TenantAwareModel):
         db_table = 'event_configurations'
         verbose_name = 'Event Configuration'
         verbose_name_plural = 'Event Configurations'
+        indexes = [
+            models.Index(fields=['tenant', 'partial_payments_enabled']),
+            models.Index(fields=['tenant', 'notifications_enabled']),
+        ]
     
     def __str__(self):
         return f"Configuration for {self.event.name}"

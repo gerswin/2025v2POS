@@ -1,0 +1,108 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+README.md
+docs/
+manual/
+*.md
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Database
+*.sqlite3
+*.db
+db.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Local development
+.env
+.env.local
+.env.*.local
+
+# Media files (will be in volumes)
+media/
+
+# Static files (will be collected)
+staticfiles/
+
+# Backups
+backups/
+*.sql
+*.dump
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Celery
+celerybeat-schedule*
+celerybeat.pid
+
+# Node modules (if any)
+node_modules/
+
+# Coverage
+.coverage
+coverage/
+
+# Kiro
+.kiro/
+.claude/
+
+# Load testing
+load_testing/
+
+# Monitoring
+monitoring/
+
+# Profiles
+profiles/
+
+# Scripts
+scripts/

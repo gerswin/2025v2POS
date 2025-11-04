@@ -3,23 +3,263 @@
 
 let unitPrice = 0;
 let maxQuantity = 0;
-let currentQuantity = 1;
+let currentQuantity = 0;
 let zoneId = '';
+let rawAvailableCapacity = 0;
+let totalCapacity = 0;
+let cartQuantity = 0;
+let soldSeats = 0;
+let availabilityIntervalId = null;
+
+function toInt(value, fallback = 0) {
+    const parsed = parseInt(value, 10);
+    return Number.isNaN(parsed) ? fallback : parsed;
+}
+
+function toNumber(value, fallback = 0) {
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? fallback : parsed;
+}
+
+function stopAvailabilityPolling() {
+    if (availabilityIntervalId) {
+        clearInterval(availabilityIntervalId);
+        availabilityIntervalId = null;
+    }
+}
+
+function handleModalHidden(event) {
+    if (event && event.target && event.target.id === 'zoneModal') {
+        stopAvailabilityPolling();
+    }
+}
 
 // Initialize the general admission functionality
-function initGeneralAdmission(price, capacity, zone_id) {
-    unitPrice = price;
-    maxQuantity = capacity;
-    zoneId = zone_id;
-    currentQuantity = 1;
-    
-    updateTotal();
+function initGeneralAdmission(configOrPrice, capacity, zone_id, initialCartQty = 0) {
+    stopAvailabilityPolling();
+
+    if (typeof configOrPrice === 'object' && configOrPrice !== null) {
+        const config = configOrPrice;
+        unitPrice = toNumber(config.unitPrice ?? config.price, 0);
+        zoneId = config.zoneId ?? '';
+        rawAvailableCapacity = toInt(
+            config.zoneAvailableCapacity ??
+            config.availableCapacity ??
+            config.availableSeats ??
+            config.available
+        );
+        totalCapacity = toInt(
+            config.totalCapacity ??
+            config.zoneCapacity ??
+            config.capacity ??
+            (rawAvailableCapacity + toInt(config.soldCount ?? config.soldSeats ?? 0))
+        );
+        cartQuantity = toInt(config.cartQuantity, 0);
+        soldSeats = toInt(
+            config.soldCount ??
+            config.soldSeats ??
+            (totalCapacity - rawAvailableCapacity)
+        );
+        maxQuantity = Math.max(
+            toInt(
+                config.effectiveAvailableCapacity ??
+                config.effectiveAvailableSeats ??
+                (rawAvailableCapacity - cartQuantity)
+            ),
+            0
+        );
+    } else {
+        unitPrice = toNumber(configOrPrice, 0);
+        zoneId = zone_id || '';
+        rawAvailableCapacity = toInt(capacity, 0);
+        totalCapacity = rawAvailableCapacity;
+        cartQuantity = toInt(initialCartQty, 0);
+        soldSeats = Math.max(totalCapacity - rawAvailableCapacity, 0);
+        maxQuantity = Math.max(rawAvailableCapacity - cartQuantity, 0);
+    }
+
+    if (rawAvailableCapacity < 0) {
+        rawAvailableCapacity = 0;
+    }
+
+    if (totalCapacity < rawAvailableCapacity + cartQuantity) {
+        totalCapacity = rawAvailableCapacity + cartQuantity;
+    }
+
+    currentQuantity = maxQuantity > 0 ? 1 : 0;
+
+    applyGeneralAdmissionState();
     startAvailabilityPolling();
+
+    if (!window._generalAdmissionModalCleanupAttached) {
+        document.addEventListener('hidden.bs.modal', handleModalHidden, { passive: true });
+        window._generalAdmissionModalCleanupAttached = true;
+    }
+}
+
+function applyGeneralAdmissionState() {
+    const quantityInput = document.getElementById('ticketQuantity');
+    if (!quantityInput) {
+        return;
+    }
+
+    const minValue = maxQuantity > 0 ? 1 : 0;
+    quantityInput.min = minValue;
+    quantityInput.max = maxQuantity;
+
+    if (maxQuantity === 0) {
+        currentQuantity = 0;
+        quantityInput.value = 0;
+    } else {
+        if (currentQuantity < 1) {
+            currentQuantity = 1;
+        }
+        if (currentQuantity > maxQuantity) {
+            currentQuantity = maxQuantity;
+        }
+        quantityInput.value = currentQuantity;
+    }
+
+    updateAvailabilityIndicators();
+    updateQuickSelectButtons();
+    updateCartReservationNotice();
+    updateAddToCartButton();
+    updateTotal();
+}
+
+function calculateOccupancyPercentage() {
+    if (totalCapacity <= 0) {
+        return 0;
+    }
+
+    const sold = Math.min(
+        totalCapacity,
+        totalCapacity - rawAvailableCapacity
+    );
+
+    const percentage = (sold / totalCapacity) * 100;
+    return Number.isNaN(percentage) ? 0 : Number(percentage.toFixed(2));
+}
+
+function updateAvailabilityIndicators() {
+    const maxTicketsText = document.getElementById('maxTicketsText');
+    if (maxTicketsText) {
+        const template = maxTicketsText.dataset.template;
+        if (template) {
+            maxTicketsText.textContent = template.replace('__max__', maxQuantity);
+        } else {
+            maxTicketsText.textContent = `Maximum: ${maxQuantity} tickets`;
+        }
+    }
+
+    const availableSeatsValue = document.getElementById('availableSeatsValue');
+    if (availableSeatsValue) {
+        availableSeatsValue.textContent = Math.max(rawAvailableCapacity, 0);
+    }
+
+    const soldSeatsValue = document.getElementById('soldSeatsValue');
+    if (soldSeatsValue) {
+        const sold = soldSeats || (totalCapacity - rawAvailableCapacity);
+        soldSeatsValue.textContent = Math.max(toInt(sold, 0), 0);
+    }
+
+    const availabilityFill = document.getElementById('availabilityFill');
+    if (availabilityFill) {
+        const percentage = calculateOccupancyPercentage();
+        availabilityFill.style.width = `${percentage}%`;
+        availabilityFill.dataset.percentage = percentage;
+    }
+}
+
+function updateQuickSelectButtons() {
+    const quickSelectButtons = document.querySelectorAll('.quick-select .btn-group .btn');
+    if (!quickSelectButtons) {
+        return;
+    }
+
+    quickSelectButtons.forEach(button => {
+        const value = toInt(button.textContent, 0);
+        if (value > 0 && value <= maxQuantity) {
+            button.disabled = false;
+            button.classList.remove('disabled');
+        } else {
+            button.disabled = true;
+            button.classList.add('disabled');
+        }
+    });
+}
+
+function updateCartReservationNotice() {
+    const notice = document.getElementById('cartReservationNotice');
+    if (!notice) {
+        return;
+    }
+
+    if (cartQuantity > 0) {
+        const singular = notice.dataset.messageSingular || '';
+        const plural = notice.dataset.messagePlural || singular;
+        const chosenMessage = cartQuantity === 1 ? singular : plural;
+        notice.textContent = chosenMessage.replace('__count__', cartQuantity);
+        notice.hidden = false;
+    } else {
+        notice.hidden = true;
+    }
+}
+
+function setAddToCartButtonState(state) {
+    const button = document.getElementById('addToCartBtn');
+    const icon = document.getElementById('addToCartIcon');
+    const text = document.getElementById('addToCartText');
+
+    if (!button || !icon || !text) {
+        return;
+    }
+
+    const iconDefault = button.dataset.iconDefault || 'bi bi-cart-plus';
+    const iconSoldOut = button.dataset.iconSoldout || 'bi bi-x-circle';
+    const iconLocked = button.dataset.iconLocked || 'bi bi-lock';
+    const labelDefault = button.dataset.labelDefault || 'Add to Cart';
+    const labelSoldOut = button.dataset.labelSoldout || 'Sold Out';
+    const labelInCart = button.dataset.labelIncart || 'In Cart';
+
+    switch (state) {
+        case 'soldout':
+            icon.className = iconSoldOut;
+            text.textContent = labelSoldOut;
+            button.disabled = true;
+            break;
+        case 'locked':
+            icon.className = iconLocked;
+            text.textContent = labelInCart;
+            button.disabled = true;
+            break;
+        default:
+            icon.className = iconDefault;
+            text.textContent = labelDefault;
+            button.disabled = false;
+            break;
+    }
+}
+
+function updateAddToCartButton() {
+    if (maxQuantity === 0) {
+        if (cartQuantity > 0) {
+            setAddToCartButtonState('locked');
+        } else {
+            setAddToCartButtonState('soldout');
+        }
+    } else {
+        setAddToCartButtonState('default');
+    }
 }
 
 function increaseQuantity() {
+    if (maxQuantity === 0) {
+        return;
+    }
+
     const quantityInput = document.getElementById('ticketQuantity');
-    const currentValue = parseInt(quantityInput.value);
+    const currentValue = toInt(quantityInput.value, currentQuantity);
     
     if (currentValue < maxQuantity) {
         quantityInput.value = currentValue + 1;
@@ -28,8 +268,12 @@ function increaseQuantity() {
 }
 
 function decreaseQuantity() {
+    if (maxQuantity === 0) {
+        return;
+    }
+
     const quantityInput = document.getElementById('ticketQuantity');
-    const currentValue = parseInt(quantityInput.value);
+    const currentValue = toInt(quantityInput.value, currentQuantity);
     
     if (currentValue > 1) {
         quantityInput.value = currentValue - 1;
@@ -38,6 +282,10 @@ function decreaseQuantity() {
 }
 
 function setQuantity(quantity) {
+    if (maxQuantity === 0) {
+        return;
+    }
+
     const quantityInput = document.getElementById('ticketQuantity');
     
     if (quantity <= maxQuantity && quantity >= 1) {
@@ -48,41 +296,55 @@ function setQuantity(quantity) {
 
 function updateTotal() {
     const quantityInput = document.getElementById('ticketQuantity');
-    let quantity = parseInt(quantityInput.value) || 1;
-    
-    // Validate quantity
-    if (quantity > maxQuantity) {
-        quantityInput.value = maxQuantity;
-        quantity = maxQuantity;
-    } else if (quantity < 1) {
-        quantityInput.value = 1;
-        quantity = 1;
+    if (!quantityInput) {
+        return;
     }
-    
+
+    let quantity = toInt(quantityInput.value, currentQuantity);
+
+    if (maxQuantity === 0) {
+        quantity = 0;
+    } else {
+        if (quantity > maxQuantity) {
+            quantity = maxQuantity;
+        } else if (quantity < 1) {
+            quantity = 1;
+        }
+    }
+
     currentQuantity = quantity;
+    quantityInput.value = quantity;
+
     const total = unitPrice * quantity;
     
-    document.getElementById('summaryQuantity').textContent = quantity;
-    document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
+    const summaryQuantityElement = document.getElementById('summaryQuantity');
+    if (summaryQuantityElement) {
+        summaryQuantityElement.textContent = quantity;
+    }
     
-    // Update button state
-    const addButton = document.getElementById('addToCartBtn');
-    if (maxQuantity === 0) {
-        addButton.disabled = true;
-        addButton.innerHTML = '<i class="bi bi-x-circle"></i> Sold Out';
-    } else {
-        addButton.disabled = false;
-        addButton.innerHTML = '<i class="bi bi-cart-plus"></i> Add to Cart';
+    const totalPriceElement = document.getElementById('totalPrice');
+    if (totalPriceElement) {
+        totalPriceElement.textContent = '$' + total.toFixed(2);
     }
 }
 
 function addGeneralTicketsToCart() {
     if (maxQuantity === 0) {
+        showMessage('No tickets available to add.', 'error');
+        return;
+    }
+
+    if (currentQuantity <= 0) {
+        showMessage('Select at least one ticket to add to the cart.', 'error');
         return;
     }
     
     const button = document.getElementById('addToCartBtn');
-    const originalText = button.innerHTML;
+    if (!button) {
+        return;
+    }
+
+    const originalContent = button.innerHTML;
     
     // Show loading
     button.disabled = true;
@@ -102,9 +364,10 @@ function addGeneralTicketsToCart() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Reset quantity
-            document.getElementById('ticketQuantity').value = 1;
-            updateTotal();
+            cartQuantity += currentQuantity;
+            maxQuantity = Math.max(rawAvailableCapacity - cartQuantity, 0);
+            currentQuantity = maxQuantity > 0 ? Math.min(currentQuantity, maxQuantity) : 0;
+            applyGeneralAdmissionState();
             
             // Update cart display in parent window
             if (window.parent && window.parent.updateCartDisplay) {
@@ -116,83 +379,95 @@ function addGeneralTicketsToCart() {
             
             // Close modal after short delay
             setTimeout(() => {
-                const modal = bootstrap.Modal.getInstance(document.getElementById('zoneModal'));
-                if (modal) {
-                    modal.hide();
+                const modalElement = document.getElementById('zoneModal');
+                if (modalElement) {
+                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
                 }
             }, 1000);
         } else {
             showMessage(data.error || 'Error adding tickets to cart', 'error');
         }
     })
-    .catch(error => {
+    .catch(() => {
         showMessage('Error adding tickets to cart', 'error');
     })
     .finally(() => {
-        button.disabled = false;
-        button.innerHTML = originalText;
+        button.innerHTML = originalContent;
+        updateAddToCartButton();
     });
 }
 
 function startAvailabilityPolling() {
-    // Update zone availability every 10 seconds
-    setInterval(() => {
+    if (!zoneId) {
+        return;
+    }
+
+    stopAvailabilityPolling();
+
+    const refreshAvailability = () => {
         fetch(`/sales/ajax/zone-availability/?zone_id=${zoneId}`)
             .then(response => response.json())
             .then(data => {
-                if (data.success && data.availability) {
-                    const availability = data.availability;
-                    const newMaxQuantity = availability.available_seats;
-                    
-                    // Update availability display
-                    const availabilityFill = document.querySelector('.availability-fill');
-                    const availabilityText = document.querySelector('.availability-text');
-                    
-                    if (availabilityFill && availabilityText) {
-                        const occupancyPercentage = availability.occupancy_percentage;
-                        availabilityFill.style.width = occupancyPercentage + '%';
-                        
-                        availabilityText.innerHTML = `
-                            <div class="row">
-                                <div class="col-6">
-                                    <small class="text-success">
-                                        <i class="bi bi-check-circle"></i>
-                                        <strong>${availability.available_seats}</strong> Available
-                                    </small>
-                                </div>
-                                <div class="col-6 text-end">
-                                    <small class="text-muted">
-                                        <strong>${availability.total_seats - availability.available_seats}</strong> Sold
-                                    </small>
-                                </div>
-                            </div>
-                        `;
-                    }
-                    
-                    // Update max quantity if it changed
-                    if (newMaxQuantity !== maxQuantity) {
-                        maxQuantity = newMaxQuantity;
-                        const quantityInput = document.getElementById('ticketQuantity');
-                        quantityInput.max = maxQuantity;
-                        
-                        // Adjust current quantity if it exceeds new max
-                        if (parseInt(quantityInput.value) > maxQuantity) {
-                            quantityInput.value = Math.max(1, maxQuantity);
-                            updateTotal();
-                        }
-                    }
+                if (!data.success || !data.availability) {
+                    return;
                 }
+
+                const availability = data.availability;
+
+                rawAvailableCapacity = toInt(
+                    availability.available_seats ??
+                    availability.available_capacity ??
+                    availability.available
+                );
+
+                totalCapacity = toInt(
+                    availability.total_seats ??
+                    availability.total_capacity ??
+                    availability.capacity ??
+                    (availability.available_seats + availability.sold_seats)
+                , totalCapacity);
+
+                cartQuantity = toInt(availability.cart_quantity, cartQuantity);
+
+                const effectiveAvailable = toInt(
+                    availability.effective_available_seats ??
+                    (rawAvailableCapacity - cartQuantity),
+                    0
+                );
+
+                maxQuantity = Math.max(effectiveAvailable, 0);
+
+                soldSeats = toInt(
+                    availability.sold_seats ??
+                    availability.sold_capacity ??
+                    (totalCapacity - rawAvailableCapacity),
+                    soldSeats
+                );
+
+                applyGeneralAdmissionState();
             })
-            .catch(error => {
-                console.log('Error updating zone availability:', error);
+            .catch(() => {
+                // Silent fail to avoid noisy console in production
             });
-    }, 10000);
+    };
+
+    refreshAvailability();
+    availabilityIntervalId = setInterval(refreshAvailability, 10000);
 }
 
 function showMessage(message, type) {
     // This function should be available from the parent page
-    if (window.parent && window.parent.showMessage) {
+    if (window.parent && window.parent.showMessage && window.parent !== window) {
         window.parent.showMessage(message, type);
+    } else {
+        // Fallback: simple console log or alert
+        console.log(`${type.toUpperCase()}: ${message}`);
+        if (type === 'error') {
+            console.error(message);
+        }
     }
 }
 
@@ -210,3 +485,29 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+function syncGeneralAdmissionCart(cartItems) {
+    if (!zoneId || !Array.isArray(cartItems)) {
+        return;
+    }
+
+    const matchingItem = cartItems.find(item => {
+        if (!item) {
+            return false;
+        }
+        const itemZoneId = item.zone_id || item.zoneId;
+        return itemZoneId === zoneId && item.type === 'general_admission';
+    });
+
+    cartQuantity = matchingItem ? toInt(matchingItem.quantity, 0) : 0;
+    maxQuantity = Math.max(rawAvailableCapacity - cartQuantity, 0);
+
+    // Adjust current quantity if needed
+    if (currentQuantity > maxQuantity) {
+        currentQuantity = maxQuantity > 0 ? maxQuantity : 0;
+    }
+
+    applyGeneralAdmissionState();
+}
+
+window.syncGeneralAdmissionCart = syncGeneralAdmissionCart;

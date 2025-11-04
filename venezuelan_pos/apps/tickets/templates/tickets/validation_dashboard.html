@@ -1,0 +1,230 @@
+{% extends "tickets/base.html" %}
+{% load static %}
+
+{% block title %}Validation Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-shield-alt"></i> Validation Dashboard</h1>
+                <div>
+                    <a href="{% url 'tickets:validate_ticket' %}" class="btn btn-success">
+                        <i class="fas fa-qrcode"></i> Validate Tickets
+                    </a>
+                    <button onclick="window.location.reload()" class="btn btn-info">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_validations }}</div>
+                    <div class="stat-label">Total Validations</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ successful_validations }}</div>
+                    <div class="stat-label">Successful</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ failed_validations }}</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">
+                        {% if total_validations > 0 %}
+                        {{ successful_validations|floatformat:0 }}%
+                        {% else %}
+                        0%
+                        {% endif %}
+                    </div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+            </div>
+            
+            <!-- Today's Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Today's Activity</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-md-3">
+                                    <h4 class="text-primary">{{ today_validations }}</h4>
+                                    <p class="mb-0">Total Validations</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <h4 class="text-success">{{ today_successful }}</h4>
+                                    <p class="mb-0">Successful</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <h4 class="text-danger">{{ today_failed }}</h4>
+                                    <p class="mb-0">Failed</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <h4 class="text-info">
+                                        {% if today_validations > 0 %}
+                                        {% widthratio today_successful today_validations 100 %}%
+                                        {% else %}
+                                        0%
+                                        {% endif %}
+                                    </h4>
+                                    <p class="mb-0">Success Rate</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Validations -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Validation Attempts</h5>
+                </div>
+                <div class="card-body">
+                    {% if validation_logs %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Result</th>
+                                    <th>Ticket</th>
+                                    <th>Customer</th>
+                                    <th>Event</th>
+                                    <th>Method</th>
+                                    <th>System</th>
+                                    <th>Location</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in validation_logs %}
+                                <tr class="{% if log.validation_result %}table-success{% else %}table-danger{% endif %}">
+                                    <td>{{ log.validated_at|date:"H:i:s" }}</td>
+                                    <td>
+                                        {% if log.validation_result %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i> Success
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times"></i> Failed
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if log.ticket %}
+                                        <a href="{% url 'tickets:ticket_detail' log.ticket.pk %}">
+                                            {{ log.ticket.ticket_number }}
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">Not found</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if log.ticket %}
+                                        {{ log.ticket.customer.full_name }}
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if log.ticket %}
+                                        {{ log.ticket.event.name }}
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {{ log.get_validation_method_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ log.validation_system_id }}</td>
+                                    <td>{{ log.validation_location|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                    <nav aria-label="Validation logs pagination" class="mt-3">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                            </li>
+                            {% endif %}
+                            
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                </span>
+                            </li>
+                            
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-shield-alt fa-3x text-muted mb-3"></i>
+                        <h4>No validation attempts yet</h4>
+                        <p class="text-muted">Validation attempts will appear here as they occur.</p>
+                        <a href="{% url 'tickets:validate_ticket' %}" class="btn btn-primary">
+                            Start Validating Tickets
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-refresh every 30 seconds
+setTimeout(() => {
+    window.location.reload();
+}, 30000);
+
+// Add real-time updates indicator
+document.addEventListener('DOMContentLoaded', function() {
+    const refreshButton = document.querySelector('button[onclick="window.location.reload()"]');
+    if (refreshButton) {
+        let countdown = 30;
+        const originalText = refreshButton.innerHTML;
+        
+        const updateCountdown = () => {
+            refreshButton.innerHTML = `<i class="fas fa-sync"></i> Refresh (${countdown}s)`;
+            countdown--;
+            
+            if (countdown < 0) {
+                window.location.reload();
+            }
+        };
+        
+        setInterval(updateCountdown, 1000);
+    }
+});
+</script>
+{% endblock %}

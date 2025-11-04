@@ -1,0 +1,171 @@
+{% extends "notifications/base.html" %}
+{% load i18n %}
+
+{% block notification_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">{% trans "Customer Notification Preferences" %}</h2>
+        <p class="text-muted mb-0">
+            {% trans "Control how each customer prefers to be contacted across every channel." %}
+        </p>
+    </div>
+    <a href="{% url 'notifications:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Dashboard" %}
+    </a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-8">
+                <label for="search" class="form-label fw-semibold">{% trans "Search customers" %}</label>
+                <input type="text" name="search" id="search" class="form-control"
+                       value="{{ search|default:'' }}" placeholder="{% trans "Name, surname or email" %}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">&nbsp;</label>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-search me-2"></i>{% trans "Search" %}
+                    </button>
+                    <a href="{% url 'notifications:preference_list' %}" class="btn btn-outline-secondary" title="{% trans 'Clear search' %}">
+                        <i class="fas fa-sync-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if page_obj and page_obj.object_list %}
+<div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">{% trans "Preferences" %}</h5>
+        <span class="badge bg-primary-subtle text-primary">
+            {{ page_obj.paginator.count }} {% trans "customers" %}
+        </span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>{% trans "Customer" %}</th>
+                        <th class="text-center">{% trans "Email" %}</th>
+                        <th class="text-center">{% trans "SMS" %}</th>
+                        <th class="text-center">{% trans "WhatsApp" %}</th>
+                        <th class="text-center">{% trans "Confirmations" %}</th>
+                        <th class="text-center">{% trans "Reminders" %}</th>
+                        <th class="text-center">{% trans "Promotions" %}</th>
+                        <th class="text-end">{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for preference in page_obj %}
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">
+                                {{ preference.customer.full_name|default:preference.customer.email }}
+                            </div>
+                            <small class="text-muted">{{ preference.customer.email }}</small>
+                        </td>
+                        <td class="text-center">
+                            {% if preference.email_enabled %}
+                                <span class="badge bg-success"><i class="fas fa-check"></i></span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-times"></i></span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if preference.sms_enabled %}
+                                <span class="badge bg-success"><i class="fas fa-check"></i></span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-times"></i></span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if preference.whatsapp_enabled %}
+                                <span class="badge bg-success"><i class="fas fa-check"></i></span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-times"></i></span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if preference.purchase_confirmations %}
+                                <span class="badge bg-info text-dark"><i class="fas fa-shopping-cart"></i></span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-minus"></i></span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if preference.payment_reminders or preference.event_reminders %}
+                                <span class="badge bg-warning text-dark"><i class="fas fa-bell"></i></span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-minus"></i></span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if preference.promotional_messages %}
+                                <span class="badge bg-primary"><i class="fas fa-bullhorn"></i></span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-minus"></i></span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'notifications:preference_edit' preference.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit me-1"></i>{% trans "Edit" %}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white">
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="{% trans 'Preference pagination' %}">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">
+                        {% trans "Previous" %}
+                    </a>
+                </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">
+                        {% blocktrans %}Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}{% endblocktrans %}
+                    </span>
+                </li>
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}">
+                        {% trans "Next" %}
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">{% trans "No preferences found" %}</h5>
+        <p class="text-muted">
+            {% if search %}
+                {% trans "No customer preferences matched your search criteria." %}
+            {% else %}
+                {% trans "Preferences will appear automatically as customers interact with the notification channels." %}
+            {% endif %}
+        </p>
+        <a href="{% url 'notifications:template_list' %}" class="btn btn-primary">
+            <i class="fas fa-file-alt me-2"></i>{% trans "Manage Templates" %}
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

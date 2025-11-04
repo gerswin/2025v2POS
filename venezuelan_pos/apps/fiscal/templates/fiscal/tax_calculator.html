@@ -1,0 +1,218 @@
+{% extends "fiscal/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{% trans "Tax Calculator" %}</h1>
+                <a href="{% url 'fiscal:tax_configurations_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-cog"></i> {% trans "Manage Tax Configurations" %}
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "Calculate Taxes" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.base_amount.id_for_label }}" class="form-label">
+                                {{ form.base_amount.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.base_amount }}
+                            {% if form.base_amount.errors %}
+                            <div class="text-danger small">{{ form.base_amount.errors }}</div>
+                            {% endif %}
+                            {% if form.base_amount.help_text %}
+                            <div class="form-text">{{ form.base_amount.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.event.id_for_label }}" class="form-label">
+                                {{ form.event.label }}
+                            </label>
+                            {{ form.event }}
+                            {% if form.event.errors %}
+                            <div class="text-danger small">{{ form.event.errors }}</div>
+                            {% endif %}
+                            {% if form.event.help_text %}
+                            <div class="form-text">{{ form.event.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-calculator"></i> {% trans "Calculate Taxes" %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            {% if calculation_result %}
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{% trans "Tax Calculation Result" %}</h5>
+                </div>
+                <div class="card-body tax-calculation-result">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>{% trans "Base Amount:" %}</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            <span class="currency">{{ calculation_result.base_amount }}</span>
+                        </div>
+                    </div>
+                    
+                    {% if calculation_result.tax_details %}
+                    <hr>
+                    <h6>{% trans "Tax Breakdown:" %}</h6>
+                    {% for tax_detail in calculation_result.tax_details %}
+                    <div class="row mb-2">
+                        <div class="col-8">
+                            <strong>{{ tax_detail.name }}</strong>
+                            <br>
+                            <small class="text-muted">
+                                {{ tax_detail.type|title }}
+                                {% if tax_detail.type == 'FIXED' %}
+                                    - ${{ tax_detail.rate }}
+                                {% else %}
+                                    - {{ tax_detail.rate|floatformat:4 }}%
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="col-4 text-end">
+                            <span class="currency">{{ tax_detail.tax_amount }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <hr>
+                    {% endif %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>{% trans "Total Tax:" %}</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            <strong class="currency text-primary">{{ calculation_result.tax_amount }}</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-6">
+                            <h5>{% trans "Total Amount:" %}</h5>
+                        </div>
+                        <div class="col-6 text-end">
+                            <h5 class="currency text-success">{{ calculation_result.total_amount }}</h5>
+                        </div>
+                    </div>
+                    
+                    {% if not calculation_result.tax_details %}
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i>
+                        {% trans "No active tax configurations found for this calculation." %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "How to Use" %}</h5>
+                </div>
+                <div class="card-body">
+                    <ol>
+                        <li>{% trans "Enter the base amount for tax calculation" %}</li>
+                        <li>{% trans "Optionally select an event to include event-specific taxes" %}</li>
+                        <li>{% trans "Click 'Calculate Taxes' to see the breakdown" %}</li>
+                    </ol>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        {% trans "The calculator will apply all active tax configurations for your tenant and the selected event (if any)." %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Quick Examples -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "Quick Examples" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-secondary btn-sm w-100 quick-calc" data-amount="50.00">
+                                $50.00
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-secondary btn-sm w-100 quick-calc" data-amount="100.00">
+                                $100.00
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-secondary btn-sm w-100 quick-calc" data-amount="250.00">
+                                $250.00
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-secondary btn-sm w-100 quick-calc" data-amount="500.00">
+                                $500.00
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Quick calculation buttons
+    const quickCalcButtons = document.querySelectorAll('.quick-calc');
+    const baseAmountField = document.getElementById('{{ form.base_amount.id_for_label }}');
+    
+    quickCalcButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const amount = this.getAttribute('data-amount');
+            baseAmountField.value = amount;
+            baseAmountField.focus();
+        });
+    });
+    
+    // Auto-submit on Enter key
+    baseAmountField.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            this.closest('form').submit();
+        }
+    });
+});
+</script>
+{% endblock %}

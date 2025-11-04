@@ -34,6 +34,11 @@ urlpatterns = [
     path('api/v1/', include(('venezuelan_pos.apps.zones.urls', 'zones'), namespace='zones_api')),
     path('api/v1/customers/', include('venezuelan_pos.apps.customers.urls')),
     path('api/v1/sales/', include('venezuelan_pos.apps.sales.urls')),
+    path('api/v1/notifications/', include('venezuelan_pos.apps.notifications.urls')),
+    path('api/v1/tickets/', include('venezuelan_pos.apps.tickets.urls')),
+    path('api/v1/fiscal/', include('venezuelan_pos.apps.fiscal.urls')),
+    path('api/v1/reports/', include('venezuelan_pos.apps.reports.urls')),
+    path('', include('venezuelan_pos.apps.payments.urls')),
     path('', include('venezuelan_pos.apps.pricing.urls')),
     
     # Internationalization
@@ -48,6 +53,11 @@ urlpatterns = [
     path('pricing/', include(('venezuelan_pos.apps.pricing.web_urls', 'pricing'), namespace='pricing_web')),
     path('customers/', include(('venezuelan_pos.apps.customers.web_urls', 'customers'), namespace='customers_web')),
     path('sales/', include(('venezuelan_pos.apps.sales.web_urls', 'sales'), namespace='sales_web')),
+    path('payments/', include(('venezuelan_pos.apps.payments.web_urls', 'payments'), namespace='payments_web')),
+    path('notifications/', include(('venezuelan_pos.apps.notifications.web_urls', 'notifications'), namespace='notifications_web')),
+    path('tickets/', include(('venezuelan_pos.apps.tickets.web_urls', 'tickets'), namespace='tickets_web')),
+    path('fiscal/', include(('venezuelan_pos.apps.fiscal.web_urls', 'fiscal'), namespace='fiscal_web')),
+    path('reports/', include(('venezuelan_pos.apps.reports.web_urls', 'reports'), namespace='reports_web')),
 ]
 
 # Development URLs

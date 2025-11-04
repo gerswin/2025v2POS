@@ -1,0 +1,175 @@
+{% extends "tickets/base.html" %}
+{% load static %}
+
+{% block title %}Ticket Validation{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="text-center mb-4">
+                <h1><i class="fas fa-qrcode"></i> Ticket Validation</h1>
+                <p class="text-muted">Scan QR code or enter ticket number to validate entry</p>
+            </div>
+            
+            <div class="validation-interface">
+                <form method="post" id="validation-form">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="ticket-identifier" class="form-label">
+                            <strong>Ticket Number or QR Code Data</strong>
+                        </label>
+                        <input type="text" 
+                               class="ticket-identifier-input" 
+                               id="ticket-identifier"
+                               name="ticket_identifier" 
+                               placeholder="Enter ticket number or scan QR code..."
+                               value="{{ ticket_identifier }}"
+                               autocomplete="off"
+                               autofocus>
+                        <small class="form-text text-muted">
+                            You can scan a QR code or manually enter the ticket number
+                        </small>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="submit" name="action" value="validate_use" class="validate-button">
+                            <i class="fas fa-check-circle"></i> Validate & Use Ticket
+                        </button>
+                        <button type="submit" name="action" value="check_only" class="check-button">
+                            <i class="fas fa-search"></i> Check Status Only
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- AJAX Validation Buttons -->
+                <div class="text-center mt-3">
+                    <button type="button" onclick="validateTicketAjax(document.getElementById('ticket-identifier').value, 'validate_use')" 
+                            class="btn btn-success">
+                        <i class="fas fa-bolt"></i> Quick Validate
+                    </button>
+                    <button type="button" onclick="validateTicketAjax(document.getElementById('ticket-identifier').value, 'check')" 
+                            class="btn btn-info">
+                        <i class="fas fa-eye"></i> Quick Check
+                    </button>
+                </div>
+                
+                <!-- Validation Result -->
+                <div id="validation-result">
+                    {% if validation_result %}
+                    <div class="validation-result {% if validation_result.valid %}validation-success{% else %}validation-error{% endif %}">
+                        {% if validation_result.valid %}
+                        <h4><i class="fas fa-check-circle"></i> Valid Ticket</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Ticket Number:</strong> {{ validation_result.ticket_number }}</p>
+                                <p><strong>Customer:</strong> {{ validation_result.customer_name }}</p>
+                                <p><strong>Event:</strong> {{ validation_result.event_name }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Seat:</strong> {{ validation_result.seat_label }}</p>
+                                <p><strong>Status:</strong> {{ validation_result.status }}</p>
+                                <p><strong>Usage:</strong> {{ validation_result.usage_count }}/{{ validation_result.max_usage }} 
+                                   ({{ validation_result.remaining_uses }} remaining)</p>
+                            </div>
+                        </div>
+                        {% if validation_result.event_start %}
+                        <p><strong>Event Date:</strong> {{ validation_result.event_start|date:"F d, Y g:i A" }}</p>
+                        {% endif %}
+                        {% if validation_result.venue_name %}
+                        <p><strong>Venue:</strong> {{ validation_result.venue_name }}</p>
+                        {% endif %}
+                        {% else %}
+                        <h4><i class="fas fa-times-circle"></i> Invalid Ticket</h4>
+                        <p><strong>Reason:</strong> {{ validation_result.reason }}</p>
+                        {% endif %}
+                        <p><small class="text-muted">Validated at: {{ validation_result.timestamp|date:"M d, Y g:i:s A" }}</small></p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Validation Dashboard</h5>
+                            <p class="card-text">View recent validations and statistics</p>
+                            <a href="{% url 'tickets:validation_dashboard' %}" class="btn btn-primary">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Ticket Management</h5>
+                            <p class="card-text">Manage digital tickets and templates</p>
+                            <a href="{% url 'tickets:dashboard' %}" class="btn btn-secondary">
+                                <i class="fas fa-ticket-alt"></i> Manage Tickets
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-clear form after successful validation
+document.getElementById('validation-form').addEventListener('submit', function(e) {
+    setTimeout(() => {
+        if (document.querySelector('.validation-success')) {
+            document.getElementById('ticket-identifier').value = '';
+            document.getElementById('ticket-identifier').focus();
+        }
+    }, 2000);
+});
+
+// Handle barcode scanner input
+document.getElementById('ticket-identifier').addEventListener('input', function(e) {
+    const value = e.target.value;
+    
+    // If input looks like a long QR code (base64), auto-submit after a delay
+    if (value.length > 50 && /^[A-Za-z0-9+/=]+$/.test(value)) {
+        setTimeout(() => {
+            if (e.target.value === value) { // Value hasn't changed
+                validateTicketAjax(value, 'validate_use');
+            }
+        }, 500);
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // F1 for quick validate
+    if (e.key === 'F1') {
+        e.preventDefault();
+        const identifier = document.getElementById('ticket-identifier').value;
+        if (identifier) {
+            validateTicketAjax(identifier, 'validate_use');
+        }
+    }
+    
+    // F2 for quick check
+    if (e.key === 'F2') {
+        e.preventDefault();
+        const identifier = document.getElementById('ticket-identifier').value;
+        if (identifier) {
+            validateTicketAjax(identifier, 'check');
+        }
+    }
+    
+    // Escape to clear
+    if (e.key === 'Escape') {
+        document.getElementById('ticket-identifier').value = '';
+        document.getElementById('validation-result').innerHTML = '';
+        document.getElementById('ticket-identifier').focus();
+    }
+});
+</script>
+{% endblock %}

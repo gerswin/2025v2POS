@@ -17,21 +17,38 @@
     padding: 2rem;
     border-radius: 0.5rem;
     margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .step {
     display: flex;
     align-items: center;
-    margin-bottom: 1rem;
+    position: relative;
+    flex: 1;
 }
 
-.step:last-child {
-    margin-bottom: 0;
+.step::after {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 60%;
+    right: -40%;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.3);
+    z-index: 0;
+}
+
+.step:last-child::after {
+    display: none;
+}
+
+.step.completed::after {
+    background: var(--success-color);
 }
 
 .step-number {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     background-color: rgba(255, 255, 255, 0.2);
     display: flex;
@@ -39,16 +56,37 @@
     justify-content: center;
     font-weight: bold;
     margin-right: 1rem;
+    transition: all 0.3s ease;
+    z-index: 1;
+    position: relative;
+    border: 3px solid transparent;
 }
 
 .step.active .step-number {
     background-color: white;
     color: var(--primary-color);
+    transform: scale(1.1);
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.3);
 }
 
 .step.completed .step-number {
     background-color: var(--success-color);
     color: white;
+    border-color: white;
+}
+
+.step-content {
+    flex: 1;
+}
+
+.step-title {
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+.step-description {
+    font-size: 0.85rem;
+    opacity: 0.9;
 }
 
 .confirmation-card {
@@ -56,71 +94,196 @@
     border: 2px solid var(--success-color);
     border-radius: 0.5rem;
     padding: 2rem;
+    box-shadow: 0 8px 24px rgba(40, 167, 69, 0.15);
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .customer-info {
-    background-color: #e3f2fd;
-    border: 1px solid #bbdefb;
-    border-radius: 0.5rem;
+    background: linear-gradient(135deg, #e3f2fd 0%, #f0f8ff 100%);
+    border: 2px solid #2196f3;
+    border-radius: 0.75rem;
     padding: 1.5rem;
     margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.1);
+    transition: all 0.3s ease;
+}
+
+.customer-info:hover {
+    box-shadow: 0 6px 16px rgba(33, 150, 243, 0.15);
+    transform: translateY(-2px);
 }
 
 .ticket-item {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
+    background: white;
+    border-left: 4px solid var(--primary-color);
     border-radius: 0.5rem;
-    padding: 1rem;
+    padding: 1.25rem;
     margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.ticket-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateX(4px);
 }
 
 .ticket-item:last-child {
     margin-bottom: 0;
 }
 
+.payment-summary-card {
+    background: linear-gradient(135deg, #f0f8ff, #e3f2fd);
+    border: 1px solid #90caf9;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.1);
+}
+
+.payment-summary-card h6 {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
 .final-total {
-    background: linear-gradient(135deg, var(--success-color), #1e7e34);
-    color: white;
-    padding: 1.5rem;
-    border-radius: 0.5rem;
+    background: linear-gradient(135deg, var(--success-color, var(--success, #10B981)), #1e7e34);
+    color: var(--surface-primary, #ffffff);
+    padding: 2rem;
+    border-radius: 0.75rem;
     text-align: center;
     margin: 2rem 0;
+    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.final-total::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% { transform: translate(-50%, -50%); }
+    50% { transform: translate(-30%, -30%); }
 }
 
 .terms-agreement {
-    background-color: #fff3cd;
-    border: 1px solid #ffeaa7;
-    border-radius: 0.5rem;
-    padding: 1rem;
+    background: linear-gradient(135deg, #fff3cd 0%, #fff8e1 100%);
+    border: 2px solid #ffc107;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
     margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.1);
 }
 
 .purchase-button {
-    background: linear-gradient(135deg, var(--success-color), #1e7e34);
+    background: linear-gradient(135deg, var(--success-color, var(--success, #10B981)), #1e7e34);
     border: none;
     padding: 1rem 2rem;
     font-size: 1.1rem;
     font-weight: bold;
     border-radius: 0.5rem;
     transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.purchase-button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.purchase-button:hover::before {
+    width: 300px;
+    height: 300px;
 }
 
 .purchase-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+}
+
+.purchase-button:active {
+    transform: translateY(-1px) scale(0.98);
+}
+
+.price-highlight {
+    background: linear-gradient(135deg, #ffffff, #e8f5e9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 10px rgba(255,255,255,0.3);
 }
 
 @media (max-width: 768px) {
     .checkout-steps {
         padding: 1rem;
+        overflow-x: auto;
     }
-    
+
+    .checkout-steps .d-flex {
+        min-width: 700px;
+    }
+
     .step {
+        font-size: 0.85rem;
+    }
+
+    .step-number {
+        width: 40px;
+        height: 40px;
+        margin-right: 0.5rem;
+    }
+
+    .step::after {
+        top: 16px;
+    }
+
+    .step-title {
         font-size: 0.9rem;
     }
-    
+
+    .step-description {
+        font-size: 0.75rem;
+    }
+
     .confirmation-card {
         padding: 1rem;
+    }
+
+    .final-total {
+        padding: 1.5rem;
+    }
+
+    .purchase-button {
+        font-size: 1rem;
+        padding: 0.875rem 1.5rem;
     }
 }
 </style>
@@ -129,49 +292,37 @@
 {% block content %}
 <!-- Checkout Steps -->
 <div class="checkout-steps">
-    <div class="row">
-        <div class="col-md-3">
-            <div class="step completed">
-                <div class="step-number">
-                    <i class="bi bi-check"></i>
-                </div>
-                <div>
-                    <strong>{% trans "Review & Customer" %}</strong>
-                    <br>
-                    <small>{% trans "Customer selected" %}</small>
-                </div>
+    <div class="d-flex">
+        <div class="step completed">
+            <div class="step-number">
+                <i class="bi bi-check"></i>
+            </div>
+            <div class="step-content">
+                <div class="step-title">{% trans "Review & Customer" %}</div>
+                <div class="step-description">{% trans "Customer selected" %}</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="step completed">
-                <div class="step-number">
-                    <i class="bi bi-check"></i>
-                </div>
-                <div>
-                    <strong>{% trans "Payment" %}</strong>
-                    <br>
-                    <small>{% trans "Payment method selected" %}</small>
-                </div>
+        <div class="step completed">
+            <div class="step-number">
+                <i class="bi bi-check"></i>
+            </div>
+            <div class="step-content">
+                <div class="step-title">{% trans "Payment" %}</div>
+                <div class="step-description">{% trans "Payment method selected" %}</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="step active">
-                <div class="step-number">3</div>
-                <div>
-                    <strong>{% trans "Confirmation" %}</strong>
-                    <br>
-                    <small>{% trans "Review and complete" %}</small>
-                </div>
+        <div class="step active">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <div class="step-title">{% trans "Confirmation" %}</div>
+                <div class="step-description">{% trans "Review and complete" %}</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="step">
-                <div class="step-number">4</div>
-                <div>
-                    <strong>{% trans "Complete" %}</strong>
-                    <br>
-                    <small>{% trans "Get your tickets" %}</small>
-                </div>
+        <div class="step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <div class="step-title">{% trans "Complete" %}</div>
+                <div class="step-description">{% trans "Get your tickets" %}</div>
             </div>
         </div>
     </div>
@@ -215,14 +366,46 @@
                             <i class="bi bi-envelope"></i> {{ customer.email }}
                         </div>
                         {% endif %}
-                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Ticket Details -->
-            <div class="mb-4">
-                <h5 class="mb-3">
-                    <i class="bi bi-ticket"></i>
+        {% if partial_payment_selected %}
+        <div class="payment-summary-card">
+            <h6 class="text-primary"><i class="bi bi-calendar-check"></i> {% trans "Partial Payment Plan" %}</h6>
+            <p class="mb-1">
+                <strong>{% trans "Plan Type" %}:</strong>
+                {% if partial_payment_preview.plan_type == 'installment' %}
+                    {% trans "Installments" %}
+                    {% if partial_payment_preview.installment_count %}
+                        ({{ partial_payment_preview.installment_count }})
+                    {% endif %}
+                {% else %}
+                    {% trans "Flexible schedule" %}
+                {% endif %}
+            </p>
+            <p class="mb-1">
+                <strong>{% trans "Deposit" %}:</strong> ${{ partial_payment_preview.initial_payment_amount|default:'0.00' }}
+                {% if min_down_payment_required %}
+                    <span class="text-muted">({% trans "minimum required" %}: ${{ min_down_payment_required }})</span>
+                {% endif %}
+            </p>
+            <p class="mb-1"><strong>{% trans "Remaining Balance" %}:</strong> ${{ partial_payment_preview.remaining_balance }}</p>
+            {% if partial_payment_preview.payment_method_name %}
+            <p class="mb-0"><strong>{% trans "Deposit Method" %}:</strong> {{ partial_payment_preview.payment_method_name }}</p>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="payment-summary-card">
+            <h6 class="text-success"><i class="bi bi-lightning-charge"></i> {% trans "Immediate Payment" %}</h6>
+            <p class="mb-0 text-muted">{% trans "The order will be completed and tickets issued immediately after confirmation." %}</p>
+        </div>
+        {% endif %}
+
+        <!-- Ticket Details -->
+        <div class="mb-4">
+            <h5 class="mb-3">
+                <i class="bi bi-ticket"></i>
                     {% trans "Ticket Details" %}
                 </h5>
                 
@@ -289,10 +472,10 @@
 
         <div class="col-md-4">
             <!-- Order Summary -->
-            <div class="card">
-                <div class="card-header">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
                     <h6 class="mb-0">
-                        <i class="bi bi-receipt"></i>
+                        <i class="bi bi-receipt me-2"></i>
                         {% trans "Order Summary" %}
                     </h6>
                 </div>
@@ -303,11 +486,19 @@
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span>{% trans "Subtotal:" %}</span>
-                        <span>${{ cart_total|floatformat:2 }}</span>
+                        <span>${{ cart_subtotal|floatformat:2 }}</span>
                     </div>
+                    {% if tax_details %}
+                        {% for tax_detail in tax_details %}
+                        <div class="d-flex justify-content-between mb-1 small">
+                            <span class="text-muted">{{ tax_detail.name }}:</span>
+                            <span class="text-muted">${{ tax_detail.tax_amount|floatformat:2 }}</span>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
                     <div class="d-flex justify-content-between mb-2">
-                        <span>{% trans "Taxes:" %}</span>
-                        <span>$0.00</span>
+                        <span>{% trans "Total Taxes:" %}</span>
+                        <span>${{ tax_amount|floatformat:2 }}</span>
                     </div>
                     <hr>
                     <div class="d-flex justify-content-between">
@@ -318,10 +509,10 @@
             </div>
 
             <!-- Payment Information -->
-            <div class="card mt-3">
-                <div class="card-header">
+            <div class="card mt-3 shadow-sm">
+                <div class="card-header bg-success text-white">
                     <h6 class="mb-0">
-                        <i class="bi bi-credit-card"></i>
+                        <i class="bi bi-credit-card me-2"></i>
                         {% trans "Payment Method" %}
                     </h6>
                 </div>
@@ -340,13 +531,32 @@
 
     <!-- Final Total -->
     <div class="final-total">
-        <h3 class="mb-2">
+        <h3 class="mb-3">
+            <i class="bi bi-cash-stack me-2"></i>
             {% trans "Total Amount" %}
         </h3>
-        <div class="display-4 fw-bold">
+        <div class="display-3 fw-bold price-highlight mb-2">
             ${{ cart_total|floatformat:2 }}
         </div>
-        <small>{% trans "USD - All taxes included" %}</small>
+        {% if partial_payment_selected %}
+        <div class="text-light mb-2">
+            {% trans "Deposit to collect now" %}: <strong>${{ partial_payment_preview.initial_payment_amount }}</strong><br>
+            {% trans "Pending balance" %}: <strong>${{ partial_payment_preview.remaining_balance }}</strong>
+        </div>
+        {% endif %}
+        <div class="d-flex justify-content-center align-items-center gap-3">
+            <span class="badge bg-light text-dark px-3 py-2">
+                <i class="bi bi-currency-dollar"></i> USD
+            </span>
+            {% if tax_amount > 0 %}
+            <span class="badge bg-light text-dark px-3 py-2">
+                <i class="bi bi-receipt"></i> {% trans "Taxes:" %} ${{ tax_amount|floatformat:2 }}
+            </span>
+            {% endif %}
+            <span class="badge bg-light text-dark px-3 py-2">
+                <i class="bi bi-check-circle"></i> {% trans "All taxes included" %}
+            </span>
+        </div>
     </div>
 
     <!-- Action Buttons -->
@@ -363,7 +573,11 @@
                 <button type="submit" class="btn btn-success purchase-button btn-lg w-100" 
                         id="completePurchaseBtn" disabled>
                     <i class="bi bi-check-circle"></i>
-                    {% trans "Complete Purchase" %}
+                    {% if partial_payment_selected %}
+                        {% trans "Create Payment Plan" %}
+                    {% else %}
+                        {% trans "Complete Purchase" %}
+                    {% endif %}
                 </button>
             </form>
         </div>
@@ -424,36 +638,43 @@ function completePurchase() {
         headers: {
             'X-CSRFToken': getCookie('csrftoken'),
             'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
         },
         body: new URLSearchParams({
             'csrfmiddlewaretoken': getCookie('csrftoken')
         })
     })
     .then(response => {
+        // Check if response is a redirect (likely authentication required)
+        if (response.redirected || response.type === 'opaqueredirect' || response.status === 302) {
+            window.location.href = response.url || '/auth/login/?next=/sales/checkout/confirm/';
+            throw new Error('Session expired. Redirecting to login...');
+        }
+
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Expected JSON response but got ' + (contentType || 'unknown content type'));
+        }
+
         if (response.ok) {
-            // Success - redirect will be handled by the server
-            return response.text();
+            return response.json();
         } else {
-            throw new Error('Server error');
+            return response.json().then(data => {
+                throw new Error(data.message || 'Server error');
+            });
         }
     })
     .then(data => {
-        // If we get here, check if it's a redirect or error
-        if (data.includes('transaction_detail')) {
-            // Success - redirect to transaction detail
-            window.location.href = data;
+        if (data.success) {
+            // Success - show message and redirect
+            showMessage(data.message, 'success');
+            setTimeout(() => {
+                window.location.href = data.redirect_url;
+            }, 1500);
         } else {
-            // Parse response for redirect URL
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(data, 'text/html');
-            const redirectMeta = doc.querySelector('meta[http-equiv="refresh"]');
-            if (redirectMeta) {
-                const url = redirectMeta.content.split('url=')[1];
-                window.location.href = url;
-            } else {
-                // Fallback - reload page to see any error messages
-                window.location.reload();
-            }
+            throw new Error(data.message || 'Unknown error');
         }
     })
     .catch(error => {

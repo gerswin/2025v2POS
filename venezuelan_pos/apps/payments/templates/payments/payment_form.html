@@ -1,0 +1,424 @@
+{% extends "payments/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block main_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">{{ title }}</h1>
+    <div>
+        <a href="{% url 'sales_web:transaction_detail' transaction.pk %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>
+            Back to Transaction
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Payment Form -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Payment Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="paymentForm">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.payment_method.id_for_label }}" class="form-label">
+                                    Payment Method <span class="text-danger">*</span>
+                                </label>
+                                {{ form.payment_method }}
+                                {% if form.payment_method.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.payment_method.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.amount.id_for_label }}" class="form-label">
+                                    Amount <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.amount }}
+                                </div>
+                                {% if form.amount.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.amount.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    {% if transaction.payment_plan %}
+                                        Remaining balance: ${{ transaction.payment_plan.remaining_balance }}
+                                        {% if transaction.payment_plan.plan_type == 'installment' %}
+                                            <br>Next installment: ${{ transaction.payment_plan.next_installment_amount }}
+                                        {% endif %}
+                                    {% else %}
+                                        Transaction total: ${{ transaction.total_amount }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.currency.id_for_label }}" class="form-label">Currency</label>
+                                {{ form.currency }}
+                                {% if form.currency.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.currency.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.reference_number.id_for_label }}" class="form-label">
+                                    Reference Number
+                                    <span id="referenceRequired" class="text-danger d-none">*</span>
+                                </label>
+                                {{ form.reference_number }}
+                                {% if form.reference_number.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.reference_number.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    Bank reference, transaction ID, or confirmation number
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.notes.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Additional information about this payment
+                        </div>
+                    </div>
+                    
+                    <!-- Processing Fee Information -->
+                    <div id="feeInfo" class="alert alert-info d-none">
+                        <h6>Processing Fee Calculation</h6>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Payment Amount:</strong><br>
+                                <span id="feeAmount">$0.00</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Processing Fee:</strong><br>
+                                <span id="feeProcessing">$0.00</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Net Amount:</strong><br>
+                                <span id="feeNet">$0.00</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Fee Rate:</strong><br>
+                                <span id="feeRate">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'sales_web:transaction_detail' transaction.pk %}" class="btn btn-secondary">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>
+                            Create Payment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Transaction Summary -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Transaction Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Customer:</strong><br>
+                    {{ transaction.customer.full_name }}
+                    <br>
+                    <small class="text-muted">{{ transaction.customer.email }}</small>
+                </div>
+                <div class="mb-3">
+                    <strong>Event:</strong><br>
+                    {{ transaction.event.name }}
+                    <br>
+                    <small class="text-muted">{{ transaction.event.start_date|date:"M d, Y" }}</small>
+                </div>
+                <div class="mb-3">
+                    <strong>Total Amount:</strong><br>
+                    <span class="h5 text-primary">${{ transaction.total_amount }}</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Status:</strong><br>
+                    {% if transaction.status == 'completed' %}
+                        <span class="badge bg-success">Completed</span>
+                    {% elif transaction.status == 'reserved' %}
+                        <span class="badge bg-warning">Reserved</span>
+                    {% elif transaction.status == 'pending' %}
+                        <span class="badge bg-info">Pending</span>
+                    {% elif transaction.status == 'cancelled' %}
+                        <span class="badge bg-danger">Cancelled</span>
+                    {% endif %}
+                </div>
+                {% if transaction.fiscal_series %}
+                    <div class="mb-3">
+                        <strong>Fiscal Series:</strong><br>
+                        <code>{{ transaction.fiscal_series }}</code>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Payment Plan Information -->
+        {% if transaction.payment_plan %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Payment Plan</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Plan Type:</strong><br>
+                        <span class="badge bg-primary">{{ transaction.payment_plan.get_plan_type_display }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Progress:</strong><br>
+                        <div class="progress mb-2" style="height: 8px;">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {{ transaction.payment_plan.completion_percentage }}%">
+                            </div>
+                        </div>
+                        <small class="text-muted">{{ transaction.payment_plan.completion_percentage|floatformat:1 }}% complete</small>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Paid Amount:</strong><br>
+                        <span class="text-success">${{ transaction.payment_plan.paid_amount }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Remaining Balance:</strong><br>
+                        <span class="text-warning">${{ transaction.payment_plan.remaining_balance }}</span>
+                    </div>
+                    {% if transaction.payment_plan.plan_type == 'installment' %}
+                        <div class="mb-3">
+                            <strong>Installments:</strong><br>
+                            {{ transaction.payment_plan.installments_paid }}/{{ transaction.payment_plan.installment_count }} paid
+                            <br>
+                            <small class="text-muted">Next: ${{ transaction.payment_plan.next_installment_amount }}</small>
+                        </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <strong>Expires:</strong><br>
+                        <small class="{% if transaction.payment_plan.is_expired %}text-danger{% else %}text-muted{% endif %}">
+                            {{ transaction.payment_plan.expires_at|date:"M d, Y H:i" }}
+                        </small>
+                    </div>
+                    <a href="{% url 'payments_web:payment_plan_detail' transaction.payment_plan.pk %}" 
+                       class="btn btn-sm btn-outline-primary w-100">
+                        View Payment Plan
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Transaction Items -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Items ({{ transaction.items.count }})</h5>
+            </div>
+            <div class="card-body">
+                {% for item in transaction.items.all %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <div>
+                            <strong>{{ item.zone.name }}</strong>
+                            {% if item.seat %}
+                                <br><small class="text-muted">Seat: {{ item.seat.seat_label }}</small>
+                            {% else %}
+                                <br><small class="text-muted">Qty: {{ item.quantity }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            <strong>${{ item.unit_price }}</strong>
+                            {% if item.quantity > 1 %}
+                                <br><small class="text-muted">x{{ item.quantity }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+                
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                    <strong>Total:</strong>
+                    <strong class="text-primary">${{ transaction.total_amount }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Dynamic Form Behavior -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentMethodSelect = document.getElementById('{{ form.payment_method.id_for_label }}');
+    const amountInput = document.getElementById('{{ form.amount.id_for_label }}');
+    const referenceInput = document.getElementById('{{ form.reference_number.id_for_label }}');
+    const referenceRequired = document.getElementById('referenceRequired');
+    const feeInfo = document.getElementById('feeInfo');
+    
+    // Update form based on payment method selection
+    function updatePaymentMethod() {
+        if (!paymentMethodSelect) return;
+
+        const selectedOption = paymentMethodSelect.options[paymentMethodSelect.selectedIndex];
+
+        if (selectedOption && selectedOption.value) {
+            const requiresReference = selectedOption.dataset.requiresReference === 'true';
+
+            // Update reference field requirement
+            if (referenceInput) {
+                if (requiresReference) {
+                    referenceInput.required = true;
+                    if (referenceRequired) referenceRequired.classList.remove('d-none');
+                } else {
+                    referenceInput.required = false;
+                    if (referenceRequired) referenceRequired.classList.add('d-none');
+                }
+            }
+
+            // Calculate processing fee
+            calculateFee();
+        } else {
+            if (feeInfo) feeInfo.classList.add('d-none');
+        }
+    }
+    
+    // Calculate processing fee
+    function calculateFee() {
+        if (!paymentMethodSelect || !amountInput) return;
+
+        const paymentMethodId = paymentMethodSelect.value;
+        const amount = parseFloat(amountInput.value) || 0;
+
+        if (paymentMethodId && amount > 0) {
+            fetch('{% url "payments_web:ajax_calculate_fee" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: `payment_method_id=${paymentMethodId}&amount=${amount}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const feeAmountEl = document.getElementById('feeAmount');
+                    const feeProcessingEl = document.getElementById('feeProcessing');
+                    const feeNetEl = document.getElementById('feeNet');
+                    const feeRateEl = document.getElementById('feeRate');
+
+                    if (feeAmountEl) feeAmountEl.textContent = `$${(parseFloat(amount) || 0).toFixed(2)}`;
+                    if (feeProcessingEl) feeProcessingEl.textContent = `$${(parseFloat(data.processing_fee) || 0).toFixed(2)}`;
+                    if (feeNetEl) feeNetEl.textContent = `$${(parseFloat(data.net_amount) || 0).toFixed(2)}`;
+                    if (feeRateEl) feeRateEl.textContent = `${(parseFloat(data.fee_percentage) || 0).toFixed(2)}%`;
+
+                    if (feeInfo) feeInfo.classList.remove('d-none');
+                } else {
+                    if (feeInfo) feeInfo.classList.add('d-none');
+                }
+            })
+            .catch(error => {
+                console.error('Error calculating fee:', error);
+                if (feeInfo) feeInfo.classList.add('d-none');
+            });
+        } else {
+            if (feeInfo) feeInfo.classList.add('d-none');
+        }
+    }
+    
+    // Pre-fill amount from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const amountParam = urlParams.get('amount');
+    if (amountParam && !amountInput.value) {
+        amountInput.value = amountParam;
+    }
+    
+    // Event listeners
+    paymentMethodSelect.addEventListener('change', updatePaymentMethod);
+    amountInput.addEventListener('input', calculateFee);
+    
+    // Initial setup
+    updatePaymentMethod();
+});
+
+// Form validation
+document.getElementById('paymentForm').addEventListener('submit', function(e) {
+    const paymentMethodSelect = document.getElementById('{{ form.payment_method.id_for_label }}');
+    const amountInput = document.getElementById('{{ form.amount.id_for_label }}');
+    const referenceInput = document.getElementById('{{ form.reference_number.id_for_label }}');
+    
+    let isValid = true;
+    
+    // Validate payment method
+    if (!paymentMethodSelect.value) {
+        alert('Please select a payment method.');
+        isValid = false;
+    }
+    
+    // Validate amount
+    const amount = parseFloat(amountInput.value);
+    if (!amount || amount <= 0) {
+        alert('Please enter a valid amount.');
+        isValid = false;
+    }
+    
+    // Validate reference if required
+    if (referenceInput.required && !referenceInput.value.trim()) {
+        alert('Reference number is required for this payment method.');
+        isValid = false;
+    }
+    
+    // Validate amount against payment plan constraints
+    {% if transaction.payment_plan %}
+        const remainingBalance = parseFloat('{{ transaction.payment_plan.remaining_balance|floatformat:-2|default:"0" }}');
+        if (amount > remainingBalance) {
+            alert(`Amount cannot exceed remaining balance of $${remainingBalance.toFixed(2)}.`);
+            isValid = false;
+        }
+
+        {% if transaction.payment_plan.plan_type == 'installment' %}
+            const nextInstallment = parseFloat('{{ transaction.payment_plan.next_installment_amount|floatformat:-2|default:"0" }}');
+            if (nextInstallment > 0 && amount !== nextInstallment) {
+                if (!confirm(`For installment plans, the amount should be $${nextInstallment.toFixed(2)}. Continue with $${amount.toFixed(2)}?`)) {
+                    isValid = false;
+                }
+            }
+        {% endif %}
+    {% endif %}
+    
+    if (!isValid) {
+        e.preventDefault();
+    }
+});
+</script>
+{% endblock %}

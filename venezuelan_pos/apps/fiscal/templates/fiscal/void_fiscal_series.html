@@ -1,0 +1,125 @@
+{% extends "fiscal/base.html" %}
+{% load i18n humanize %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-1">{% trans "Void Fiscal Series" %}</h1>
+                <p class="text-muted mb-0">
+                    {% blocktrans with series=fiscal_series.series_number %}Series #{{ series }}{% endblocktrans %}
+                </p>
+            </div>
+            <a href="{% url 'fiscal:fiscal_series_detail' fiscal_series.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Series Detail" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0 text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>{% trans "Irreversible Action" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">
+                        {% trans "Voiding a fiscal series creates an immutable audit record. Make sure you have documented the reason carefully for tax inspections." %}
+                    </p>
+                    <ul class="text-muted small mb-0">
+                        <li>{% trans "Voided series cannot be reassigned." %}</li>
+                        <li>{% trans "The operation will appear in the audit trail with your user information." %}</li>
+                        <li>{% trans "A Z-Report should reference this voided series to keep compliance continuity." %}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="fw-semibold mb-3">{% trans "Series Information" %}</h5>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4 text-muted">{% trans "Series Number" %}</dt>
+                        <dd class="col-sm-8 fw-bold">
+                            <code>{{ fiscal_series.series_number }}</code>
+                        </dd>
+
+                        <dt class="col-sm-4 text-muted">{% trans "Issued At" %}</dt>
+                        <dd class="col-sm-8">
+                            {{ fiscal_series.issued_at|date:"M d, Y H:i" }}
+                        </dd>
+
+                        <dt class="col-sm-4 text-muted">{% trans "Issued By" %}</dt>
+                        <dd class="col-sm-8">
+                            {% if fiscal_series.issued_by %}
+                                {{ fiscal_series.issued_by.get_full_name|default:fiscal_series.issued_by.username }}
+                            {% else %}
+                                <span class="text-muted">{% trans "Not available" %}</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4 text-muted">{% trans "Transaction" %}</dt>
+                        <dd class="col-sm-8">
+                            {% if fiscal_series.transaction %}
+                                <a href="{% url 'sales_web:transaction_detail' fiscal_series.transaction.id %}" class="text-decoration-none">
+                                    {{ fiscal_series.transaction.id|truncatechars:12 }}
+                                </a>
+                            {% else %}
+                                <span class="text-muted">{% trans "Unlinked" %}</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="fw-semibold mb-3 text-danger">{% trans "Void Confirmation" %}</h5>
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.reason.id_for_label }}" class="form-label fw-semibold">
+                                {{ form.reason.label }}
+                            </label>
+                            {{ form.reason }}
+                            {% if form.reason.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.reason.errors.0 }}
+                                </div>
+                            {% else %}
+                                <div class="form-text">
+                                    {% trans "Provide a detailed justification. This note will be visible in the audit log and future reports." %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="alert alert-warning d-flex align-items-start">
+                            <i class="fas fa-exclamation-circle me-2 mt-1"></i>
+                            <div>
+                                <strong>{% trans "Are you absolutely sure?" %}</strong>
+                                <p class="mb-0 small">
+                                    {% trans "This action cannot be undone and will be recorded as part of the official fiscal audit trail." %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'fiscal:fiscal_series_detail' fiscal_series.id %}" class="btn btn-outline-secondary">
+                                {% trans "Cancel" %}
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-ban me-2"></i>{% trans "Void Series" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

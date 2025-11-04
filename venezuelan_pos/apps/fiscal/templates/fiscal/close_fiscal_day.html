@@ -1,0 +1,121 @@
+{% extends "fiscal/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-1">{% trans "Close Fiscal Day" %}</h1>
+                <p class="text-muted mb-0">
+                    {% blocktrans with date=current_fiscal_day.fiscal_date %}Current fiscal day: {{ date }}{% endblocktrans %}
+                </p>
+            </div>
+            <a href="{% url 'fiscal:fiscal_dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Dashboard" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-5">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">{% trans "Fiscal Day Summary" %}</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5 text-muted">{% trans "Fiscal Date" %}</dt>
+                        <dd class="col-sm-7 fw-semibold">{{ current_fiscal_day.fiscal_date|date:"M d, Y" }}</dd>
+
+                        <dt class="col-sm-5 text-muted">{% trans "Opened At" %}</dt>
+                        <dd class="col-sm-7">{{ current_fiscal_day.opened_at|date:"M d, Y H:i" }}</dd>
+
+                        <dt class="col-sm-5 text-muted">{% trans "Status" %}</dt>
+                        <dd class="col-sm-7">
+                            <span class="fiscal-day-status open">{% trans "Open" %}</span>
+                        </dd>
+
+                        <dt class="col-sm-5 text-muted">{% trans "Assigned To" %}</dt>
+                        <dd class="col-sm-7">
+                            {{ current_fiscal_day.user.get_full_name|default:current_fiscal_day.user.username }}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0 text-warning">
+                        <i class="fas fa-info-circle me-2"></i>{% trans "Before you close" %}
+                    </h5>
+                </div>
+                <div class="card-body small text-muted">
+                    <ul class="mb-0">
+                        <li class="mb-2">{% trans "Verify that all POS terminals have synchronized their latest transactions." %}</li>
+                        <li class="mb-2">{% trans "Ensure no pending payments or open carts remain in the system." %}</li>
+                        <li>{% trans "A Z-Report will be generated automatically as part of the closure." %}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="fw-semibold text-danger mb-3">{% trans "Confirm Fiscal Closure" %}</h5>
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <div class="form-check mb-3">
+                            {{ form.confirm }}
+                            <label class="form-check-label ms-2" for="{{ form.confirm.id_for_label }}">
+                                {{ form.confirm.label }}
+                            </label>
+                            {% if form.confirm.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.confirm.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                {% trans "This action will close the fiscal day and lock sales until a new day is opened." %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label fw-semibold">
+                                {{ form.notes.label }}
+                            </label>
+                            {{ form.notes }}
+                            {% if form.notes.help_text %}
+                                <div class="form-text">{{ form.notes.help_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <div class="d-flex">
+                                <i class="fas fa-exclamation-triangle me-2 mt-1"></i>
+                                <div>
+                                    <strong>{% trans "Important" %}</strong>
+                                    <p class="mb-0 small">
+                                        {% trans "Once closed, sales channels will remain blocked until the next fiscal day is opened. Make sure this is performed after the end of business operations." %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'fiscal:fiscal_dashboard' %}" class="btn btn-outline-secondary">
+                                {% trans "Cancel" %}
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-lock me-2"></i>{% trans "Close Fiscal Day" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

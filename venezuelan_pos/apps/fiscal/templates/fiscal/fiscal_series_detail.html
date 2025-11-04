@@ -1,0 +1,569 @@
+{% extends "fiscal/base.html" %}
+{% load static %}
+
+{% block title %}Fiscal Series Details{% endblock %}
+
+{% block main_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Fiscal Series Details</h1>
+    <div>
+        {% if transaction.status == 'completed' and not transaction.is_voided %}
+            <button class="btn btn-warning me-2" onclick="voidFiscalSeries()">
+                <i class="fas fa-ban me-1"></i>
+                Void Series
+            </button>
+        {% endif %}
+        <button class="btn btn-info me-2" onclick="validateFiscalSeries()">
+            <i class="fas fa-check me-1"></i>
+            Validate
+        </button>
+        <button class="btn btn-success me-2" onclick="printFiscalReceipt()">
+            <i class="fas fa-print me-1"></i>
+            Print Receipt
+        </button>
+        <a href="{% url 'fiscal_web:fiscal_series_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>
+            Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Fiscal Series Information -->
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-receipt me-2"></i>
+                    Fiscal Series Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="font-weight-bold">Fiscal Series:</td>
+                                <td>
+                                    <code class="h5 text-primary">{{ transaction.fiscal_series }}</code>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold">Transaction ID:</td>
+                                <td>
+                                    <a href="{% url 'sales_web:transaction_detail' transaction.pk %}">
+                                        {{ transaction.id }}
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold">Event:</td>
+                                <td>
+                                    <a href="{% url 'events_web:event_detail' transaction.event.pk %}">
+                                        {{ transaction.event.name }}
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">{{ transaction.event.start_date|date:"F d, Y" }}</small>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold">Customer:</td>
+                                <td>
+                                    <a href="{% url 'customers_web:customer_detail' transaction.customer.pk %}">
+                                        {{ transaction.customer.full_name }}
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">{{ transaction.customer.email }}</small>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="font-weight-bold">Status:</td>
+                                <td>
+                                    {% if transaction.status == 'completed' %}
+                                        {% if transaction.is_voided %}
+                                            <span class="badge badge-danger">
+                                                <i class="fas fa-ban"></i> Voided
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-check"></i> Valid
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ transaction.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold">Generated:</td>
+                                <td>
+                                    {{ transaction.completed_at|date:"F d, Y H:i:s" }}
+                                    <br>
+                                    <small class="text-muted">{{ transaction.completed_at|timesince }} ago</small>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold">Sequence:</td>
+                                <td>
+                                    <div class="font-weight-bold">{{ transaction.fiscal_series|slice:"-8:" }}</div>
+                                    <small class="text-muted">Series number</small>
+                                </td>
+                            </tr>
+                            {% if transaction.is_voided %}
+                                <tr>
+                                    <td class="font-weight-bold">Voided:</td>
+                                    <td>
+                                        {{ transaction.voided_at|date:"F d, Y H:i:s" }}
+                                        <br>
+                                        <small class="text-muted">{{ transaction.voided_at|timesince }} ago</small>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Financial Summary -->
+                <div class="mt-4">
+                    <h6 class="font-weight-bold text-primary">Financial Summary</h6>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                Subtotal
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                ${{ transaction.subtotal_amount|floatformat:2 }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                Tax Amount
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                ${{ transaction.tax_amount|floatformat:2 }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Total Amount
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                ${{ transaction.total_amount|floatformat:2 }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="card border-left-warning shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                Items Count
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                {{ transaction.items.count }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Void Information -->
+                {% if transaction.is_voided %}
+                    <div class="mt-4">
+                        <h6 class="font-weight-bold text-danger">Void Information</h6>
+                        <div class="alert alert-danger">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Voided Date:</strong><br>
+                                    {{ transaction.voided_at|date:"F d, Y H:i:s" }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Voided By:</strong><br>
+                                    {{ transaction.voided_by.get_full_name|default:transaction.voided_by.username }}
+                                </div>
+                            </div>
+                            {% if transaction.void_reason %}
+                                <div class="mt-2">
+                                    <strong>Reason:</strong><br>
+                                    {{ transaction.void_reason }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Transaction Items -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-list me-2"></i>
+                    Transaction Items ({{ transaction.items.count }})
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Zone</th>
+                                <th>Seat</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Tax Rate</th>
+                                <th>Tax Amount</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in transaction.items.all %}
+                            <tr>
+                                <td>
+                                    <div class="font-weight-bold">{{ item.zone.name }}</div>
+                                    <small class="text-muted">{{ item.zone.zone_type|title }}</small>
+                                </td>
+                                <td>
+                                    {% if item.seat %}
+                                        <span class="badge badge-info">{{ item.seat.seat_label }}</span>
+                                    {% else %}
+                                        <span class="text-muted">General Admission</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">{{ item.quantity }}</td>
+                                <td>${{ item.unit_price|floatformat:2 }}</td>
+                                <td>
+                                    {% if item.tax_rate > 0 %}
+                                        {{ item.tax_rate|floatformat:2 }}%
+                                    {% else %}
+                                        <span class="text-muted">Tax Exempt</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.tax_amount > 0 %}
+                                        ${{ item.tax_amount|floatformat:2 }}
+                                    {% else %}
+                                        <span class="text-muted">$0.00</span>
+                                    {% endif %}
+                                </td>
+                                <td class="font-weight-bold">${{ item.total_amount|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-active">
+                                <th colspan="5">Total</th>
+                                <th>${{ transaction.tax_amount|floatformat:2 }}</th>
+                                <th>${{ transaction.total_amount|floatformat:2 }}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment Information -->
+        {% if transaction.payments.exists %}
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-credit-card me-2"></i>
+                        Payment Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Method</th>
+                                    <th>Amount</th>
+                                    <th>Reference</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in transaction.payments.all %}
+                                <tr>
+                                    <td>{{ payment.completed_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge badge-light">{{ payment.payment_method.name }}</span>
+                                    </td>
+                                    <td class="font-weight-bold">${{ payment.amount|floatformat:2 }}</td>
+                                    <td>
+                                        {% if payment.reference_number %}
+                                            <code>{{ payment.reference_number }}</code>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-success">{{ payment.get_status_display }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-info" onclick="validateFiscalSeries()">
+                        <i class="fas fa-check me-1"></i>
+                        Validate Series
+                    </button>
+                    
+                    <button class="btn btn-success" onclick="printFiscalReceipt()">
+                        <i class="fas fa-print me-1"></i>
+                        Print Receipt
+                    </button>
+                    
+                    <button class="btn btn-outline-primary" onclick="downloadReceipt()">
+                        <i class="fas fa-download me-1"></i>
+                        Download PDF
+                    </button>
+                    
+                    {% if transaction.status == 'completed' and not transaction.is_voided %}
+                        <hr>
+                        <button class="btn btn-warning" onclick="voidFiscalSeries()">
+                            <i class="fas fa-ban me-1"></i>
+                            Void Series
+                        </button>
+                    {% endif %}
+                    
+                    <hr>
+                    
+                    <a href="{% url 'sales_web:transaction_detail' transaction.pk %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-receipt me-1"></i>
+                        View Transaction
+                    </a>
+                    
+                    <a href="{% url 'fiscal_web:fiscal_series_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list me-1"></i>
+                        All Fiscal Series
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Fiscal Validation -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Fiscal Validation
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="validationResults">
+                    <div class="text-center">
+                        <button class="btn btn-outline-primary" onclick="validateFiscalSeries()">
+                            <i class="fas fa-play me-1"></i>
+                            Run Validation
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Series Navigation -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-navigation me-2"></i>
+                    Series Navigation
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if previous_series %}
+                        <a href="{% url 'fiscal_web:fiscal_series_detail' previous_series.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-chevron-left me-1"></i>
+                            Previous Series
+                            <br>
+                            <small>{{ previous_series.fiscal_series }}</small>
+                        </a>
+                    {% endif %}
+                    
+                    {% if next_series %}
+                        <a href="{% url 'fiscal_web:fiscal_series_detail' next_series.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-chevron-right me-1"></i>
+                            Next Series
+                            <br>
+                            <small>{{ next_series.fiscal_series }}</small>
+                        </a>
+                    {% endif %}
+                    
+                    {% if not previous_series and not next_series %}
+                        <div class="text-center text-muted">
+                            <small>No adjacent series found</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Audit Trail -->
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-history me-2"></i>
+                    Audit Trail
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-success"></div>
+                        <div class="timeline-content">
+                            <h6 class="timeline-title">Series Generated</h6>
+                            <p class="timeline-text">{{ transaction.completed_at|date:"M d, Y H:i:s" }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if transaction.is_voided %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-danger"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Series Voided</h6>
+                                <p class="timeline-text">{{ transaction.voided_at|date:"M d, Y H:i:s" }}</p>
+                                {% if transaction.void_reason %}
+                                    <small class="text-muted">{{ transaction.void_reason }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function validateFiscalSeries() {
+    const resultsDiv = document.getElementById('validationResults');
+    resultsDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Validating...</div>';
+    
+    fetch(`/api/v1/fiscal/validate-series/{{ transaction.pk }}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    }).then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              let html = '<div class="alert alert-' + (data.is_valid ? 'success' : 'danger') + '">';
+              html += '<h6><i class="fas fa-' + (data.is_valid ? 'check-circle' : 'exclamation-triangle') + '"></i> ';
+              html += data.is_valid ? 'Valid Fiscal Series' : 'Invalid Fiscal Series';
+              html += '</h6>';
+              
+              if (data.message) {
+                  html += '<p>' + data.message + '</p>';
+              }
+              
+              if (data.details) {
+                  html += '<ul class="mb-0">';
+                  data.details.forEach(detail => {
+                      html += '<li>' + detail + '</li>';
+                  });
+                  html += '</ul>';
+              }
+              
+              html += '</div>';
+              resultsDiv.innerHTML = html;
+          } else {
+              resultsDiv.innerHTML = '<div class="alert alert-danger">Validation failed: ' + (data.error || 'Unknown error') + '</div>';
+          }
+      }).catch(error => {
+          resultsDiv.innerHTML = '<div class="alert alert-danger">Validation error: ' + error.message + '</div>';
+      });
+}
+
+function voidFiscalSeries() {
+    const reason = prompt('Enter reason for voiding this fiscal series:');
+    if (reason) {
+        if (confirm(`Are you sure you want to void fiscal series {{ transaction.fiscal_series }}?\n\nReason: ${reason}\n\nThis action cannot be undone.`)) {
+            fetch(`/fiscal/void-fiscal-series/{{ transaction.pk }}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    reason: reason
+                })
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Failed to void fiscal series');
+                }
+            });
+        }
+    }
+}
+
+function printFiscalReceipt() {
+    window.open(`/sales/transactions/{{ transaction.pk }}/receipt/`, '_blank');
+}
+
+function downloadReceipt() {
+    window.location.href = `/sales/transactions/{{ transaction.pk }}/receipt/?format=pdf`;
+}
+
+// Auto-validate on page load
+document.addEventListener('DOMContentLoaded', function() {
+    validateFiscalSeries();
+});
+</script>
+
+{% csrf_token %}
+{% endblock %}

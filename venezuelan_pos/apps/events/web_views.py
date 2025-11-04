@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Q, Count
 from django.utils import timezone
 from django.http import JsonResponse
@@ -9,7 +10,7 @@ from django.views.decorators.http import require_http_methods
 from datetime import datetime, timedelta
 
 from .models import Venue, Event, EventConfiguration
-from .forms import VenueForm, EventForm
+from .forms import VenueForm, EventForm, EventConfigurationForm
 
 
 @login_required
@@ -319,26 +320,29 @@ def event_create(request):
     
     if request.method == 'POST':
         form = EventForm(request.POST, user=request.user)
-        if form.is_valid():
-            event = form.save(commit=False)
-            if not request.user.is_admin_user:
-                event.tenant = request.user.tenant
-            event.save()
-            
-            # Crear configuración por defecto
-            EventConfiguration.objects.create(
-                tenant=event.tenant,
-                event=event
-            )
+        config_form = EventConfigurationForm(request.POST)
+        if form.is_valid() and config_form.is_valid():
+            with transaction.atomic():
+                event = form.save(commit=False)
+                if not request.user.is_admin_user:
+                    event.tenant = request.user.tenant
+                event.save()
+                
+                config = config_form.save(commit=False)
+                config.event = event
+                config.tenant = event.tenant
+                config.save()
             
             messages.success(request, f'Evento "{event.name}" creado exitosamente.')
             return redirect('events:event_detail', event_id=event.id)
     else:
         form = EventForm(user=request.user)
+        config_form = EventConfigurationForm()
     
     context = {
         'form': form,
         'event': None,
+        'event_configuration_form': config_form,
     }
     
     return render(request, 'events/event_form.html', context)
@@ -353,18 +357,32 @@ def event_edit(request, event_id):
     else:
         event = get_object_or_404(Event, id=event_id, tenant=request.user.tenant)
     
+    config, _ = EventConfiguration.objects.get_or_create(
+        event=event,
+        defaults={'tenant': event.tenant}
+    )
+    
     if request.method == 'POST':
         form = EventForm(request.POST, instance=event, user=request.user)
-        if form.is_valid():
-            event = form.save()
+        config_form = EventConfigurationForm(request.POST, instance=config)
+        if form.is_valid() and config_form.is_valid():
+            with transaction.atomic():
+                event = form.save()
+                config = config_form.save(commit=False)
+                config.event = event
+                config.tenant = event.tenant
+                config.save()
+            
             messages.success(request, f'Evento "{event.name}" actualizado exitosamente.')
             return redirect('events:event_detail', event_id=event.id)
     else:
         form = EventForm(instance=event, user=request.user)
+        config_form = EventConfigurationForm(instance=config)
     
     context = {
         'form': form,
         'event': event,
+        'event_configuration_form': config_form,
     }
     
     return render(request, 'events/event_form.html', context)

@@ -30,7 +30,12 @@ urlpatterns = [
     # Price History
     path('history/', web_views.price_history_list, name='price_history'),
     
+    # Stage Transition Monitoring
+    path('monitoring/', web_views.stage_transition_monitoring, name='stage_transition_monitoring'),
+    path('events/<uuid:event_id>/analytics/', web_views.stage_performance_analytics, name='stage_performance_analytics'),
+    
     # AJAX Endpoints
     path('ajax/zones/', web_views.ajax_get_zones, name='ajax_get_zones'),
     path('ajax/calculate/', web_views.ajax_calculate_price, name='ajax_calculate_price'),
+    path('ajax/stage-status/', web_views.ajax_get_stage_status, name='ajax_get_stage_status'),
 ]

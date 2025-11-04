@@ -1,0 +1,178 @@
+# Artillery.js Load Testing Configuration for Venezuelan POS System
+config:
+  target: 'http://localhost:8000'
+  phases:
+    # Warm-up phase
+    - duration: 60
+      arrivalRate: 5
+      name: "Warm-up"
+    
+    # Ramp-up phase
+    - duration: 120
+      arrivalRate: 5
+      rampTo: 50
+      name: "Ramp-up"
+    
+    # Sustained load phase
+    - duration: 300
+      arrivalRate: 50
+      name: "Sustained Load"
+    
+    # Peak load phase
+    - duration: 120
+      arrivalRate: 50
+      rampTo: 100
+      name: "Peak Load"
+    
+    # Cool-down phase
+    - duration: 60
+      arrivalRate: 100
+      rampTo: 5
+      name: "Cool-down"
+  
+  # Performance thresholds
+  ensure:
+    p95: 500  # 95th percentile response time should be under 500ms
+    p99: 1000 # 99th percentile response time should be under 1000ms
+    maxErrorRate: 5  # Error rate should be under 5%
+  
+  # HTTP configuration
+  http:
+    timeout: 30
+    pool: 50  # Connection pool size
+  
+  # Variables for dynamic testing
+  variables:
+    tenant_id: "{{ $randomUUID }}"
+    event_id: "{{ $randomUUID }}"
+    user_email: "test{{ $randomInt(1, 1000) }}@example.com"
+
+# Test scenarios
+scenarios:
+  # Health check scenario (lightweight)
+  - name: "Health Checks"
+    weight: 10
+    flow:
+      - get:
+          url: "/health/"
+          capture:
+            - json: "$.status"
+              as: "health_status"
+      - get:
+          url: "/api/health/"
+      - get:
+          url: "/metrics/"
+
+  # Authentication scenario
+  - name: "Authentication Flow"
+    weight: 20
+    flow:
+      - post:
+          url: "/auth/login/"
+          json:
+            username: "admin"
+            password: "admin123"
+          capture:
+            - json: "$.access"
+              as: "access_token"
+      - get:
+          url: "/api/tenants/"
+          headers:
+            Authorization: "Bearer {{ access_token }}"
+
+  # Event management scenario
+  - name: "Event Management"
+    weight: 25
+    flow:
+      # Login first
+      - post:
+          url: "/auth/login/"
+          json:
+            username: "admin"
+            password: "admin123"
+          capture:
+            - json: "$.access"
+              as: "access_token"
+      
+      # List events
+      - get:
+          url: "/api/events/"
+          headers:
+            Authorization: "Bearer {{ access_token }}"
+      
+      # Get event details
+      - get:
+          url: "/api/events/{{ event_id }}/"
+          headers:
+            Authorization: "Bearer {{ access_token }}"
+          expect:
+            - statusCode: [200, 404]  # Allow 404 for non-existent events
+
+  # Ticket sales scenario (most critical)
+  - name: "Ticket Sales Flow"
+    weight: 30
+    flow:
+      # Login
+      - post:
+          url: "/auth/login/"
+          json:
+            username: "admin"
+            password: "admin123"
+          capture:
+            - json: "$.access"
+              as: "access_token"
+      
+      # Get available zones
+      - get:
+          url: "/api/zones/"
+          headers:
+            Authorization: "Bearer {{ access_token }}"
+      
+      # Check seat availability
+      - get:
+          url: "/api/zones/{{ $randomUUID }}/seats/"
+          headers:
+            Authorization: "Bearer {{ access_token }}"
+          expect:
+            - statusCode: [200, 404]
+      
+      # Get pricing information
+      - get:
+          url: "/api/pricing/stages/"
+          headers:
+            Authorization: "Bearer {{ access_token }}"
+
+  # Reporting scenario
+  - name: "Reports and Analytics"
+    weight: 15
+    flow:
+      # Login
+      - post:
+          url: "/auth/login/"
+          json:
+            username: "admin"
+            password: "admin123"
+          capture:
+            - json: "$.access"
+              as: "access_token"
+      
+      # Sales reports
+      - get:
+          url: "/api/reports/sales/"
+          headers:
+            Authorization: "Bearer {{ access_token }}"
+      
+      # Occupancy analysis
+      - get:
+          url: "/api/reports/occupancy/"
+          headers:
+            Authorization: "Bearer {{ access_token }}"
+      
+      # Dashboard data
+      - get:
+          url: "/api/reports/dashboard/"
+          headers:
+            Authorization: "Bearer {{ access_token }}"
+
+# Custom functions for dynamic data
+processor: "./load_testing/artillery_processor.js"

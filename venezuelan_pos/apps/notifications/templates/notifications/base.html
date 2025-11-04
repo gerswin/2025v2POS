@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link href="{% static 'css/components.css' %}" rel="stylesheet">
+<style>
+.notification-status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+.status-sent { background-color: #d4edda; color: #155724; }
+.status-pending { background-color: #fff3cd; color: #856404; }
+.status-failed { background-color: #f8d7da; color: #721c24; }
+.status-retry { background-color: #cce7ff; color: #004085; }
+
+.channel-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.channel-email { background-color: #e3f2fd; color: #1565c0; }
+.channel-sms { background-color: #f3e5f5; color: #7b1fa2; }
+.channel-whatsapp { background-color: #e8f5e8; color: #2e7d32; }
+
+.stats-card {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.stats-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}
+
+{% block title %}Notifications - Venezuelan POS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Notification Management</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'notifications:dashboard' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    <a href="{% url 'notifications:template_list' %}" class="list-group-item list-group-item-action {% if 'template' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-file-alt me-2"></i>Templates
+                    </a>
+                    <a href="{% url 'notifications:log_list' %}" class="list-group-item list-group-item-action {% if 'log' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-list me-2"></i>Notification Logs
+                    </a>
+                    <a href="{% url 'notifications:send' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'send' %}active{% endif %}">
+                        <i class="fas fa-paper-plane me-2"></i>Send Notification
+                    </a>
+                    <a href="{% url 'notifications:preference_list' %}" class="list-group-item list-group-item-action {% if 'preference' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-cog me-2"></i>Customer Preferences
+                    </a>
+                    <a href="{% url 'notifications:analytics' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+                        <i class="fas fa-chart-bar me-2"></i>Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% block notification_content %}
+            {% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

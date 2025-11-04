@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.db import transaction
 from decimal import Decimal
 
-from .models import PriceStage, RowPricing, PriceHistory
+from .models import PriceStage, RowPricing, PriceHistory, StageTransition
 from .serializers import (
     PriceStageSerializer, RowPricingSerializer, PriceHistorySerializer,
     PriceCalculationRequestSerializer, PriceCalculationResponseSerializer,
@@ -19,6 +19,7 @@ from .serializers import (
     PriceStageListSerializer, RowPricingListSerializer
 )
 from .services import PricingCalculationService
+from .stage_automation import stage_automation
 # Removed TenantPermission import - using standard permissions
 from venezuelan_pos.apps.events.models import Event
 from venezuelan_pos.apps.zones.models import Zone, Seat
@@ -89,7 +90,8 @@ class PriceStageViewSet(viewsets.ModelViewSet):
             description=stage.description,
             start_date=start_date,
             end_date=end_date,
-            percentage_markup=stage.percentage_markup,
+            modifier_type=stage.modifier_type,
+            modifier_value=stage.modifier_value,
             stage_order=stage.stage_order + 1,
             is_active=True,
             configuration=stage.configuration
@@ -368,3 +370,308 @@ class PriceCalculationViewSet(viewsets.ViewSet):
         
         serializer = PriceStageSerializer(current_stages, many=True)
         return Response(serializer.data)
+
+
+class StageTransitionViewSet(viewsets.ViewSet):
+    """
+    ViewSet for stage transition automation and monitoring.
+    Provides real-time stage status and transition management.
+    """
+    
+    permission_classes = [IsAuthenticated]
+    
+    @action(detail=False, methods=['get'])
+    def stage_status(self, request):
+        """Get real-time status for a specific stage."""
+        stage_id = request.query_params.get('stage_id')
+        
+        if not stage_id:
+            return Response(
+                {'error': 'stage_id parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            stage = PriceStage.objects.get(
+                id=stage_id,
+                tenant=request.user.tenant
+            )
+        except PriceStage.DoesNotExist:
+            return Response(
+                {'error': 'Stage not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Get real-time status from automation service
+        stage_status = stage_automation.get_stage_status_cached(stage)
+        
+        return Response(stage_status)
+    
+    @action(detail=False, methods=['get'])
+    def event_overview(self, request):
+        """Get comprehensive stage overview for an event."""
+        event_id = request.query_params.get('event_id')
+        
+        if not event_id:
+            return Response(
+                {'error': 'event_id parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            event = Event.objects.get(
+                id=event_id,
+                tenant=request.user.tenant
+            )
+        except Event.DoesNotExist:
+            return Response(
+                {'error': 'Event not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Get monitoring overview
+        overview = stage_automation.get_monitoring_overview(event)
+        
+        return Response(overview)
+    
+    @action(detail=False, methods=['post'])
+    def process_transitions(self, request):
+        """Manually trigger transition processing for an event."""
+        event_id = request.data.get('event_id')
+        zone_id = request.data.get('zone_id')
+        
+        if not event_id:
+            return Response(
+                {'error': 'event_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            event = Event.objects.get(
+                id=event_id,
+                tenant=request.user.tenant
+            )
+        except Event.DoesNotExist:
+            return Response(
+                {'error': 'Event not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        zone = None
+        if zone_id:
+            try:
+                zone = Zone.objects.get(
+                    id=zone_id,
+                    event=event
+                )
+            except Zone.DoesNotExist:
+                return Response(
+                    {'error': 'Zone not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        
+        # Process transitions
+        transitions = stage_automation.process_automatic_transitions(event, zone)
+        
+        response_data = {
+            'event_id': str(event.id),
+            'zone_id': str(zone.id) if zone else None,
+            'transitions_processed': len(transitions),
+            'transitions': [
+                {
+                    'id': str(trans.id),
+                    'from_stage': trans.stage_from.name,
+                    'to_stage': trans.stage_to.name if trans.stage_to else 'Final',
+                    'trigger_reason': trans.trigger_reason,
+                    'sold_quantity': trans.sold_quantity,
+                    'transition_at': trans.transition_at.isoformat(),
+                }
+                for trans in transitions
+            ]
+        }
+        
+        return Response(response_data)
+    
+    @action(detail=False, methods=['post'])
+    def validate_purchase(self, request):
+        """Validate a purchase request against current stage limits."""
+        stage_id = request.data.get('stage_id')
+        quantity = request.data.get('quantity', 1)
+        session_id = request.data.get('session_id')
+        
+        if not all([stage_id, session_id]):
+            return Response(
+                {'error': 'stage_id and session_id are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            stage = PriceStage.objects.get(
+                id=stage_id,
+                tenant=request.user.tenant
+            )
+        except PriceStage.DoesNotExist:
+            return Response(
+                {'error': 'Stage not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Validate purchase
+        is_valid, validation_result = stage_automation.validate_concurrent_purchase(
+            stage, quantity, session_id
+        )
+        
+        if is_valid:
+            return Response({
+                'valid': True,
+                'reservation': validation_result
+            })
+        else:
+            return Response({
+                'valid': False,
+                'error': validation_result
+            }, status=status.HTTP_409_CONFLICT)
+    
+    @action(detail=False, methods=['post'])
+    def confirm_purchase(self, request):
+        """Confirm a stage purchase and update tracking."""
+        stage_id = request.data.get('stage_id')
+        quantity = request.data.get('quantity', 1)
+        session_id = request.data.get('session_id')
+        revenue_amount = request.data.get('revenue_amount')
+        
+        if not all([stage_id, session_id]):
+            return Response(
+                {'error': 'stage_id and session_id are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            stage = PriceStage.objects.get(
+                id=stage_id,
+                tenant=request.user.tenant
+            )
+        except PriceStage.DoesNotExist:
+            return Response(
+                {'error': 'Stage not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Convert revenue amount to Decimal if provided
+        if revenue_amount:
+            try:
+                revenue_amount = Decimal(str(revenue_amount))
+            except (ValueError, TypeError):
+                return Response(
+                    {'error': 'Invalid revenue_amount format'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        # Confirm purchase
+        success = stage_automation.confirm_stage_purchase(
+            stage, quantity, session_id, revenue_amount
+        )
+        
+        if success:
+            return Response({
+                'confirmed': True,
+                'stage_id': str(stage.id),
+                'quantity': quantity,
+                'session_id': session_id
+            })
+        else:
+            return Response(
+                {'error': 'Failed to confirm purchase'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['get'])
+    def transition_history(self, request):
+        """Get transition history for an event or zone."""
+        event_id = request.query_params.get('event_id')
+        zone_id = request.query_params.get('zone_id')
+        days = int(request.query_params.get('days', 30))
+        
+        if not event_id:
+            return Response(
+                {'error': 'event_id parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            event = Event.objects.get(
+                id=event_id,
+                tenant=request.user.tenant
+            )
+        except Event.DoesNotExist:
+            return Response(
+                {'error': 'Event not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        zone = None
+        if zone_id:
+            try:
+                zone = Zone.objects.get(
+                    id=zone_id,
+                    event=event
+                )
+            except Zone.DoesNotExist:
+                return Response(
+                    {'error': 'Zone not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        
+        # Get transition history
+        since_date = timezone.now() - timezone.timedelta(days=days)
+        
+        queryset = StageTransition.objects.filter(
+            event=event,
+            transition_at__gte=since_date
+        ).order_by('-transition_at')
+        
+        if zone:
+            queryset = queryset.filter(zone=zone)
+        
+        transitions = list(queryset[:50])  # Limit to 50 most recent
+        
+        response_data = {
+            'event_id': str(event.id),
+            'zone_id': str(zone.id) if zone else None,
+            'days': days,
+            'total_transitions': len(transitions),
+            'transitions': [
+                {
+                    'id': str(trans.id),
+                    'from_stage': {
+                        'id': str(trans.stage_from.id),
+                        'name': trans.stage_from.name,
+                    },
+                    'to_stage': {
+                        'id': str(trans.stage_to.id),
+                        'name': trans.stage_to.name,
+                    } if trans.stage_to else None,
+                    'trigger_reason': trans.trigger_reason,
+                    'sold_quantity': trans.sold_quantity,
+                    'zone': trans.zone.name if trans.zone else 'Event-wide',
+                    'transition_at': trans.transition_at.isoformat(),
+                    'metadata': trans.metadata,
+                }
+                for trans in transitions
+            ]
+        }
+        
+        return Response(response_data)
+    
+    @action(detail=False, methods=['get'])
+    def health_check(self, request):
+        """Health check for the stage automation system."""
+        health_status = stage_automation.health_check()
+        
+        http_status = status.HTTP_200_OK
+        if health_status.get('status') == 'error':
+            http_status = status.HTTP_500_INTERNAL_SERVER_ERROR
+        elif health_status.get('status') == 'degraded':
+            http_status = status.HTTP_206_PARTIAL_CONTENT
+        
+        return Response(health_status, status=http_status)

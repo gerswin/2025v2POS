@@ -1,0 +1,412 @@
+{% extends "reports/base.html" %}
+{% load static %}
+
+{% block title %}Reportes de Ventas - Venezuelan POS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">Reportes de Ventas</h1>
+                    <p class="text-muted">Gestiona y visualiza todos los reportes de ventas</p>
+                </div>
+                <div>
+                    <a href="{% url 'reports:sales_report_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Nuevo Reporte
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="filter-panel">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        {{ filter_form.search.label_tag }}
+                        {{ filter_form.search }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter_form.report_type.label_tag }}
+                        {{ filter_form.report_type }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter_form.status.label_tag }}
+                        {{ filter_form.status }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter_form.date_from.label_tag }}
+                        {{ filter_form.date_from }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter_form.date_to.label_tag }}
+                        {{ filter_form.date_to }}
+                    </div>
+                    <div class="col-md-1">
+                        <label>&nbsp;</label>
+                        <div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value">{{ total_reports }}</div>
+                <div class="metric-label">
+                    <i class="fas fa-file-alt"></i> Total de Reportes
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card revenue">
+                <div class="metric-value">
+                    {% with completed=reports|length %}
+                        {{ completed }}
+                    {% endwith %}
+                </div>
+                <div class="metric-label">
+                    <i class="fas fa-check-circle"></i> En Esta Página
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card transactions">
+                <div class="metric-value" id="completed-count">-</div>
+                <div class="metric-label">
+                    <i class="fas fa-check"></i> Completados
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card tickets">
+                <div class="metric-value" id="pending-count">-</div>
+                <div class="metric-label">
+                    <i class="fas fa-clock"></i> Pendientes
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports List -->
+    <div class="row">
+        <div class="col-12">
+            {% if reports %}
+                <div class="chart-container">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list"></i>
+                            Lista de Reportes
+                        </h5>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleView('card')">
+                                <i class="fas fa-th-large"></i> Tarjetas
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm active" onclick="toggleView('table')">
+                                <i class="fas fa-table"></i> Tabla
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Table View -->
+                    <div id="table-view">
+                        <div class="table-responsive">
+                            <table class="table table-hover data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Tipo</th>
+                                        <th>Estado</th>
+                                        <th>Período</th>
+                                        <th>Generado por</th>
+                                        <th>Fecha de Creación</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for report in reports %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ report.name }}</strong>
+                                            {% if report.detailed_data.base_statistics.total_revenue %}
+                                                <br>
+                                                <small class="text-success">
+                                                    ${{ report.detailed_data.base_statistics.total_revenue|floatformat:2 }}
+                                                </small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">
+                                                {{ report.get_report_type_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="status-badge status-{{ report.status }}">
+                                                {{ report.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if report.period_start and report.period_end %}
+                                                <small>
+                                                    {{ report.period_start|date:"d/m/Y" }} - 
+                                                    {{ report.period_end|date:"d/m/Y" }}
+                                                </small>
+                                                <br>
+                                                <small class="text-muted">
+                                                    {{ report.duration_display }}
+                                                </small>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if report.generated_by %}
+                                                {{ report.generated_by.get_full_name|default:report.generated_by.username }}
+                                            {% else %}
+                                                <span class="text-muted">Sistema</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ report.created_at|date:"d/m/Y H:i" }}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'reports:sales_report_detail' report.id %}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                {% if report.is_completed %}
+                                                    <button class="btn btn-sm btn-outline-success" 
+                                                            onclick="exportReport('{{ report.id }}', 'csv')">
+                                                        <i class="fas fa-download"></i>
+                                                    </button>
+                                                {% endif %}
+                                                {% if report.status == 'failed' %}
+                                                    <button class="btn btn-sm btn-outline-warning" 
+                                                            onclick="retryReport('{{ report.id }}')">
+                                                        <i class="fas fa-redo"></i>
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Card View -->
+                    <div id="card-view" style="display: none;">
+                        <div class="row">
+                            {% for report in reports %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="report-card">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="mb-0">{{ report.name|truncatechars:30 }}</h6>
+                                        <span class="status-badge status-{{ report.status }}">
+                                            {{ report.get_status_display }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <span class="badge bg-info">{{ report.get_report_type_display }}</span>
+                                    </div>
+                                    
+                                    {% if report.detailed_data.base_statistics %}
+                                        <div class="row text-center mb-2">
+                                            <div class="col-4">
+                                                <small class="text-muted d-block">Ingresos</small>
+                                                <strong class="text-success">
+                                                    ${{ report.detailed_data.base_statistics.total_revenue|floatformat:0 }}
+                                                </strong>
+                                            </div>
+                                            <div class="col-4">
+                                                <small class="text-muted d-block">Transacciones</small>
+                                                <strong>{{ report.detailed_data.base_statistics.total_transactions }}</strong>
+                                            </div>
+                                            <div class="col-4">
+                                                <small class="text-muted d-block">Tickets</small>
+                                                <strong>{{ report.detailed_data.base_statistics.total_tickets }}</strong>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            {{ report.created_at|date:"d/m/Y H:i" }}
+                                        </small>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'reports:sales_report_detail' report.id %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                Ver
+                                            </a>
+                                            {% if report.is_completed %}
+                                                <button class="btn btn-sm btn-outline-success" 
+                                                        onclick="exportReport('{{ report.id }}', 'csv')">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                    <nav aria-label="Paginación de reportes" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.report_type %}&report_type={{ request.GET.report_type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.report_type %}&report_type={{ request.GET.report_type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.report_type %}&report_type={{ request.GET.report_type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.report_type %}&report_type={{ request.GET.report_type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.report_type %}&report_type={{ request.GET.report_type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+
+            {% else %}
+                <div class="chart-container">
+                    <div class="text-center py-5">
+                        <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">No hay reportes disponibles</h4>
+                        <p class="text-muted mb-4">
+                            {% if request.GET %}
+                                No se encontraron reportes que coincidan con los filtros aplicados.
+                            {% else %}
+                                Aún no has generado ningún reporte de ventas.
+                            {% endif %}
+                        </p>
+                        <div>
+                            {% if request.GET %}
+                                <a href="{% url 'reports:sales_reports_list' %}" class="btn btn-outline-primary me-2">
+                                    <i class="fas fa-times"></i> Limpiar Filtros
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'reports:sales_report_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Crear Primer Reporte
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+$(document).ready(function() {
+    // Calculate status counts
+    let completedCount = 0;
+    let pendingCount = 0;
+    
+    $('.status-badge').each(function() {
+        if ($(this).hasClass('status-completed')) {
+            completedCount++;
+        } else if ($(this).hasClass('status-generating')) {
+            pendingCount++;
+        }
+    });
+    
+    $('#completed-count').text(completedCount);
+    $('#pending-count').text(pendingCount);
+});
+
+function toggleView(viewType) {
+    if (viewType === 'card') {
+        $('#table-view').hide();
+        $('#card-view').show();
+        $('.btn-group button').removeClass('active');
+        $('button[onclick="toggleView(\'card\')"]').addClass('active');
+    } else {
+        $('#card-view').hide();
+        $('#table-view').show();
+        $('.btn-group button').removeClass('active');
+        $('button[onclick="toggleView(\'table\')"]').addClass('active');
+    }
+}
+
+function exportReport(reportId, format) {
+    const url = `/api/v1/reports/sales-reports/${reportId}/export/`;
+    
+    $.post(url, {
+        format: format,
+        include_details: true,
+        csrfmiddlewaretoken: $('[name=csrfmiddlewaretoken]').val()
+    })
+    .done(function(data, textStatus, xhr) {
+        // Create download link
+        const blob = new Blob([xhr.responseText], { type: xhr.getResponseHeader('content-type') });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `reporte_${reportId}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    })
+    .fail(function() {
+        alert('Error al exportar el reporte');
+    });
+}
+
+function retryReport(reportId) {
+    if (confirm('¿Deseas reintentar la generación de este reporte?')) {
+        // Implementation for retry functionality
+        alert('Funcionalidad de reintento en desarrollo');
+    }
+}
+</script>
+{% endblock %}

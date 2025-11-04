@@ -1,0 +1,234 @@
+{% extends "tickets/base.html" %}
+{% load static %}
+
+{% block title %}Ticket {{ ticket.ticket_number }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Ticket {{ ticket.ticket_number }}</h1>
+                <div>
+                    <a href="{% url 'tickets:dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Ticket Information -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Ticket Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Ticket Number:</strong> {{ ticket.ticket_number }}</p>
+                            <p><strong>Type:</strong> {{ ticket.get_ticket_type_display }}</p>
+                            <p><strong>Status:</strong> 
+                                <span class="ticket-status status-{{ ticket.status }}">
+                                    {{ ticket.get_status_display }}
+                                </span>
+                            </p>
+                            <p><strong>Usage:</strong> {{ ticket.usage_count }}/{{ ticket.max_usage_count }}</p>
+                            <p><strong>Remaining Uses:</strong> {{ ticket.remaining_uses }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Price:</strong> {{ ticket.currency }} {{ ticket.total_price }}</p>
+                            <p><strong>Valid From:</strong> {{ ticket.valid_from|date:"M d, Y g:i A" }}</p>
+                            <p><strong>Valid Until:</strong> {{ ticket.valid_until|date:"M d, Y g:i A" }}</p>
+                            <p><strong>Created:</strong> {{ ticket.created_at|date:"M d, Y g:i A" }}</p>
+                            {% if ticket.first_used_at %}
+                            <p><strong>First Used:</strong> {{ ticket.first_used_at|date:"M d, Y g:i A" }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Customer Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Customer Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Name:</strong> {{ ticket.customer.full_name }}</p>
+                            <p><strong>Email:</strong> {{ ticket.customer.email|default:"Not provided" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Phone:</strong> {{ ticket.customer.phone|default:"Not provided" }}</p>
+                            <p><strong>ID:</strong> {{ ticket.customer.identification|default:"Not provided" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Event Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Event Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Event:</strong> {{ ticket.event.name }}</p>
+                            <p><strong>Venue:</strong> {{ ticket.event.venue.name }}</p>
+                            <p><strong>Zone:</strong> {{ ticket.zone.name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Date:</strong> {{ ticket.event.start_date|date:"F d, Y" }}</p>
+                            <p><strong>Time:</strong> {{ ticket.event.start_date|time:"g:i A" }}</p>
+                            {% if ticket.seat %}
+                            <p><strong>Seat:</strong> {{ ticket.seat.seat_label }}</p>
+                            {% else %}
+                            <p><strong>Type:</strong> General Admission</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Validation History -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Validation History</h5>
+                </div>
+                <div class="card-body">
+                    {% if validation_logs %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date/Time</th>
+                                    <th>Result</th>
+                                    <th>Method</th>
+                                    <th>System</th>
+                                    <th>Location</th>
+                                    <th>Usage After</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in validation_logs %}
+                                <tr>
+                                    <td>{{ log.validated_at|date:"M d, Y g:i A" }}</td>
+                                    <td>
+                                        {% if log.validation_result %}
+                                        <span class="badge bg-success">Success</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Failed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ log.get_validation_method_display }}</td>
+                                    <td>{{ log.validation_system_id }}</td>
+                                    <td>{{ log.validation_location|default:"-" }}</td>
+                                    <td>{{ log.usage_count_after }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No validation attempts recorded for this ticket.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Actions and QR Code -->
+        <div class="col-md-4">
+            <!-- QR Code -->
+            {% if ticket.qr_code_image %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">QR Code</h5>
+                </div>
+                <div class="card-body">
+                    <div class="qr-code-display">
+                        <img src="{{ ticket.qr_code_image.url }}" alt="QR Code" class="img-fluid" style="max-width: 200px;">
+                        <p class="mt-2 mb-0 small text-muted">Scan this code for validation</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if ticket.qr_code_image %}
+                        <a href="{% url 'tickets:download_pdf' ticket.id %}" class="btn btn-primary">
+                            <i class="fas fa-download"></i> Download PDF
+                        </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'tickets:resend_ticket' ticket.id %}" class="btn btn-info">
+                            <i class="fas fa-paper-plane"></i> Resend to Customer
+                        </a>
+                        
+                        {% if can_regenerate_qr %}
+                        <form method="post" action="{% url 'tickets:regenerate_qr_code' ticket.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-warning w-100" 
+                                    onclick="return confirm('Are you sure you want to regenerate the QR code? This will invalidate the current QR code.')">
+                                <i class="fas fa-sync"></i> Regenerate QR Code
+                            </button>
+                        </form>
+                        {% endif %}
+                        
+                        {% if ticket.can_be_used %}
+                        <button type="button" class="btn btn-success" onclick="validateThisTicket()">
+                            <i class="fas fa-check"></i> Validate Now
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Transaction Information -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Transaction Details</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Transaction:</strong> {{ ticket.transaction.fiscal_series|default:"Pending" }}</p>
+                    <p><strong>Total Amount:</strong> {{ ticket.transaction.currency }} {{ ticket.transaction.total_amount }}</p>
+                    <p><strong>Status:</strong> {{ ticket.transaction.get_status_display }}</p>
+                    <p><strong>Date:</strong> {{ ticket.transaction.created_at|date:"M d, Y g:i A" }}</p>
+                    {% if ticket.transaction.completed_at %}
+                    <p><strong>Completed:</strong> {{ ticket.transaction.completed_at|date:"M d, Y g:i A" }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function validateThisTicket() {
+    if (confirm('Validate this ticket now? This will mark it as used.')) {
+        validateTicketAjax('{{ ticket.ticket_number }}', 'validate_use');
+    }
+}
+
+// Display validation result in a modal or alert
+function displayValidationResult(result) {
+    if (result.valid) {
+        alert(`Ticket validated successfully!\nCustomer: ${result.customer_name}\nUsage: ${result.usage_count}/${result.max_usage}`);
+        // Reload page to show updated status
+        setTimeout(() => window.location.reload(), 1000);
+    } else {
+        alert(`Validation failed: ${result.reason || result.error}`);
+    }
+}
+</script>
+{% endblock %}

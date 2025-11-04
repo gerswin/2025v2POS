@@ -14,10 +14,13 @@
         {% trans "Pricing Dashboard" %}
     </h1>
     <div class="btn-group">
-        <a href="{% url 'pricing_web:price_calculation' %}" class="btn btn-primary">
+        <a href="{% url 'pricing_web:stage_transition_monitoring' %}" class="btn btn-primary">
+            <i class="bi bi-activity"></i> {% trans "Live Monitoring" %}
+        </a>
+        <a href="{% url 'pricing_web:price_calculation' %}" class="btn btn-outline-primary">
             <i class="bi bi-calculator"></i> {% trans "Price Calculator" %}
         </a>
-        <a href="{% url 'pricing_web:price_history' %}" class="btn btn-outline-primary">
+        <a href="{% url 'pricing_web:price_history' %}" class="btn btn-outline-secondary">
             <i class="bi bi-clock-history"></i> {% trans "Price History" %}
         </a>
     </div>
@@ -51,6 +54,20 @@
                 </a>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Hybrid Pricing System Alert -->
+<div class="alert alert-info mb-4">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-lightbulb-fill me-3" style="font-size: 1.5rem;"></i>
+        <div>
+            <h5 class="alert-heading mb-1">{% trans "Hybrid Pricing System Active" %}</h5>
+            <p class="mb-0">
+                {% trans "The system supports both date-based and quantity-based stage transitions with real-time monitoring. Stages automatically transition when either date expires OR quantity limit is reached." %}
+                <a href="{% url 'pricing_web:stage_transition_monitoring' %}" class="alert-link">{% trans "View live monitoring" %}</a>
+            </p>
+        </div>
     </div>
 </div>
 
@@ -107,17 +124,38 @@
                                 <h6 class="mb-1">{{ stage.event.name }}</h6>
                                 <p class="mb-1">
                                     <strong>{{ stage.name }}</strong>
-                                    <span class="badge bg-primary ms-2">+{{ stage.percentage_markup }}%</span>
+                                    {% if stage.modifier_type == 'percentage' %}
+                                        <span class="badge bg-primary ms-2">{{ stage.modifier_value|floatformat:1 }}%</span>
+                                    {% else %}
+                                        <span class="badge bg-primary ms-2">${{ stage.modifier_value }}</span>
+                                    {% endif %}
+                                    {% if stage.scope == 'zone' and stage.zone %}
+                                        <span class="badge bg-info ms-1">{{ stage.zone.name }}</span>
+                                    {% endif %}
                                 </p>
                                 <small class="text-muted">
                                     {% trans "Until" %} {{ stage.end_date|date:"M d, Y H:i" }}
+                                    {% if stage.quantity_limit %}
+                                        | {{ stage.get_sold_quantity }}/{{ stage.quantity_limit }} {% trans "sold" %}
+                                    {% endif %}
                                 </small>
+                                {% if stage.auto_transition %}
+                                    <br><small class="text-success">
+                                        <i class="bi bi-gear"></i> {% trans "Auto-transition enabled" %}
+                                    </small>
+                                {% endif %}
                             </div>
                             <div class="text-end">
-                                <a href="{% url 'pricing_web:price_stage_list' event_id=stage.event.id %}" 
-                                   class="btn btn-sm btn-outline-primary">
-                                    {% trans "Manage" %}
-                                </a>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'pricing_web:price_stage_list' event_id=stage.event.id %}" 
+                                       class="btn btn-outline-primary">
+                                        {% trans "Manage" %}
+                                    </a>
+                                    <a href="{% url 'pricing_web:stage_performance_analytics' event_id=stage.event.id %}" 
+                                       class="btn btn-outline-info">
+                                        <i class="bi bi-graph-up"></i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                         {% endfor %}
@@ -291,15 +329,15 @@
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-3">
-                        <a href="{% url 'pricing_web:price_calculation' %}" class="btn btn-outline-primary w-100">
-                            <i class="bi bi-calculator d-block mb-2" style="font-size: 2rem;"></i>
-                            {% trans "Calculate Prices" %}
+                        <a href="{% url 'pricing_web:stage_transition_monitoring' %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-activity d-block mb-2" style="font-size: 2rem;"></i>
+                            {% trans "Live Monitoring" %}
                         </a>
                     </div>
                     <div class="col-md-3">
-                        <a href="{% url 'events:event_list' %}" class="btn btn-outline-success w-100">
-                            <i class="bi bi-plus-circle d-block mb-2" style="font-size: 2rem;"></i>
-                            {% trans "Manage Events" %}
+                        <a href="{% url 'pricing_web:price_calculation' %}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-calculator d-block mb-2" style="font-size: 2rem;"></i>
+                            {% trans "Calculate Prices" %}
                         </a>
                     </div>
                     <div class="col-md-3">
@@ -309,9 +347,9 @@
                         </a>
                     </div>
                     <div class="col-md-3">
-                        <a href="#" class="btn btn-outline-warning w-100">
+                        <a href="{% url 'events:event_list' %}" class="btn btn-outline-warning w-100">
                             <i class="bi bi-gear d-block mb-2" style="font-size: 2rem;"></i>
-                            {% trans "Settings" %}
+                            {% trans "Manage Events" %}
                         </a>
                     </div>
                 </div>

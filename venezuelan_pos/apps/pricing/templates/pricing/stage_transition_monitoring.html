@@ -1,0 +1,478 @@
+{% extends 'events/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Stage Transition Monitoring" %} - Tiquemax{% endblock %}
+
+{% block breadcrumb_items %}
+    <li class="breadcrumb-item"><a href="{% url 'pricing_web:dashboard' %}">{% trans "Pricing" %}</a></li>
+    <li class="breadcrumb-item active">{% trans "Stage Monitoring" %}</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="bi bi-activity me-2"></i>
+        {% trans "Stage Transition Monitoring" %}
+    </h1>
+    <div class="btn-group">
+        <button type="button" class="btn btn-outline-primary" onclick="refreshData()">
+            <i class="bi bi-arrow-clockwise"></i> {% trans "Refresh" %}
+        </button>
+        <a href="{% url 'pricing_web:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Dashboard" %}
+        </a>
+    </div>
+</div>
+
+<!-- Real-time Status Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card border-primary">
+            <div class="card-body text-center">
+                <div class="stats-number text-primary">{{ stats.current_stages_count }}</div>
+                <div>{% trans "Active Stages" %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card border-warning">
+            <div class="card-body text-center">
+                <div class="stats-number text-warning">{{ stats.upcoming_transitions_count }}</div>
+                <div>{% trans "Pending Transitions" %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card border-info">
+            <div class="card-body text-center">
+                <div class="stats-number text-info">{{ stats.stages_with_quantity_limits }}</div>
+                <div>{% trans "Quantity Limited" %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card border-success">
+            <div class="card-body text-center">
+                <div class="stats-number text-success">{{ stats.auto_transition_stages }}</div>
+                <div>{% trans "Auto-Transition" %}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Transitions Alert -->
+{% if upcoming_transitions %}
+<div class="alert alert-warning">
+    <h5 class="alert-heading">
+        <i class="bi bi-exclamation-triangle me-2"></i>{% trans "Imminent Transitions" %}
+    </h5>
+    <p>{% trans "The following stages are about to transition:" %}</p>
+    <ul class="mb-0">
+        {% for transition in upcoming_transitions %}
+        <li>
+            <strong>{{ transition.event_name }}</strong> - {{ transition.scope_display }}: 
+            <strong>{{ transition.name }}</strong>
+            {% if transition.transition_trigger == 'date_expired' %}
+                ({% trans "Date expires in" %} {{ transition.hours_remaining }} {% trans "hours" %})
+            {% elif transition.transition_trigger == 'quantity_reached' %}
+                ({{ transition.remaining_quantity }} {% trans "tickets remaining" %})
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<div class="row">
+    <!-- Current Active Stages -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-play-circle me-2"></i>{% trans "Current Active Stages" %}</span>
+                <span class="badge bg-primary">{{ current_stages|length }}</span>
+            </div>
+            <div class="card-body">
+                {% if current_stages %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Event & Scope" %}</th>
+                                    <th>{% trans "Stage" %}</th>
+                                    <th>{% trans "Progress" %}</th>
+                                    <th>{% trans "Time Remaining" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th class="text-center">{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody id="currentStagesTable">
+                                {% for stage in current_stages %}
+                                <tr data-stage-id="{{ stage.id }}">
+                                    <td>
+                                        <strong>{{ stage.event_name }}</strong>
+                                        <br><small class="text-muted">{{ stage.scope_display }}</small>
+                                    </td>
+                                    <td>
+                                        <strong>{{ stage.name }}</strong>
+                                        <br>
+                                        {% if stage.modifier_type == 'percentage' %}
+                                            <span class="badge bg-primary">{{ stage.modifier_value|floatformat:1 }}%</span>
+                                        {% else %}
+                                            <span class="badge bg-primary">${{ stage.modifier_value }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if stage.quantity_limit %}
+                                            <div class="progress mb-1" style="height: 20px;">
+                                                <div class="progress-bar" 
+                                                     role="progressbar" 
+                                                     style="width: {{ stage.quantity_percentage_sold }}%"
+                                                     aria-valuenow="{{ stage.quantity_percentage_sold }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                    {{ stage.quantity_percentage_sold|floatformat:1 }}%
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">
+                                                {{ stage.sold_quantity }}/{{ stage.quantity_limit }} {% trans "tickets sold" %}
+                                            </small>
+                                        {% else %}
+                                            <span class="text-muted">{% trans "No quantity limit" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="stage-time-remaining" data-end-date="{{ stage.end_date }}">
+                                            {% if stage.days_remaining > 0 %}
+                                                <span class="badge bg-success">{{ stage.days_remaining }}d {{ stage.hours_remaining|add:"-24"|floatformat:0 }}h</span>
+                                            {% elif stage.hours_remaining > 0 %}
+                                                <span class="badge bg-warning">{{ stage.hours_remaining }}h</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">{% trans "Expired" %}</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if stage.should_transition %}
+                                            <span class="badge bg-warning">
+                                                <i class="bi bi-exclamation-triangle"></i> {% trans "Ready to Transition" %}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle"></i> {% trans "Active" %}
+                                            </span>
+                                        {% endif %}
+                                        {% if stage.auto_transition %}
+                                            <br><small class="text-muted">{% trans "Auto-transition enabled" %}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-info" 
+                                                    onclick="viewStageDetails('{{ stage.id }}')"
+                                                    title="{% trans 'View Details' %}">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            {% if stage.event_name %}
+                                                <a href="{% url 'pricing_web:stage_performance_analytics' event_id=stage.event_id %}" 
+                                                   class="btn btn-outline-primary" 
+                                                   title="{% trans 'Analytics' %}">
+                                                    <i class="bi bi-graph-up"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-play-circle display-1"></i>
+                        <h4 class="mt-3">{% trans "No Active Stages" %}</h4>
+                        <p>{% trans "There are no price stages currently active." %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transitions -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-arrow-right-circle me-2"></i>{% trans "Recent Transitions" %}</span>
+                <span class="badge bg-info">{{ recent_transitions|length }}</span>
+            </div>
+            <div class="card-body">
+                {% if recent_transitions %}
+                    <div class="timeline">
+                        {% for transition in recent_transitions %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-{% if transition.trigger_reason == 'date_expired' %}warning{% elif transition.trigger_reason == 'quantity_reached' %}info{% else %}secondary{% endif %}"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">{{ transition.event.name }}</h6>
+                                <p class="mb-1">
+                                    <strong>{{ transition.stage_from.name }}</strong> 
+                                    <i class="bi bi-arrow-right"></i> 
+                                    <strong>{% if transition.stage_to %}{{ transition.stage_to.name }}{% else %}{% trans "Final Stage" %}{% endif %}</strong>
+                                </p>
+                                <small class="text-muted">
+                                    {% if transition.zone %}{{ transition.zone.name }} - {% endif %}
+                                    {{ transition.transition_at|date:"M d, H:i" }}
+                                    <br>
+                                    <span class="badge badge-sm bg-{% if transition.trigger_reason == 'date_expired' %}warning{% elif transition.trigger_reason == 'quantity_reached' %}info{% else %}secondary{% endif %}">
+                                        {{ transition.get_trigger_reason_display }}
+                                    </span>
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-arrow-right-circle display-4"></i>
+                        <p class="mt-2">{% trans "No recent transitions" %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stage Details Modal -->
+<div class="modal fade" id="stageDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% trans "Stage Details" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="stageDetailsContent">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">{% trans "Loading..." %}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stats-card {
+    transition: transform 0.2s;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -35px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    border-left: 3px solid #dee2e6;
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+.badge-sm {
+    font-size: 0.7em;
+}
+
+.stage-time-remaining {
+    font-family: monospace;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let refreshInterval;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Start auto-refresh every 30 seconds
+    refreshInterval = setInterval(refreshData, 30000);
+    
+    // Update time remaining counters every second
+    setInterval(updateTimeCounters, 1000);
+});
+
+function refreshData() {
+    // Reload the page to get fresh data
+    location.reload();
+}
+
+function updateTimeCounters() {
+    const timeElements = document.querySelectorAll('.stage-time-remaining');
+    const now = new Date();
+    
+    timeElements.forEach(element => {
+        const endDate = new Date(element.dataset.endDate);
+        const timeDiff = endDate - now;
+        
+        if (timeDiff > 0) {
+            const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            
+            let badgeClass = 'bg-success';
+            let timeText = '';
+            
+            if (days > 0) {
+                timeText = `${days}d ${hours}h`;
+                badgeClass = days > 1 ? 'bg-success' : 'bg-warning';
+            } else if (hours > 0) {
+                timeText = `${hours}h`;
+                badgeClass = hours > 6 ? 'bg-warning' : 'bg-danger';
+            } else {
+                const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                timeText = `${minutes}m`;
+                badgeClass = 'bg-danger';
+            }
+            
+            element.innerHTML = `<span class="badge ${badgeClass}">${timeText}</span>`;
+        } else {
+            element.innerHTML = '<span class="badge bg-danger">{% trans "Expired" %}</span>';
+        }
+    });
+}
+
+function viewStageDetails(stageId) {
+    const modal = new bootstrap.Modal(document.getElementById('stageDetailsModal'));
+    const content = document.getElementById('stageDetailsContent');
+    
+    // Show loading spinner
+    content.innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">{% trans "Loading..." %}</span>
+            </div>
+        </div>
+    `;
+    
+    modal.show();
+    
+    // Fetch stage details
+    fetch(`{% url 'pricing_web:ajax_get_stage_status' %}?stage_id=${stageId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const status = data.status;
+                content.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>{% trans "Basic Information" %}</h6>
+                            <table class="table table-sm">
+                                <tr><td><strong>{% trans "Name:" %}</strong></td><td>${status.name}</td></tr>
+                                <tr><td><strong>{% trans "Scope:" %}</strong></td><td>${status.scope}</td></tr>
+                                <tr><td><strong>{% trans "Modifier:" %}</strong></td><td>${status.modifier_value}${status.modifier_type === 'percentage' ? '%' : '$'}</td></tr>
+                                <tr><td><strong>{% trans "Auto Transition:" %}</strong></td><td>${status.auto_transition ? '{% trans "Yes" %}' : '{% trans "No" %}'}</td></tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Status Information" %}</h6>
+                            <table class="table table-sm">
+                                <tr><td><strong>{% trans "Current:" %}</strong></td><td>${status.is_current ? '{% trans "Yes" %}' : '{% trans "No" %}'}</td></tr>
+                                <tr><td><strong>{% trans "Days Remaining:" %}</strong></td><td>${status.days_remaining}</td></tr>
+                                <tr><td><strong>{% trans "Hours Remaining:" %}</strong></td><td>${status.hours_remaining}</td></tr>
+                                <tr><td><strong>{% trans "Should Transition:" %}</strong></td><td>${status.should_transition ? '{% trans "Yes" %}' : '{% trans "No" %}'}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    ${status.quantity_limit ? `
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>{% trans "Quantity Information" %}</h6>
+                            <div class="progress mb-2" style="height: 25px;">
+                                <div class="progress-bar" 
+                                     role="progressbar" 
+                                     style="width: ${status.quantity_percentage_sold}%">
+                                    ${status.quantity_percentage_sold.toFixed(1)}%
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 text-center">
+                                    <div class="h5 mb-0">${status.sold_quantity}</div>
+                                    <small class="text-muted">{% trans "Sold" %}</small>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <div class="h5 mb-0">${status.remaining_quantity}</div>
+                                    <small class="text-muted">{% trans "Remaining" %}</small>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <div class="h5 mb-0">${status.quantity_limit}</div>
+                                    <small class="text-muted">{% trans "Limit" %}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    ${status.next_stage ? `
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>{% trans "Next Stage" %}</h6>
+                            <div class="alert alert-info">
+                                <strong>${status.next_stage.name}</strong> - 
+                                ${status.next_stage.modifier_value}${status.next_stage.modifier_type === 'percentage' ? '%' : '$'}
+                                <br><small>{% trans "Starts:" %} ${new Date(status.next_stage.start_date).toLocaleString()}</small>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        {% trans "Error loading stage details:" %} ${data.error}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            content.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    {% trans "Error loading stage details:" %} ${error.message}
+                </div>
+            `;
+        });
+}
+
+// Clean up interval when page unloads
+window.addEventListener('beforeunload', function() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+});
+</script>
+{% endblock %}

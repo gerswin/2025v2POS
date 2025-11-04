@@ -9,7 +9,8 @@ from .views import (
     PriceStageViewSet,
     RowPricingViewSet,
     PriceHistoryViewSet,
-    PriceCalculationViewSet
+    PriceCalculationViewSet,
+    StageTransitionViewSet
 )
 
 # Create router for API endpoints
@@ -18,6 +19,7 @@ router.register(r'stages', PriceStageViewSet, basename='price-stages')
 router.register(r'row-pricing', RowPricingViewSet, basename='row-pricing')
 router.register(r'history', PriceHistoryViewSet, basename='price-history')
 router.register(r'calculations', PriceCalculationViewSet, basename='price-calculations')
+router.register(r'transitions', StageTransitionViewSet, basename='stage-transitions')
 
 app_name = 'pricing'
 

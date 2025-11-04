@@ -1,0 +1,183 @@
+{% extends "reports/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Report Schedules" %} - Venezuelan POS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-1">{% trans "Automated Report Schedules" %}</h1>
+                <p class="text-muted mb-0">
+                    {% trans "Keep stakeholders informed by delivering reports automatically." %}
+                </p>
+            </div>
+            <a href="{% url 'reports:report_schedule_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>{% trans "New Schedule" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="search" class="form-label fw-semibold">{% trans "Search" %}</label>
+                    <input type="text" name="search" id="search" class="form-control"
+                           value="{{ request.GET.search|default_if_none:'' }}" placeholder="{% trans "Name or description" %}">
+                </div>
+                <div class="col-md-3">
+                    <label for="frequency" class="form-label fw-semibold">{% trans "Frequency" %}</label>
+                    <select name="frequency" id="frequency" class="form-select">
+                        <option value="">{% trans "Any frequency" %}</option>
+                        <option value="daily" {% if request.GET.frequency == 'daily' %}selected{% endif %}>{% trans "Daily" %}</option>
+                        <option value="weekly" {% if request.GET.frequency == 'weekly' %}selected{% endif %}>{% trans "Weekly" %}</option>
+                        <option value="monthly" {% if request.GET.frequency == 'monthly' %}selected{% endif %}>{% trans "Monthly" %}</option>
+                        <option value="quarterly" {% if request.GET.frequency == 'quarterly' %}selected{% endif %}>{% trans "Quarterly" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label fw-semibold">{% trans "Status" %}</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">{% trans "Any status" %}</option>
+                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>{% trans "Active" %}</option>
+                        <option value="paused" {% if request.GET.status == 'paused' %}selected{% endif %}>{% trans "Paused" %}</option>
+                        <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>{% trans "Inactive" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-filter me-2"></i>{% trans "Filter" %}
+                    </button>
+                    <a href="{% url 'reports:report_schedules_list' %}" class="btn btn-outline-secondary" title="{% trans 'Clear filters' %}">
+                        <i class="fas fa-sync-alt"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if page_obj and page_obj.object_list %}
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Name" %}</th>
+                            <th>{% trans "Report Type" %}</th>
+                            <th>{% trans "Frequency" %}</th>
+                            <th>{% trans "Next Run" %}</th>
+                            <th>{% trans "Last Run" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for schedule in page_obj %}
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">{{ schedule.name }}</div>
+                                {% if schedule.description %}
+                                    <small class="text-muted">{{ schedule.description|truncatechars:80 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ schedule.get_report_type_display }}</td>
+                            <td>{{ schedule.get_frequency_display }}</td>
+                            <td>
+                                <div class="fw-semibold">{{ schedule.next_run|date:"M d, Y H:i" }}</div>
+                                {% if schedule.next_run %}
+                                    <small class="text-muted">
+                                        {% trans "In" %} {{ schedule.next_run|timesince }}
+                                    </small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if schedule.last_run %}
+                                    {{ schedule.last_run|date:"M d, Y H:i" }}
+                                {% else %}
+                                    <span class="text-muted">{% trans "Never" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ schedule.status }}">
+                                    {{ schedule.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'reports:report_schedule_detail' schedule.id %}" class="btn btn-outline-primary" title="{% trans 'View details' %}">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'reports:report_schedule_edit' schedule.id %}" class="btn btn-outline-secondary" title="{% trans 'Edit' %}">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form method="post" action="{% url 'reports:report_schedule_execute' schedule.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-success" title="{% trans 'Run now' %}">
+                                            <i class="fas fa-play"></i>
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{% url 'reports:report_schedule_toggle_status' schedule.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-warning" title="{% trans 'Toggle status' %}">
+                                            <i class="fas fa-toggle-on"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-white">
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="{% trans 'Schedules pagination' %}">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.frequency %}&frequency={{ request.GET.frequency }}{% endif %}">
+                                {% trans "Previous" %}
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item active">
+                        <span class="page-link">
+                            {% blocktrans %}Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}{% endblocktrans %}
+                        </span>
+                    </li>
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.frequency %}&frequency={{ request.GET.frequency }}{% endif %}">
+                                {% trans "Next" %}
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">{% trans "No automated schedules yet" %}</h5>
+            <p class="text-muted">
+                {% if request.GET %}
+                    {% trans "Try clearing the filters, or create a new schedule to automate report delivery." %}
+                {% else %}
+                    {% trans "Create your first schedule to automatically email fresh insights to your team." %}
+                {% endif %}
+            </p>
+            <a href="{% url 'reports:report_schedule_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>{% trans "Create schedule" %}
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

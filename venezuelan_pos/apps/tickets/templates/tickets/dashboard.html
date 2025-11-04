@@ -1,0 +1,155 @@
+{% extends "tickets/base.html" %}
+{% load static %}
+
+{% block title %}Digital Tickets Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Digital Tickets Dashboard</h1>
+                <div>
+                    <a href="{% url 'tickets:validate_ticket' %}" class="btn btn-success">
+                        <i class="fas fa-qrcode"></i> Validate Tickets
+                    </a>
+                    <a href="{% url 'tickets:analytics' %}" class="btn btn-info">
+                        <i class="fas fa-chart-bar"></i> Analytics
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_tickets }}</div>
+                    <div class="stat-label">Total Tickets</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ active_tickets }}</div>
+                    <div class="stat-label">Active Tickets</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ used_tickets }}</div>
+                    <div class="stat-label">Used Tickets</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ expired_tickets }}</div>
+                    <div class="stat-label">Expired Tickets</div>
+                </div>
+            </div>
+            
+            <!-- Search and Filters -->
+            <div class="search-filters">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" name="search" 
+                               placeholder="Search tickets, customers, events..." 
+                               value="{{ request.GET.search }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-select">
+                            <option value="">All Statuses</option>
+                            {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="event" class="form-select">
+                            <option value="">All Events</option>
+                            {% for event in events %}
+                            <option value="{{ event.id }}" {% if request.GET.event == event.id|stringformat:"s" %}selected{% endif %}>
+                                {{ event.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Filter</button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Tickets List -->
+            <div class="row">
+                {% for ticket in tickets %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="ticket-card">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0">{{ ticket.ticket_number }}</h6>
+                            <span class="ticket-status status-{{ ticket.status }}">
+                                {{ ticket.get_status_display }}
+                            </span>
+                        </div>
+                        
+                        <p class="mb-1"><strong>Customer:</strong> {{ ticket.customer.full_name }}</p>
+                        <p class="mb-1"><strong>Event:</strong> {{ ticket.event.name }}</p>
+                        <p class="mb-1"><strong>Zone:</strong> {{ ticket.zone.name }}</p>
+                        {% if ticket.seat %}
+                        <p class="mb-1"><strong>Seat:</strong> {{ ticket.seat.seat_label }}</p>
+                        {% else %}
+                        <p class="mb-1"><strong>Type:</strong> General Admission</p>
+                        {% endif %}
+                        <p class="mb-1"><strong>Usage:</strong> {{ ticket.usage_count }}/{{ ticket.max_usage_count }}</p>
+                        <p class="mb-2"><strong>Created:</strong> {{ ticket.created_at|date:"M d, Y H:i" }}</p>
+                        
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'tickets:ticket_detail' ticket.pk %}" class="btn btn-sm btn-outline-primary">
+                                View Details
+                            </a>
+                            {% if ticket.qr_code_image %}
+                            <a href="{% url 'tickets:download_pdf' ticket.id %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-download"></i> PDF
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
+                        <h4>No tickets found</h4>
+                        <p class="text-muted">No digital tickets match your current filters.</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Tickets pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.event %}&event={{ request.GET.event }}{% endif %}">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.event %}&event={{ request.GET.event }}{% endif %}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.event %}&event={{ request.GET.event }}{% endif %}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.event %}&event={{ request.GET.event }}{% endif %}">Last</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

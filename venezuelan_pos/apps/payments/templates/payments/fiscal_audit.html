@@ -1,0 +1,594 @@
+{% extends "payments/base.html" %}
+{% load static %}
+
+{% block page_title %}Fiscal Audit{% endblock %}
+{% block page_header %}Fiscal Audit Dashboard{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Fiscal Audit</li>
+{% endblock %}
+
+{% block header_actions %}
+<button class="btn btn-primary btn-sm" onclick="runFullAudit()">
+    <i class="fas fa-search me-1"></i>
+    Run Full Audit
+</button>
+<button class="btn btn-info btn-sm" onclick="exportAuditReport()">
+    <i class="fas fa-download me-1"></i>
+    Export Report
+</button>
+<a href="{% url 'payments_web:dashboard' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back to Dashboard
+</a>
+{% endblock %}
+
+{% block main_content %}
+<!-- Audit Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-left-{% if integrity_results.is_valid %}success{% else %}danger{% endif %} shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-{% if integrity_results.is_valid %}success{% else %}danger{% endif %} text-uppercase mb-1">
+                            Fiscal Integrity
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% if integrity_results.is_valid %}
+                                <i class="fas fa-check-circle text-success"></i> Valid
+                            {% else %}
+                                <i class="fas fa-exclamation-triangle text-danger"></i> Issues
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-shield-alt fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Transactions
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ integrity_results.total_transactions|default:0 }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-receipt fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Valid Series
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ integrity_results.valid_series_count|default:0 }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-list-ol fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Issues Found
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ integrity_results.issues|length|default:0 }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Audit Results -->
+    <div class="col-lg-8">
+        <!-- Fiscal Integrity Issues -->
+        {% if integrity_results.issues %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Fiscal Integrity Issues ({{ integrity_results.issues|length }})
+                    </h6>
+                    <span class="badge badge-danger">{{ integrity_results.issues|length }} issues</span>
+                </div>
+                <div class="card-body">
+                    {% for issue in integrity_results.issues %}
+                        <div class="fiscal-audit-item {% if issue.severity == 'critical' %}error{% elif issue.severity == 'warning' %}warning{% else %}info{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="font-weight-bold mb-1">
+                                        {% if issue.severity == 'critical' %}
+                                            <i class="fas fa-times-circle text-danger me-1"></i>
+                                        {% elif issue.severity == 'warning' %}
+                                            <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                                        {% else %}
+                                            <i class="fas fa-info-circle text-info me-1"></i>
+                                        {% endif %}
+                                        {{ issue.title }}
+                                    </h6>
+                                    <p class="mb-2">{{ issue.description }}</p>
+                                    {% if issue.affected_transactions %}
+                                        <div class="mb-2">
+                                            <strong>Affected Transactions:</strong>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                {% for transaction_id in issue.affected_transactions|slice:":5" %}
+                                                    <span class="badge badge-secondary">{{ transaction_id }}</span>
+                                                {% endfor %}
+                                                {% if issue.affected_transactions|length > 5 %}
+                                                    <span class="badge badge-light">+{{ issue.affected_transactions|length|add:"-5" }} more</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    {% if issue.recommendation %}
+                                        <div class="alert alert-light mb-0">
+                                            <strong>Recommendation:</strong> {{ issue.recommendation }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge badge-{% if issue.severity == 'critical' %}danger{% elif issue.severity == 'warning' %}warning{% else %}info{% endif %}">
+                                        {{ issue.severity|title }}
+                                    </span>
+                                    {% if issue.can_auto_fix %}
+                                        <br>
+                                        <button class="btn btn-sm btn-outline-primary mt-2" onclick="autoFixIssue('{{ issue.id }}')">
+                                            <i class="fas fa-magic me-1"></i>
+                                            Auto Fix
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <div class="card shadow mb-4">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                    <h4 class="text-success">Fiscal Integrity Validated</h4>
+                    <p class="text-muted">
+                        No fiscal integrity issues were found. All transactions have valid fiscal series and proper sequencing.
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Recent Transactions Audit -->
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-history me-2"></i>
+                    Recent Transactions Audit
+                </h6>
+                <span class="badge badge-primary">{{ recent_transactions|length }} transactions</span>
+            </div>
+            <div class="card-body">
+                {% if recent_transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Fiscal Series</th>
+                                    <th>Transaction</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Payment Status</th>
+                                    <th>Fiscal Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in recent_transactions %}
+                                <tr>
+                                    <td>
+                                        {% if transaction.fiscal_series %}
+                                            <code class="text-success">{{ transaction.fiscal_series }}</code>
+                                        {% else %}
+                                            <span class="text-warning">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                                Pending
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'sales_web:transaction_detail' transaction.pk %}">
+                                            {{ transaction.id|truncatechars:8 }}
+                                        </a>
+                                        <br>
+                                        <small class="text-muted">{{ transaction.event.name|truncatechars:20 }}</small>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'customers_web:customer_detail' transaction.customer.pk %}">
+                                            {{ transaction.customer.full_name }}
+                                        </a>
+                                        <br>
+                                        <small class="text-muted">{{ transaction.customer.email|truncatechars:20 }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="font-weight-bold">${{ transaction.total_amount|floatformat:2 }}</div>
+                                        <small class="text-muted">{{ transaction.items.count }} item{{ transaction.items.count|pluralize }}</small>
+                                    </td>
+                                    <td>
+                                        {% if transaction.status == 'completed' %}
+                                            <span class="badge badge-success">Completed</span>
+                                        {% elif transaction.status == 'reserved' %}
+                                            <span class="badge badge-warning">Reserved</span>
+                                        {% elif transaction.status == 'pending' %}
+                                            <span class="badge badge-info">Pending</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">{{ transaction.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if transaction.fiscal_series and transaction.status == 'completed' %}
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-check"></i> Valid
+                                            </span>
+                                        {% elif transaction.status == 'completed' and not transaction.fiscal_series %}
+                                            <span class="badge badge-danger">
+                                                <i class="fas fa-times"></i> Missing
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">
+                                                <i class="fas fa-clock"></i> Pending
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div>{{ transaction.completed_at|date:"M d, Y"|default:transaction.created_at|date:"M d, Y" }}</div>
+                                        <small class="text-muted">{{ transaction.completed_at|time:"H:i"|default:transaction.created_at|time:"H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-info" 
+                                                    onclick="auditTransaction('{{ transaction.pk }}')"
+                                                    data-bs-toggle="tooltip" title="Audit Transaction">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                            {% if transaction.status == 'completed' and not transaction.fiscal_series %}
+                                                <button class="btn btn-sm btn-outline-warning" 
+                                                        onclick="fixFiscalSeries('{{ transaction.pk }}')"
+                                                        data-bs-toggle="tooltip" title="Fix Fiscal Series">
+                                                    <i class="fas fa-wrench"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-receipt fa-3x text-gray-300 mb-3"></i>
+                        <h5 class="text-gray-500">No Recent Transactions</h5>
+                        <p class="text-gray-400">
+                            No recent transactions found for audit.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Audit Actions -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-tools me-2"></i>
+                    Audit Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" onclick="runFullAudit()">
+                        <i class="fas fa-search me-1"></i>
+                        Run Full Audit
+                    </button>
+                    
+                    <button class="btn btn-info" onclick="validateFiscalSeries()">
+                        <i class="fas fa-list-ol me-1"></i>
+                        Validate Fiscal Series
+                    </button>
+                    
+                    <button class="btn btn-warning" onclick="checkPaymentIntegrity()">
+                        <i class="fas fa-credit-card me-1"></i>
+                        Check Payment Integrity
+                    </button>
+                    
+                    <button class="btn btn-success" onclick="generateComplianceReport()">
+                        <i class="fas fa-file-alt me-1"></i>
+                        Compliance Report
+                    </button>
+                    
+                    <hr>
+                    
+                    <button class="btn btn-outline-primary" onclick="exportAuditReport()">
+                        <i class="fas fa-download me-1"></i>
+                        Export Audit Report
+                    </button>
+                    
+                    <button class="btn btn-outline-secondary" onclick="scheduleAudit()">
+                        <i class="fas fa-calendar me-1"></i>
+                        Schedule Audit
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Audit Statistics -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Audit Statistics
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Fiscal Compliance:</span>
+                        <span class="font-weight-bold {% if integrity_results.compliance_percentage >= 95 %}text-success{% elif integrity_results.compliance_percentage >= 80 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ integrity_results.compliance_percentage|default:0|floatformat:1 }}%
+                        </span>
+                    </div>
+                    <div class="progress mt-1" style="height: 6px;">
+                        <div class="progress-bar {% if integrity_results.compliance_percentage >= 95 %}bg-success{% elif integrity_results.compliance_percentage >= 80 %}bg-warning{% else %}bg-danger{% endif %}" 
+                             style="width: {{ integrity_results.compliance_percentage|default:0 }}%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Series Continuity:</span>
+                        <span class="font-weight-bold {% if integrity_results.series_continuity >= 95 %}text-success{% elif integrity_results.series_continuity >= 80 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ integrity_results.series_continuity|default:0|floatformat:1 }}%
+                        </span>
+                    </div>
+                    <div class="progress mt-1" style="height: 6px;">
+                        <div class="progress-bar {% if integrity_results.series_continuity >= 95 %}bg-success{% elif integrity_results.series_continuity >= 80 %}bg-warning{% else %}bg-danger{% endif %}" 
+                             style="width: {{ integrity_results.series_continuity|default:0 }}%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Payment Integrity:</span>
+                        <span class="font-weight-bold {% if integrity_results.payment_integrity >= 95 %}text-success{% elif integrity_results.payment_integrity >= 80 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ integrity_results.payment_integrity|default:0|floatformat:1 }}%
+                        </span>
+                    </div>
+                    <div class="progress mt-1" style="height: 6px;">
+                        <div class="progress-bar {% if integrity_results.payment_integrity >= 95 %}bg-success{% elif integrity_results.payment_integrity >= 80 %}bg-warning{% else %}bg-danger{% endif %}" 
+                             style="width: {{ integrity_results.payment_integrity|default:0 }}%"></div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="text-center">
+                    <small class="text-muted">
+                        Last audit: {{ integrity_results.last_audit_date|default:"Never"|date:"M d, Y H:i" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Links -->
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-link me-2"></i>
+                    Quick Links
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'fiscal_web:fiscal_series_list' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-list-ol me-2"></i>
+                        Fiscal Series Management
+                    </a>
+                    <a href="{% url 'payments_web:reconciliation_list' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-balance-scale me-2"></i>
+                        Payment Reconciliations
+                    </a>
+                    <a href="{% url 'fiscal_web:fiscal_reports_list' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-file-alt me-2"></i>
+                        Fiscal Reports
+                    </a>
+                    <a href="{% url 'sales_web:transaction_list' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-receipt me-2"></i>
+                        All Transactions
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script>
+function runFullAudit() {
+    if (confirm('Run a full fiscal audit? This may take a few minutes for large datasets.')) {
+        const button = event.target;
+        PaymentUtils.showLoading(button);
+        
+        fetch('/api/v1/payments/fiscal/validate_integrity/', {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        }).then(response => response.json())
+          .then(data => {
+              PaymentUtils.hideLoading(button);
+              if (data.success) {
+                  location.reload();
+              } else {
+                  alert('Audit failed: ' + (data.error || 'Unknown error'));
+              }
+          }).catch(error => {
+              PaymentUtils.hideLoading(button);
+              alert('Audit failed: ' + error.message);
+          });
+    }
+}
+
+function validateFiscalSeries() {
+    fetch('/api/v1/payments/fiscal/validate_series/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    }).then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              alert(`Fiscal series validation completed.\nValid: ${data.valid_count}\nInvalid: ${data.invalid_count}`);
+              location.reload();
+          } else {
+              alert('Validation failed: ' + (data.error || 'Unknown error'));
+          }
+      });
+}
+
+function checkPaymentIntegrity() {
+    fetch('/api/v1/payments/fiscal/check_payment_integrity/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    }).then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              alert(`Payment integrity check completed.\nValid: ${data.valid_payments}\nIssues: ${data.issues_found}`);
+              location.reload();
+          } else {
+              alert('Check failed: ' + (data.error || 'Unknown error'));
+          }
+      });
+}
+
+function auditTransaction(transactionId) {
+    fetch(`/api/v1/payments/fiscal/audit_transaction/?transaction_id=${transactionId}`, {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    }).then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              // Show audit results in a modal or alert
+              let message = `Transaction Audit Results:\n\n`;
+              message += `Fiscal Series: ${data.fiscal_series || 'Not assigned'}\n`;
+              message += `Payment Status: ${data.payment_status}\n`;
+              message += `Fiscal Compliance: ${data.is_compliant ? 'Valid' : 'Issues found'}\n`;
+              
+              if (data.issues && data.issues.length > 0) {
+                  message += `\nIssues:\n`;
+                  data.issues.forEach(issue => {
+                      message += `- ${issue}\n`;
+                  });
+              }
+              
+              alert(message);
+          } else {
+              alert('Audit failed: ' + (data.error || 'Unknown error'));
+          }
+      });
+}
+
+function fixFiscalSeries(transactionId) {
+    if (confirm('Generate fiscal series for this transaction?')) {
+        fetch(`/api/v1/payments/fiscal/complete_transaction/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                transaction_id: transactionId
+            })
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  alert(`Fiscal series generated: ${data.fiscal_series}`);
+                  location.reload();
+              } else {
+                  alert('Failed to generate fiscal series: ' + (data.error || 'Unknown error'));
+              }
+          });
+    }
+}
+
+function autoFixIssue(issueId) {
+    if (confirm('Automatically fix this issue?')) {
+        // This would implement auto-fix functionality
+        alert('Auto-fix functionality would be implemented here for issue: ' + issueId);
+    }
+}
+
+function generateComplianceReport() {
+    // This would generate a comprehensive compliance report
+    alert('Compliance report generation would be implemented here');
+}
+
+function exportAuditReport() {
+    // This would export the audit results to PDF/Excel
+    alert('Audit report export would be implemented here');
+}
+
+function scheduleAudit() {
+    // This would allow scheduling regular audits
+    alert('Audit scheduling would be implemented here');
+}
+
+// Auto-refresh audit data every 5 minutes
+setInterval(function() {
+    if (document.querySelector('[data-auto-refresh="true"]')) {
+        location.reload();
+    }
+}, 300000);
+</script>
+
+{% csrf_token %}
+<div data-auto-refresh="true" style="display: none;"></div>
+{% endblock %}

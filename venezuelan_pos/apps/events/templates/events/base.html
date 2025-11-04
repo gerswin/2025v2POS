@@ -234,9 +234,25 @@
                         <!-- Analytics Section -->
                         <div class="nav-section">
                             <h6 class="nav-section-title">{% trans "ANALYTICS" %}</h6>
-                            <a class="nav-item" href="#">
+                            <a class="nav-item {% if 'reports_web' in request.resolver_match.namespace %}active{% endif %}"
+                               href="{% url 'reports_web:dashboard' %}">
                                 <span class="nav-icon"><i class="bi bi-graph-up"></i></span>
                                 <span class="nav-text">{% trans "Reports" %}</span>
+                            </a>
+                        </div>
+
+                        <!-- Fiscal Section -->
+                        <div class="nav-section">
+                            <h6 class="nav-section-title">{% trans "FISCAL" %}</h6>
+                            <a class="nav-item {% if 'fiscal_web' in request.resolver_match.namespace %}active{% endif %}"
+                               href="{% url 'fiscal_web:fiscal_dashboard' %}">
+                                <span class="nav-icon"><i class="bi bi-receipt"></i></span>
+                                <span class="nav-text">{% trans "Fiscal" %}</span>
+                            </a>
+                            <a class="nav-item {% if 'fiscal_web' in request.resolver_match.namespace and 'tax' in request.resolver_match.url_name %}active{% endif %}"
+                               href="{% url 'fiscal_web:tax_configurations_list' %}">
+                                <span class="nav-icon"><i class="bi bi-percent"></i></span>
+                                <span class="nav-text">{% trans "Taxes" %}</span>
                             </a>
                         </div>
 
@@ -295,19 +311,36 @@
             const mainSidebar = document.getElementById('mainSidebar');
 
             if (sidebarToggle && mainSidebar) {
-                sidebarToggle.addEventListener('click', function() {
+                sidebarToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     mainSidebar.classList.toggle('sidebar-mobile-open');
                 });
 
                 // Close sidebar when clicking outside on mobile
                 document.addEventListener('click', function(e) {
                     if (window.innerWidth < 992) {
-                        if (!mainSidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                        // Don't close if clicking on dropdown or its toggle
+                        const isDropdownClick = e.target.closest('.dropdown') ||
+                                               e.target.closest('[data-bs-toggle="dropdown"]');
+
+                        if (!isDropdownClick &&
+                            !mainSidebar.contains(e.target) &&
+                            !sidebarToggle.contains(e.target)) {
                             mainSidebar.classList.remove('sidebar-mobile-open');
                         }
                     }
                 });
             }
+
+            // Explicitly initialize Bootstrap dropdowns
+            const dropdownElementList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'));
+            const dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+                return new bootstrap.Dropdown(dropdownToggleEl, {
+                    boundary: 'viewport',
+                    autoClose: true
+                });
+            });
 
             // Convert Django messages to toast notifications
             {% if messages %}

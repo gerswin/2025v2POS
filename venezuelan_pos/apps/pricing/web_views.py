@@ -14,7 +14,7 @@ from django.db import transaction
 from decimal import Decimal
 import json
 
-from .models import PriceStage, RowPricing, PriceHistory
+from .models import PriceStage, RowPricing, PriceHistory, StageTransition
 from .forms import (
     PriceStageForm, RowPricingForm, BulkRowPricingForm,
     PriceCalculationForm, PricingDashboardFilterForm
@@ -105,9 +105,9 @@ def pricing_dashboard(request):
     # Price stage distribution
     stage_distribution = price_stages.values('event__name').annotate(
         stage_count=Count('id'),
-        avg_markup=Avg('percentage_markup'),
-        min_markup=Min('percentage_markup'),
-        max_markup=Max('percentage_markup')
+        avg_markup=Avg('modifier_value'),
+        min_markup=Min('modifier_value'),
+        max_markup=Max('modifier_value')
     ).order_by('-stage_count')[:5]
     
     context = {
@@ -563,6 +563,161 @@ def ajax_get_zones(request):
         
     except Event.DoesNotExist:
         return JsonResponse({'zones': []})
+
+
+@login_required
+def stage_transition_monitoring(request):
+    """Stage transition monitoring dashboard with real-time status indicators."""
+    
+    # Filter by tenant
+    if request.user.is_admin_user:
+        events = Event.objects.filter(status=Event.Status.ACTIVE)
+        stages = PriceStage.objects.filter(is_active=True)
+        transitions = StageTransition.objects.all()
+    else:
+        events = Event.objects.filter(tenant=request.user.tenant, status=Event.Status.ACTIVE)
+        stages = PriceStage.objects.filter(tenant=request.user.tenant, is_active=True)
+        transitions = StageTransition.objects.filter(tenant=request.user.tenant)
+    
+    # Get current stages with status
+    from .services import HybridPricingService
+    hybrid_service = HybridPricingService()
+    
+    current_stages = []
+    upcoming_transitions = []
+    
+    for event in events:
+        # Get event-wide current stage
+        current_stage = hybrid_service.get_current_stage(event, None)
+        if current_stage:
+            stage_status = hybrid_service.get_stage_status(current_stage)
+            stage_status['event_name'] = event.name
+            stage_status['scope_display'] = 'Event-wide'
+            current_stages.append(stage_status)
+            
+            # Check if transition is imminent
+            if stage_status['should_transition']:
+                upcoming_transitions.append(stage_status)
+        
+        # Get zone-specific current stages
+        for zone in event.zones.all():
+            zone_stage = hybrid_service.get_current_stage(event, zone)
+            if zone_stage:
+                zone_status = hybrid_service.get_stage_status(zone_stage)
+                zone_status['event_name'] = event.name
+                zone_status['scope_display'] = f'Zone: {zone.name}'
+                zone_status['zone_name'] = zone.name
+                current_stages.append(zone_status)
+                
+                # Check if transition is imminent
+                if zone_status['should_transition']:
+                    upcoming_transitions.append(zone_status)
+    
+    # Recent transitions
+    recent_transitions = transitions.select_related(
+        'event', 'zone', 'stage_from', 'stage_to'
+    ).order_by('-transition_at')[:20]
+    
+    # Statistics
+    stats = {
+        'total_active_events': events.count(),
+        'total_active_stages': stages.count(),
+        'current_stages_count': len(current_stages),
+        'upcoming_transitions_count': len(upcoming_transitions),
+        'recent_transitions_count': recent_transitions.count(),
+        'stages_with_quantity_limits': stages.filter(quantity_limit__isnull=False).count(),
+        'auto_transition_stages': stages.filter(auto_transition=True).count(),
+    }
+    
+    context = {
+        'stats': stats,
+        'current_stages': current_stages,
+        'upcoming_transitions': upcoming_transitions,
+        'recent_transitions': recent_transitions,
+    }
+    
+    return render(request, 'pricing/stage_transition_monitoring.html', context)
+
+
+@login_required
+def stage_performance_analytics(request, event_id):
+    """Stage performance analytics with transition history and sales tracking."""
+    
+    if request.user.is_admin_user:
+        event = get_object_or_404(Event, id=event_id)
+    else:
+        event = get_object_or_404(Event, id=event_id, tenant=request.user.tenant)
+    
+    # Get all stages for this event
+    stages = event.price_stages.all().order_by('stage_order', 'start_date')
+    
+    # Get transition history
+    transitions = StageTransition.objects.filter(
+        event=event
+    ).select_related('stage_from', 'stage_to', 'zone').order_by('-transition_at')
+    
+    # Get stage sales data
+    from .models import StageSales
+    stage_sales = {}
+    
+    for stage in stages:
+        sales_data = StageSales.get_stage_totals(stage)
+        stage_sales[stage.id] = {
+            'stage': stage,
+            'tickets_sold': sales_data['tickets_sold'],
+            'revenue_generated': sales_data['revenue_generated'],
+            'completion_percentage': 0
+        }
+        
+        # Calculate completion percentage if quantity limit exists
+        if stage.quantity_limit and stage.quantity_limit > 0:
+            completion_percentage = (sales_data['tickets_sold'] / stage.quantity_limit) * 100
+            stage_sales[stage.id]['completion_percentage'] = min(completion_percentage, 100)
+    
+    # Get current stage status
+    from .services import HybridPricingService
+    hybrid_service = HybridPricingService()
+    
+    event_overview = hybrid_service.get_event_stage_overview(event)
+    
+    context = {
+        'event': event,
+        'stages': stages,
+        'transitions': transitions,
+        'stage_sales': stage_sales,
+        'event_overview': event_overview,
+    }
+    
+    return render(request, 'pricing/stage_performance_analytics.html', context)
+
+
+@login_required
+def ajax_get_stage_status(request):
+    """AJAX endpoint to get real-time stage status."""
+    stage_id = request.GET.get('stage_id')
+    
+    if not stage_id:
+        return JsonResponse({'error': 'Stage ID required'}, status=400)
+    
+    try:
+        if request.user.is_admin_user:
+            stage = PriceStage.objects.get(id=stage_id)
+        else:
+            stage = PriceStage.objects.get(id=stage_id, tenant=request.user.tenant)
+        
+        from .services import HybridPricingService
+        hybrid_service = HybridPricingService()
+        stage_status = hybrid_service.get_stage_status(stage)
+        
+        return JsonResponse({
+            'success': True,
+            'status': stage_status
+        })
+        
+    except PriceStage.DoesNotExist:
+        return JsonResponse({'error': 'Stage not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 @login_required

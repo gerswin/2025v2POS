@@ -1,0 +1,192 @@
+{% extends "payments/base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Create Payment Plan" %} - Tiquemax{% endblock %}
+
+{% block main_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">
+            <i class="fas fa-calendar-check me-2"></i>
+            {% trans "Create Payment Plan" %}
+        </h1>
+        <p class="text-muted mb-0">{% trans "Convert this pending transaction into a partial payment plan." %}</p>
+    </div>
+    <div>
+        <a href="{% url 'sales_web:transaction_detail' transaction.pk %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>{% trans "Back to Transaction" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-edit me-2"></i>{% trans "Plan Configuration" %}</h5>
+            </div>
+            <div class="card-body">
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}{% if not forloop.last %}<br>{% endif %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.plan_type.id_for_label }}" class="form-label">{% trans "Plan Type" %}</label>
+                            {{ form.plan_type }}
+                            {% if form.plan_type.errors %}
+                                <div class="invalid-feedback d-block">{{ form.plan_type.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6" id="installment-count-wrapper">
+                            <label for="{{ form.installment_count.id_for_label }}" class="form-label">{% trans "Installments" %}</label>
+                            {{ form.installment_count }}
+                            {% if form.installment_count.errors %}
+                                <div class="invalid-feedback d-block">{{ form.installment_count.errors.0 }}</div>
+                            {% endif %}
+                            {% if form.installment_count.help_text %}
+                                <div class="form-text">{{ form.installment_count.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label for="{{ form.expires_at.id_for_label }}" class="form-label">{% trans "Plan Expiry" %}</label>
+                            {{ form.expires_at }}
+                            {% if form.expires_at.errors %}
+                                <div class="invalid-feedback d-block">{{ form.expires_at.errors.0 }}</div>
+                            {% endif %}
+                            {% if form.expires_at.help_text %}
+                                <div class="form-text">{{ form.expires_at.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.initial_payment_amount.id_for_label }}" class="form-label">{% trans "Initial Payment" %}</label>
+                            {{ form.initial_payment_amount }}
+                            {% if form.initial_payment_amount.errors %}
+                                <div class="invalid-feedback d-block">{{ form.initial_payment_amount.errors.0 }}</div>
+                            {% endif %}
+                            {% if form.initial_payment_amount.help_text %}
+                                <div class="form-text">{{ form.initial_payment_amount.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label for="{{ form.payment_method.id_for_label }}" class="form-label">{% trans "Payment Method" %}</label>
+                            {{ form.payment_method }}
+                            {% if form.payment_method.errors %}
+                                <div class="invalid-feedback d-block">{{ form.payment_method.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">{% trans "Only methods that allow partial payments are listed." %}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">{% trans "Internal Notes" %}</label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="invalid-feedback d-block">{{ form.notes.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-end gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>{% trans "Create Plan" %}
+                        </button>
+                        <a href="{% url 'sales_web:transaction_detail' transaction.pk %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-receipt me-2"></i>{% trans "Transaction Summary" %}</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>{% trans "Customer" %}:</strong><br>{{ transaction.customer.full_name }}<br><small class="text-muted">{{ transaction.customer.email }}</small></p>
+                <p class="mb-2"><strong>{% trans "Event" %}:</strong><br>{{ transaction.event.name }}</p>
+                <p class="mb-2"><strong>{% trans "Total Amount" %}:</strong><br><span class="h5 text-primary" id="total-amount">${{ transaction.total_amount }}</span></p>
+                <hr>
+                <p class="mb-1"><strong>{% trans "Minimum Deposit" %}:</strong><br><span id="min-deposit" class="text-success">${{ min_down_payment|default:"0.00" }}</span></p>
+                {% if event_config.max_installments %}
+                    <p class="mb-1"><strong>{% trans "Maximum Installments" %}:</strong><br>{{ event_config.max_installments }}</p>
+                {% endif %}
+                {% if event_config.payment_plan_expiry_days %}
+                    <p class="mb-1"><strong>{% trans "Default Expiry" %}:</strong><br>{{ event_config.payment_plan_expiry_days }} {% trans "days" %}</p>
+                {% endif %}
+                <div class="alert alert-info mt-3 mb-0" id="installment-summary" style="display:none;">
+                    <i class="fas fa-info-circle me-1"></i>
+                    <span id="installment-summary-text"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const planTypeField = document.getElementById('id_plan_type');
+    const installmentWrapper = document.getElementById('installment-count-wrapper');
+    const installmentField = document.getElementById('id_installment_count');
+    const totalAmount = parseFloat('{{ transaction.total_amount }}');
+    const defaultMinDeposit = parseFloat('{{ min_down_payment|default:"0" }}');
+    const initialPaymentField = document.getElementById('id_initial_payment_amount');
+    const installmentSummary = document.getElementById('installment-summary');
+    const installmentSummaryText = document.getElementById('installment-summary-text');
+
+    const toggleInstallments = () => {
+        const isInstallment = planTypeField.value === 'installment';
+        installmentWrapper.style.display = isInstallment ? '' : 'none';
+        if (!isInstallment) {
+            installmentSummary.style.display = 'none';
+        } else if (installmentField.value) {
+            updateInstallmentSummary();
+        }
+    };
+
+    const updateInstallmentSummary = () => {
+        if (!installmentField.value) {
+            installmentSummary.style.display = 'none';
+            return;
+        }
+        const installments = parseInt(installmentField.value, 10);
+        if (!installments || installments <= 0) {
+            installmentSummary.style.display = 'none';
+            return;
+        }
+        const amountPerInstallment = (totalAmount / installments).toFixed(2);
+        installmentSummaryText.textContent = `${installments} x $${amountPerInstallment}`;
+        installmentSummary.style.display = '';
+    };
+
+    const ensureMinimumDeposit = () => {
+        if (!initialPaymentField) return;
+        const current = parseFloat(initialPaymentField.value || '0');
+        if (current < defaultMinDeposit) {
+            initialPaymentField.value = defaultMinDeposit.toFixed(2);
+        }
+    };
+
+    if (planTypeField) {
+        planTypeField.addEventListener('change', toggleInstallments);
+        toggleInstallments();
+    }
+    if (installmentField) {
+        installmentField.addEventListener('input', updateInstallmentSummary);
+        updateInstallmentSummary();
+    }
+    ensureMinimumDeposit();
+})();
+</script>
+{% endblock %}

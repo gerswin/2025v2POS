@@ -6,7 +6,7 @@ from rest_framework import serializers
 from django.utils import timezone
 from decimal import Decimal
 
-from .models import PriceStage, RowPricing, PriceHistory
+from .models import PriceStage, RowPricing, PriceHistory, StageTransition
 from .services import PricingCalculationService
 from venezuelan_pos.apps.events.models import Event
 from venezuelan_pos.apps.zones.models import Zone, Seat
@@ -22,8 +22,9 @@ class PriceStageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PriceStage
         fields = [
-            'id', 'event', 'name', 'description', 'start_date', 'end_date',
-            'percentage_markup', 'stage_order', 'is_active', 'configuration',
+            'id', 'event', 'zone', 'name', 'description', 'start_date', 'end_date',
+            'quantity_limit', 'modifier_type', 'modifier_value', 'scope', 
+            'stage_order', 'is_active', 'auto_transition', 'configuration',
             'is_current', 'is_upcoming', 'is_past', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
@@ -251,7 +252,7 @@ class PriceStageListSerializer(serializers.ModelSerializer):
     class Meta:
         model = PriceStage
         fields = [
-            'id', 'name', 'start_date', 'end_date', 'percentage_markup',
+            'id', 'name', 'start_date', 'end_date', 'modifier_type', 'modifier_value',
             'stage_order', 'is_active', 'is_current'
         ]
 
@@ -264,3 +265,124 @@ class RowPricingListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'row_number', 'percentage_markup', 'name', 'is_active'
         ]
+
+
+class StageTransitionSerializer(serializers.ModelSerializer):
+    """Serializer for StageTransition model."""
+    
+    event_name = serializers.CharField(source='event.name', read_only=True)
+    zone_name = serializers.CharField(source='zone.name', read_only=True)
+    stage_from_name = serializers.CharField(source='stage_from.name', read_only=True)
+    stage_to_name = serializers.CharField(source='stage_to.name', read_only=True)
+    
+    class Meta:
+        model = StageTransition
+        fields = [
+            'id', 'event', 'event_name', 'zone', 'zone_name',
+            'stage_from', 'stage_from_name', 'stage_to', 'stage_to_name',
+            'trigger_reason', 'sold_quantity', 'transition_at',
+            'metadata', 'created_at'
+        ]
+        read_only_fields = ['id', 'created_at']
+
+
+class StageStatusSerializer(serializers.Serializer):
+    """Serializer for real-time stage status."""
+    
+    stage_id = serializers.UUIDField()
+    name = serializers.CharField()
+    scope = serializers.CharField()
+    modifier_type = serializers.CharField()
+    modifier_value = serializers.DecimalField(max_digits=10, decimal_places=2)
+    start_date = serializers.DateTimeField()
+    end_date = serializers.DateTimeField()
+    quantity_limit = serializers.IntegerField(allow_null=True)
+    sold_quantity = serializers.IntegerField()
+    remaining_quantity = serializers.IntegerField()
+    is_current = serializers.BooleanField()
+    is_upcoming = serializers.BooleanField()
+    is_past = serializers.BooleanField()
+    should_transition = serializers.BooleanField()
+    transition_trigger = serializers.CharField(allow_null=True)
+    auto_transition = serializers.BooleanField()
+    time_remaining = serializers.DictField()
+    last_updated = serializers.DateTimeField()
+    next_stage = serializers.DictField(allow_null=True)
+
+
+class PurchaseValidationRequestSerializer(serializers.Serializer):
+    """Serializer for purchase validation requests."""
+    
+    stage_id = serializers.UUIDField()
+    quantity = serializers.IntegerField(min_value=1, max_value=100)
+    session_id = serializers.CharField(max_length=255)
+    
+    def validate_stage_id(self, value):
+        """Validate that stage exists and is active."""
+        try:
+            stage = PriceStage.objects.get(id=value, is_active=True)
+            return value
+        except PriceStage.DoesNotExist:
+            raise serializers.ValidationError('Stage not found or inactive')
+
+
+class PurchaseConfirmationSerializer(serializers.Serializer):
+    """Serializer for purchase confirmation."""
+    
+    stage_id = serializers.UUIDField()
+    quantity = serializers.IntegerField(min_value=1)
+    session_id = serializers.CharField(max_length=255)
+    revenue_amount = serializers.DecimalField(
+        max_digits=12, 
+        decimal_places=2, 
+        required=False,
+        allow_null=True
+    )
+
+
+class EventStageOverviewSerializer(serializers.Serializer):
+    """Serializer for event stage monitoring overview."""
+    
+    event_id = serializers.UUIDField()
+    event_name = serializers.CharField()
+    monitoring_timestamp = serializers.DateTimeField()
+    event_wide_stages = serializers.ListField(
+        child=StageStatusSerializer()
+    )
+    zone_specific_stages = serializers.DictField(
+        child=serializers.ListField(child=StageStatusSerializer())
+    )
+    recent_transitions = serializers.ListField(
+        child=serializers.DictField()
+    )
+    active_reservations = serializers.IntegerField()
+
+
+class TransitionProcessingRequestSerializer(serializers.Serializer):
+    """Serializer for manual transition processing requests."""
+    
+    event_id = serializers.UUIDField()
+    zone_id = serializers.UUIDField(required=False, allow_null=True)
+    
+    def validate_event_id(self, value):
+        """Validate that event exists."""
+        try:
+            Event.objects.get(id=value)
+            return value
+        except Event.DoesNotExist:
+            raise serializers.ValidationError('Event not found')
+    
+    def validate(self, data):
+        """Validate zone belongs to event if provided."""
+        event_id = data.get('event_id')
+        zone_id = data.get('zone_id')
+        
+        if zone_id and event_id:
+            try:
+                Zone.objects.get(id=zone_id, event_id=event_id)
+            except Zone.DoesNotExist:
+                raise serializers.ValidationError({
+                    'zone_id': 'Zone not found in the specified event'
+                })
+        
+        return data

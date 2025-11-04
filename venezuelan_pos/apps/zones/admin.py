@@ -11,8 +11,8 @@ class ZoneAdmin(AdminTenantMixin, admin.ModelAdmin):
     """Admin interface for Zone model."""
     
     list_display = [
-        'name', 'event', 'zone_type', 'capacity', 'base_price', 
-        'status', 'available_capacity', 'display_order'
+        'name', 'event', 'zone_type', 'capacity', 'base_price',
+        'status', 'available_capacity', 'display_order', 'map_color_display'
     ]
     list_filter = ['zone_type', 'status', 'event__status', 'created_at']
     search_fields = ['name', 'event__name', 'description']
@@ -30,7 +30,7 @@ class ZoneAdmin(AdminTenantMixin, admin.ModelAdmin):
             'fields': ('base_price',)
         }),
         ('Display', {
-            'fields': ('display_order',)
+            'fields': ('display_order', 'map_color')
         }),
         ('Configuration', {
             'fields': ('configuration',),
@@ -54,6 +54,19 @@ class ZoneAdmin(AdminTenantMixin, admin.ModelAdmin):
         """Display sold capacity."""
         return obj.sold_capacity
     sold_capacity.short_description = 'Sold'
+
+    def map_color_display(self, obj):
+        """Show color swatch for map color."""
+        if obj.map_color:
+            return format_html(
+                '<span style="display:inline-block;width:1.2rem;height:1.2rem;'
+                'border-radius:0.25rem;background:{};border:1px solid rgba(0,0,0,0.1);'
+                'margin-right:0.4rem;"></span>{}',
+                obj.map_color,
+                obj.map_color
+            )
+        return "-"
+    map_color_display.short_description = 'Map Color'
     
     def save_model(self, request, obj, form, change):
         """Override save to handle seat generation."""

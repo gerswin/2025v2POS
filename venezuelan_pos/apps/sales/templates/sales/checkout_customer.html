@@ -1,0 +1,467 @@
+{% extends 'events/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Customer Information - Checkout" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Progress Bar -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="progress mb-3" style="height: 8px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 33%" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <small class="text-muted">1. Cart</small>
+                        <small class="fw-semibold text-primary">2. Customer Info</small>
+                        <small class="text-muted">3. Payment</small>
+                        <small class="text-muted">4. Confirmation</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Information Form -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 fw-semibold text-primary">
+                        <i class="fas fa-user me-2"></i>
+                        Customer Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="customerForm">
+                        {% csrf_token %}
+                        
+                        <!-- Customer Search/Selection -->
+                        <div class="mb-4">
+                            <h6 class="fw-semibold text-secondary">Find Existing Customer</h6>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="customerSearch" 
+                                           placeholder="Search by name, email, or phone...">
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-outline-primary w-100" onclick="searchCustomers()">
+                                        <i class="fas fa-search me-1"></i>
+                                        Search
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Search Results -->
+                            <div id="searchResults" class="mt-3 d-none">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Search Results</h6>
+                                        <div id="customerList"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- New Customer Form -->
+                        <div class="mb-4">
+                            <h6 class="fw-semibold text-secondary">Or Create New Customer</h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="firstName" class="form-label">
+                                            First Name <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" class="form-control" id="firstName" name="first_name" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="lastName" class="form-label">
+                                            Last Name <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" class="form-control" id="lastName" name="last_name" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">
+                                            Email Address <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="email" class="form-control" id="email" name="email" required>
+                                        <div class="form-text">Ticket will be sent to this email</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="phone" class="form-label">
+                                            Phone Number <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="tel" class="form-control" id="phone" name="phone" required>
+                                        <div class="form-text">Include country code (e.g., +58)</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="documentType" class="form-label">Document Type</label>
+                                        <select class="form-select" id="documentType" name="document_type">
+                                            <option value="cedula">Cédula</option>
+                                            <option value="passport">Passport</option>
+                                            <option value="rif">RIF</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="documentNumber" class="form-label">Document Number</label>
+                                        <input type="text" class="form-control" id="documentNumber" name="document_number">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="birthDate" class="form-label">Birth Date</label>
+                                        <input type="date" class="form-control" id="birthDate" name="birth_date">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Address Information -->
+                            <div class="mb-3">
+                                <h6 class="fw-semibold text-secondary">Address Information (Optional)</h6>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label for="address" class="form-label">Street Address</label>
+                                        <input type="text" class="form-control" id="address" name="address">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="city" class="form-label">City</label>
+                                        <input type="text" class="form-control" id="city" name="city">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="state" class="form-label">State/Province</label>
+                                        <input type="text" class="form-control" id="state" name="state">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="country" class="form-label">Country</label>
+                                        <select class="form-select" id="country" name="country">
+                                            <option value="VE" selected>Venezuela</option>
+                                            <option value="CO">Colombia</option>
+                                            <option value="US">United States</option>
+                                            <option value="ES">Spain</option>
+                                            <!-- Add more countries as needed -->
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Notification Preferences -->
+                            <div class="mb-3">
+                                <h6 class="fw-semibold text-secondary">Notification Preferences</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="emailNotifications" name="email_notifications" checked>
+                                    <label class="form-check-label" for="emailNotifications">
+                                        Send email notifications (tickets, reminders, updates)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="smsNotifications" name="sms_notifications">
+                                    <label class="form-check-label" for="smsNotifications">
+                                        Send SMS notifications (important updates only)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="marketingEmails" name="marketing_emails">
+                                    <label class="form-check-label" for="marketingEmails">
+                                        Receive promotional emails about future events
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'sales_web:shopping_cart' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Back to Cart
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-arrow-right me-1"></i>
+                                Continue to Payment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar with Order Summary -->
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 fw-semibold text-primary">
+                        <i class="fas fa-shopping-cart me-2"></i>
+                        Order Summary
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- Cart items would be displayed here -->
+                    <div id="orderSummary">
+                        <div class="text-center">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            Loading order summary...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedCustomerId = null;
+
+function searchCustomers() {
+    const query = document.getElementById('customerSearch').value.trim();
+    if (query.length < 2) {
+        alert('Please enter at least 2 characters to search');
+        return;
+    }
+
+    fetch(`/api/v1/customers/search/?q=${encodeURIComponent(query)}`, {
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        displaySearchResults(data.results || []);
+    })
+    .catch(error => {
+        console.error('Search error:', error);
+        alert('Search failed. Please try again.');
+    });
+}
+
+function displaySearchResults(customers) {
+    const resultsDiv = document.getElementById('searchResults');
+    const listDiv = document.getElementById('customerList');
+    
+    if (customers.length === 0) {
+        listDiv.innerHTML = '<p class="text-muted">No customers found. Please create a new customer below.</p>';
+    } else {
+        let html = '';
+        customers.forEach(customer => {
+            html += `
+                <div class="border rounded p-3 mb-2 customer-result" style="cursor: pointer;" onclick="selectCustomer(${customer.id}, '${customer.full_name}', '${customer.email}', '${customer.phone}')">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">${customer.full_name}</h6>
+                            <small class="text-muted">${customer.email} • ${customer.phone}</small>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary">
+                            Select
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        listDiv.innerHTML = html;
+    }
+    
+    resultsDiv.classList.remove('d-none');
+}
+
+function selectCustomer(customerId, name, email, phone) {
+    selectedCustomerId = customerId;
+    
+    // Fill form with customer data
+    const nameParts = name.split(' ');
+    document.getElementById('firstName').value = nameParts[0] || '';
+    document.getElementById('lastName').value = nameParts.slice(1).join(' ') || '';
+    document.getElementById('email').value = email;
+    document.getElementById('phone').value = phone;
+    
+    // Disable form fields
+    document.getElementById('firstName').readOnly = true;
+    document.getElementById('lastName').readOnly = true;
+    document.getElementById('email').readOnly = true;
+    document.getElementById('phone').readOnly = true;
+    
+    // Hide search results
+    document.getElementById('searchResults').classList.add('d-none');
+    
+    // Show selected customer info
+    const searchDiv = document.querySelector('.mb-4');
+    searchDiv.innerHTML = `
+        <div class="alert alert-success">
+            <h6><i class="fas fa-check-circle me-2"></i>Customer Selected</h6>
+            <p class="mb-0">${name} (${email})</p>
+            <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="clearCustomerSelection()">
+                Change Customer
+            </button>
+        </div>
+    `;
+}
+
+function clearCustomerSelection() {
+    selectedCustomerId = null;
+    
+    // Clear and enable form fields
+    document.getElementById('firstName').value = '';
+    document.getElementById('lastName').value = '';
+    document.getElementById('email').value = '';
+    document.getElementById('phone').value = '';
+    
+    document.getElementById('firstName').readOnly = false;
+    document.getElementById('lastName').readOnly = false;
+    document.getElementById('email').readOnly = false;
+    document.getElementById('phone').readOnly = false;
+    
+    // Restore search interface
+    location.reload();
+}
+
+function loadOrderSummary() {
+    fetch('/api/v1/sales/cart/summary/', {
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let html = '';
+            
+            if (data.items && data.items.length > 0) {
+                data.items.forEach(item => {
+                    html += `
+                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                            <div>
+                                <div class="fw-semibold">${item.zone_name}</div>
+                                ${item.seat_label ? `<small class="text-muted">Seat: ${item.seat_label}</small>` : `<small class="text-muted">Qty: ${item.quantity}</small>`}
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-semibold">$${item.total_price}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                        <strong>Total:</strong>
+                        <strong class="text-primary">$${data.total_amount}</strong>
+                    </div>
+                `;
+            } else {
+                html = '<p class="text-muted">Your cart is empty</p>';
+            }
+            
+            document.getElementById('orderSummary').innerHTML = html;
+        }
+    })
+    .catch(error => {
+        document.getElementById('orderSummary').innerHTML = '<p class="text-danger">Failed to load order summary</p>';
+    });
+}
+
+// Form validation and submission
+document.getElementById('customerForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    // Add selected customer ID if any
+    if (selectedCustomerId) {
+        formData.append('customer_id', selectedCustomerId);
+    }
+    
+    // Validate required fields
+    const requiredFields = ['first_name', 'last_name', 'email', 'phone'];
+    let isValid = true;
+    
+    requiredFields.forEach(field => {
+        const input = document.querySelector(`[name="${field}"]`);
+        if (!input.value.trim()) {
+            input.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            input.classList.remove('is-invalid');
+        }
+    });
+    
+    if (!isValid) {
+        alert('Please fill in all required fields.');
+        return;
+    }
+    
+    // Validate email format
+    const email = document.getElementById('email').value;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        document.getElementById('email').classList.add('is-invalid');
+        alert('Please enter a valid email address.');
+        return;
+    }
+    
+    // Submit form
+    const submitButton = this.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+    
+    fetch('/sales/checkout/customer/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.href = '/sales/checkout/payment/';
+        } else {
+            throw new Error('Failed to save customer information');
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error.message);
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<i class="fas fa-arrow-right me-1"></i>Continue to Payment';
+    });
+});
+
+// Load order summary on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadOrderSummary();
+    
+    // Enable search on Enter key
+    document.getElementById('customerSearch').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            searchCustomers();
+        }
+    });
+});
+</script>
+{% endblock %}

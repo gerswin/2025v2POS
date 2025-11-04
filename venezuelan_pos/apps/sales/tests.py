@@ -71,13 +71,17 @@ class SalesModelsTestCase(TestCase):
     
     def test_fiscal_series_counter_creation(self):
         """Test fiscal series counter creation and increment."""
+        from django.db import transaction
+
         # Test getting next series
-        series1 = FiscalSeriesCounter.objects.get_next_series(self.tenant, self.event)
+        with transaction.atomic():
+            series1 = FiscalSeriesCounter.objects.get_next_series(self.tenant, self.event)
         self.assertEqual(series1, "TT00000001")
-        
-        series2 = FiscalSeriesCounter.objects.get_next_series(self.tenant, self.event)
+
+        with transaction.atomic():
+            series2 = FiscalSeriesCounter.objects.get_next_series(self.tenant, self.event)
         self.assertEqual(series2, "TT00000002")
-        
+
         # Check counter was created
         counter = FiscalSeriesCounter.objects.get(tenant=self.tenant, event=self.event)
         self.assertEqual(counter.current_series, 2)

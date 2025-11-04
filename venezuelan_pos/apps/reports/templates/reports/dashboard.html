@@ -1,0 +1,397 @@
+{% extends "reports/base.html" %}
+{% load static %}
+
+{% block title %}Dashboard de Reportes - Venezuelan POS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">Dashboard de Reportes y Análisis</h1>
+                    <p class="text-muted">
+                        <span class="real-time-indicator"></span>
+                        Datos actualizados en tiempo real
+                    </p>
+                </div>
+                <div>
+                    <a href="{% url 'reports:sales_report_create' %}" class="btn btn-primary me-2">
+                        <i class="fas fa-plus"></i> Nuevo Reporte
+                    </a>
+                    <a href="{% url 'reports:analytics_dashboard' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-chart-line"></i> Análisis Avanzado
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="metric-card revenue">
+                <div class="metric-value" id="total-revenue">
+                    ${{ quick_metrics.total_revenue|floatformat:2 }}
+                </div>
+                <div class="metric-label">
+                    <i class="fas fa-dollar-sign"></i> Ingresos (30 días)
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card transactions">
+                <div class="metric-value" id="total-transactions">
+                    {{ quick_metrics.total_transactions }}
+                </div>
+                <div class="metric-label">
+                    <i class="fas fa-receipt"></i> Transacciones
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card tickets">
+                <div class="metric-value" id="total-tickets">
+                    {{ quick_metrics.total_tickets }}
+                </div>
+                <div class="metric-label">
+                    <i class="fas fa-ticket-alt"></i> Tickets Vendidos
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card performance">
+                <div class="metric-value" id="avg-transaction">
+                    ${{ quick_metrics.avg_transaction_value|floatformat:2 }}
+                </div>
+                <div class="metric-label">
+                    <i class="fas fa-chart-bar"></i> Promedio por Transacción
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-chart-line text-primary"></i>
+                    Tendencias de Reportes
+                </h5>
+                <canvas id="reportsChart" height="100"></canvas>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-pie-chart text-primary"></i>
+                    Estado de Reportes
+                </h5>
+                <canvas id="reportStatusChart"></canvas>
+                <div class="mt-3">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="fw-bold text-success">{{ stats.completed_reports }}</div>
+                            <small class="text-muted">Completados</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="fw-bold text-warning">{{ stats.pending_reports }}</div>
+                            <small class="text-muted">Pendientes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Performing Zones -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-trophy text-warning"></i>
+                    Zonas con Mejor Rendimiento (Últimos 30 días)
+                </h5>
+                {% if top_zones %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Zona</th>
+                                    <th>Evento</th>
+                                    <th>Tickets Vendidos</th>
+                                    <th>Ingresos</th>
+                                    <th>Tasa de Ocupación</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for zone_data in top_zones %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ zone_data.zone.name }}</strong>
+                                    </td>
+                                    <td>{{ zone_data.zone.event.name }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">
+                                            {{ zone_data.tickets_sold }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">
+                                            ${{ zone_data.revenue|floatformat:2 }}
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar" 
+                                                 role="progressbar" 
+                                                 style="width: {{ zone_data.fill_rate }}%"
+                                                 aria-valuenow="{{ zone_data.fill_rate }}" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100">
+                                                {{ zone_data.fill_rate }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="viewZoneAnalysis('{{ zone_data.zone.id }}')">
+                                            <i class="fas fa-chart-area"></i> Analizar
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No hay datos de zonas disponibles</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-clock text-info"></i>
+                    Reportes Recientes
+                </h5>
+                {% if recent_reports %}
+                    <div class="list-group list-group-flush">
+                        {% for report in recent_reports %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ report.name }}</h6>
+                                <small class="text-muted">
+                                    {{ report.get_report_type_display }} • 
+                                    {{ report.created_at|date:"d/m/Y H:i" }}
+                                </small>
+                            </div>
+                            <div>
+                                <span class="status-badge status-{{ report.status }}">
+                                    {{ report.get_status_display }}
+                                </span>
+                                <a href="{% url 'reports:sales_report_detail' report.id %}" 
+                                   class="btn btn-sm btn-outline-primary ms-2">
+                                    Ver
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'reports:sales_reports_list' %}" class="btn btn-outline-primary">
+                            Ver Todos los Reportes
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No hay reportes recientes</p>
+                        <a href="{% url 'reports:sales_report_create' %}" class="btn btn-primary">
+                            Crear Primer Reporte
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-chart-pie text-success"></i>
+                    Análisis de Ocupación Recientes
+                </h5>
+                {% if recent_analyses %}
+                    <div class="list-group list-group-flush">
+                        {% for analysis in recent_analyses %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ analysis.name }}</h6>
+                                <small class="text-muted">
+                                    {% if analysis.zone %}
+                                        Zona: {{ analysis.zone.name }}
+                                    {% elif analysis.event %}
+                                        Evento: {{ analysis.event.name }}
+                                    {% endif %}
+                                    • {{ analysis.created_at|date:"d/m/Y H:i" }}
+                                </small>
+                            </div>
+                            <div>
+                                <span class="badge bg-info">
+                                    {{ analysis.fill_rate }}% ocupación
+                                </span>
+                                <a href="{% url 'reports:occupancy_analysis_detail' analysis.id %}" 
+                                   class="btn btn-sm btn-outline-primary ms-2">
+                                    Ver
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'reports:occupancy_analysis_list' %}" class="btn btn-outline-primary">
+                            Ver Todos los Análisis
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-area fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No hay análisis recientes</p>
+                        <a href="{% url 'reports:occupancy_analysis_create' %}" class="btn btn-primary">
+                            Crear Primer Análisis
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-bolt text-warning"></i>
+                    Acciones Rápidas
+                </h5>
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="{% url 'reports:sales_report_create' %}" class="btn btn-outline-primary w-100 mb-2">
+                            <i class="fas fa-chart-bar"></i><br>
+                            Reporte de Ventas
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'reports:heat_map_generator' %}" class="btn btn-outline-success w-100 mb-2">
+                            <i class="fas fa-fire"></i><br>
+                            Mapa de Calor
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'reports:custom_report_builder' %}" class="btn btn-outline-info w-100 mb-2">
+                            <i class="fas fa-tools"></i><br>
+                            Constructor Personalizado
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'reports:report_schedules_list' %}" class="btn btn-outline-warning w-100 mb-2">
+                            <i class="fas fa-clock"></i><br>
+                            Programar Reportes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+$(document).ready(function() {
+    // Report Status Chart
+    const statusCtx = document.getElementById('reportStatusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Completados', 'Pendientes', 'Fallidos'],
+            datasets: [{
+                data: [{{ stats.completed_reports }}, {{ stats.pending_reports }}, {{ stats.failed_reports }}],
+                backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Reports Trend Chart (placeholder data)
+    const trendsCtx = document.getElementById('reportsChart').getContext('2d');
+    new Chart(trendsCtx, {
+        type: 'line',
+        data: {
+            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+            datasets: [{
+                label: 'Reportes Generados',
+                data: [12, 19, 3, 5, 2, 3, 9],
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Real-time updates
+    RealTimeUpdates.start(function() {
+        $.get('{% url "reports:ajax_real_time_metrics" %}')
+            .done(function(data) {
+                $('#total-revenue').text(ReportsUtils.formatCurrency(data.today.revenue));
+                $('#total-transactions').text(ReportsUtils.formatNumber(data.today.transactions));
+                $('#total-tickets').text(ReportsUtils.formatNumber(data.today.tickets));
+                $('#avg-transaction').text(ReportsUtils.formatCurrency(data.today.revenue / Math.max(data.today.transactions, 1)));
+            })
+            .fail(function() {
+                console.log('Error updating real-time metrics');
+            });
+    }, 30000); // Update every 30 seconds
+});
+
+function viewZoneAnalysis(zoneId) {
+    // Redirect to zone analysis or open modal
+    window.location.href = '{% url "reports:occupancy_analysis_create" %}?zone_id=' + zoneId;
+}
+</script>
+{% endblock %}

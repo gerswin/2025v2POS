@@ -1,0 +1,292 @@
+{% extends "payments/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Payments" %}{% endblock %}
+
+{% block main_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">{% trans "Payment History" %}</h1>
+    <div>
+        <a href="{% url 'payments_web:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>
+            {% trans "Back to Dashboard" %}
+        </a>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            {{ form.as_p }}
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-search me-1"></i>
+                    {% trans "Search" %}
+                </button>
+                <a href="{% url 'payments_web:payment_list' %}" class="btn btn-outline-secondary">
+                    {% trans "Clear Filters" %}
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Payments Table -->
+<div class="card">
+    <div class="card-body">
+        {% if payments %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Transaction" %}</th>
+                            <th>{% trans "Customer" %}</th>
+                            <th>{% trans "Method" %}</th>
+                            <th>{% trans "Amount" %}</th>
+                            <th>{% trans "Reference" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Plan" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td>{{ payment.created_at|date:"M d, Y H:i" }}</td>
+                            <td>
+                                <a href="{% url 'sales_web:transaction_detail' payment.transaction.pk %}">
+                                    {{ payment.transaction.fiscal_series|default:"Pending" }}
+                                </a>
+                                <br>
+                                <small class="text-muted">{{ payment.transaction.event.name|truncatechars:30 }}</small>
+                            </td>
+                            <td>
+                                <a href="{% url 'customers_web:customer_detail' payment.transaction.customer.pk %}">
+                                    {{ payment.transaction.customer.full_name }}
+                                </a>
+                                <br>
+                                <small class="text-muted">{{ payment.transaction.customer.email|truncatechars:25 }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark">
+                                    {{ payment.payment_method.name }}
+                                </span>
+                                <br>
+                                <small class="text-muted">{{ payment.payment_method.get_method_type_display }}</small>
+                            </td>
+                            <td>
+                                <div class="fw-bold">${{ payment.amount }}</div>
+                                {% if payment.processing_fee > 0 %}
+                                    <small class="text-muted">Fee: ${{ payment.processing_fee }}</small><br>
+                                    <small class="text-success">Net: ${{ payment.net_amount }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if payment.reference_number %}
+                                    <code>{{ payment.reference_number }}</code>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                                {% if payment.external_transaction_id %}
+                                    <br>
+                                    <small class="text-muted">{{ payment.external_transaction_id|truncatechars:15 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if payment.status == 'completed' %}
+                                    <span class="badge bg-success">{% trans "Completed" %}</span>
+                                    {% if payment.completed_at %}
+                                        <br><small class="text-muted">{{ payment.completed_at|date:"M d, H:i" }}</small>
+                                    {% endif %}
+                                {% elif payment.status == 'failed' %}
+                                    <span class="badge bg-danger">{% trans "Failed" %}</span>
+                                {% elif payment.status == 'pending' %}
+                                    <span class="badge bg-warning">{% trans "Pending" %}</span>
+                                {% elif payment.status == 'processing' %}
+                                    <span class="badge bg-info">{% trans "Processing" %}</span>
+                                {% elif payment.status == 'cancelled' %}
+                                    <span class="badge bg-secondary">{% trans "Cancelled" %}</span>
+                                {% elif payment.status == 'refunded' %}
+                                    <span class="badge bg-dark">{% trans "Refunded" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ payment.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if payment.payment_plan %}
+                                    <a href="{% url 'payments_web:payment_plan_detail' payment.payment_plan.pk %}"
+                                       class="badge bg-primary text-decoration-none">
+                                        {{ payment.payment_plan.get_plan_type_display }}
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">
+                                        ${{ payment.payment_plan.paid_amount }}/${{ payment.payment_plan.total_amount }}
+                                    </small>
+                                {% else %}
+                                    <span class="text-muted">{% trans "Direct Payment" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'payments_web:payment_detail' payment.pk %}"
+                                       class="btn btn-sm btn-outline-primary"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="top"
+                                       title="{% trans 'View details' %}">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if payment.status == 'pending' %}
+                                        <button class="btn btn-sm btn-success"
+                                                onclick="processPayment('{{ payment.pk }}')"
+                                                data-bs-toggle="tooltip"
+                                                data-bs-placement="top"
+                                                title="{% trans 'Mark as completed' %}">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger"
+                                                onclick="failPayment('{{ payment.pk }}')"
+                                                data-bs-toggle="tooltip"
+                                                data-bs-placement="top"
+                                                title="{% trans 'Mark as failed' %}">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    {% elif payment.status == 'completed' %}
+                                        <button class="btn btn-sm btn-outline-warning"
+                                                onclick="refundPayment('{{ payment.pk }}')"
+                                                data-bs-toggle="tooltip"
+                                                data-bs-placement="top"
+                                                title="{% trans 'Process refund' %}">
+                                            <i class="fas fa-undo"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if payments.has_other_pages %}
+                <nav aria-label="Payments pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if payments.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{% trans "First" %}</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ payments.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{% trans "Previous" %}</a>
+                            </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">
+                                {% blocktrans with number=payments.number total=payments.paginator.num_pages %}Page {{ number }} of {{ total }}{% endblocktrans %}
+                            </span>
+                        </li>
+
+                        {% if payments.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ payments.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{% trans "Next" %}</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ payments.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{% trans "Last" %}</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-money-bill-wave fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">{% trans "No Payments Found" %}</h4>
+                <p class="text-muted">
+                    {% if request.GET %}
+                        {% trans "No payments match your current search criteria." %}
+                    {% else %}
+                        {% trans "No payments have been processed yet." %}
+                    {% endif %}
+                </p>
+                {% if request.GET %}
+                    <a href="{% url 'payments_web:payment_list' %}" class="btn btn-outline-primary">
+                        {% trans "Clear Filters" %}
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- JavaScript for Quick Actions -->
+<script>
+// Initialize Bootstrap tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+function processPayment(paymentId) {
+    if (confirm('{% trans "Mark this payment as completed?" %}')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/payments/payments/${paymentId}/process/`;
+
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function failPayment(paymentId) {
+    const reason = prompt('{% trans "Enter reason for failure (optional):" %}');
+    if (reason !== null) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/api/v1/payments/payments/${paymentId}/mark_failed/`;
+
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+
+        if (reason) {
+            const reasonInput = document.createElement('input');
+            reasonInput.type = 'hidden';
+            reasonInput.name = 'notes';
+            reasonInput.value = reason;
+            form.appendChild(reasonInput);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function refundPayment(paymentId) {
+    const amount = prompt('{% trans "Enter refund amount (leave empty for full refund):" %}');
+    if (amount !== null) {
+        const reason = prompt('{% trans "Enter refund reason:" %}');
+        if (reason) {
+            // This would need to be implemented as an API call
+            alert('{% trans "Refund functionality would be implemented here" %}');
+        }
+    }
+}
+</script>
+
+{% csrf_token %}
+{% endblock %}

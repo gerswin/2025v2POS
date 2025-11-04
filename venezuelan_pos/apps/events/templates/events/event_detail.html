@@ -1,7 +1,7 @@
 {% extends 'events/base.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}{{ event.name }} - Event Details{% endblock %}
+{% block title %}{{ event.name }} - {% trans "Event Details" %}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -11,14 +11,14 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h1 class="h3 mb-0">{{ event.name }}</h1>
-                    <p class="text-muted mb-0">Event Details</p>
+                    <p class="text-muted mb-0">{% trans "Event Details" %}</p>
                 </div>
                 <div>
                     <a href="{% url 'events:event_edit' event.id %}" class="btn btn-primary me-2">
-                        <i class="fas fa-edit"></i> Edit Event
+                        <i class="fas fa-edit"></i> {% trans "Edit Event" %}
                     </a>
                     <a href="{% url 'events:event_list' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left"></i> Back to Events
+                        <i class="fas fa-arrow-left"></i> {% trans "Back to Events" %}
                     </a>
                 </div>
             </div>
@@ -27,25 +27,25 @@
             <div class="mb-4">
                 {% if event.status == 'active' %}
                     <span class="badge bg-success fs-6">
-                        <i class="fas fa-check-circle"></i> Active
+                        <i class="fas fa-check-circle"></i> {% trans "Active" %}
                     </span>
                 {% elif event.status == 'draft' %}
                     <span class="badge bg-warning fs-6">
-                        <i class="fas fa-clock"></i> Draft
+                        <i class="fas fa-clock"></i> {% trans "Draft" %}
                     </span>
                 {% elif event.status == 'closed' %}
                     <span class="badge bg-secondary fs-6">
-                        <i class="fas fa-lock"></i> Closed
+                        <i class="fas fa-lock"></i> {% trans "Closed" %}
                     </span>
                 {% elif event.status == 'cancelled' %}
                     <span class="badge bg-danger fs-6">
-                        <i class="fas fa-times-circle"></i> Cancelled
+                        <i class="fas fa-times-circle"></i> {% trans "Cancelled" %}
                     </span>
                 {% endif %}
 
                 {% if event.is_sales_active %}
                     <span class="badge bg-info fs-6 ms-2">
-                        <i class="fas fa-shopping-cart"></i> Sales Active
+                        <i class="fas fa-shopping-cart"></i> {% trans "Sales Active" %}
                     </span>
                 {% endif %}
             </div>
@@ -57,27 +57,27 @@
                     <div class="card mb-4">
                         <div class="card-header">
                             <h5 class="card-title mb-0">
-                                <i class="fas fa-info-circle"></i> Event Information
+                                <i class="fas fa-info-circle"></i> {% trans "Event Information" %}
                             </h5>
                         </div>
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <h6 class="text-muted">Event Name</h6>
+                                    <h6 class="text-muted">{% trans "Event Name" %}</h6>
                                     <p class="mb-3">{{ event.name }}</p>
 
-                                    <h6 class="text-muted">Event Type</h6>
+                                    <h6 class="text-muted">{% trans "Event Type" %}</h6>
                                     <p class="mb-3">
                                         {% if event.event_type == 'general_assignment' %}
-                                            <i class="fas fa-users"></i> General Assignment
+                                            <i class="fas fa-users"></i> {% trans "General Assignment" %}
                                         {% elif event.event_type == 'numbered_seat' %}
-                                            <i class="fas fa-chair"></i> Numbered Seating
+                                            <i class="fas fa-chair"></i> {% trans "Numbered Seating" %}
                                         {% elif event.event_type == 'mixed' %}
-                                            <i class="fas fa-layer-group"></i> Mixed Event
+                                            <i class="fas fa-layer-group"></i> {% trans "Mixed Event" %}
                                         {% endif %}
                                     </p>
 
-                                    <h6 class="text-muted">Venue</h6>
+                                    <h6 class="text-muted">{% trans "Venue" %}</h6>
                                     <p class="mb-3">
                                         <a href="{% url 'events:venue_detail' event.venue.id %}" class="text-decoration-none">
                                             <i class="fas fa-map-marker-alt"></i> {{ event.venue.name }}
@@ -88,30 +88,30 @@
                                     </p>
                                 </div>
                                 <div class="col-md-6">
-                                    <h6 class="text-muted">Start Date & Time</h6>
+                                    <h6 class="text-muted">{% trans "Start Date & Time" %}</h6>
                                     <p class="mb-3">
                                         <i class="fas fa-calendar-alt"></i> {{ event.start_date|date:"F j, Y" }}
                                         <br><i class="fas fa-clock"></i> {{ event.start_date|time:"g:i A" }}
                                     </p>
 
-                                    <h6 class="text-muted">End Date & Time</h6>
+                                    <h6 class="text-muted">{% trans "End Date & Time" %}</h6>
                                     <p class="mb-3">
                                         <i class="fas fa-calendar-alt"></i> {{ event.end_date|date:"F j, Y" }}
                                         <br><i class="fas fa-clock"></i> {{ event.end_date|time:"g:i A" }}
                                     </p>
 
-                                    <h6 class="text-muted">Currency</h6>
+                                    <h6 class="text-muted">{% trans "Currency" %}</h6>
                                     <p class="mb-3">
                                         <i class="fas fa-dollar-sign"></i> {{ event.base_currency }}
                                         {% if event.currency_conversion_rate != 1.0000 %}
-                                            <small class="text-muted">(Rate: {{ event.currency_conversion_rate }})</small>
+                                            <small class="text-muted">({% trans "Rate" %}: {{ event.currency_conversion_rate }})</small>
                                         {% endif %}
                                     </p>
                                 </div>
                             </div>
 
                             {% if event.description %}
-                                <h6 class="text-muted">Description</h6>
+                                <h6 class="text-muted">{% trans "Description" %}</h6>
                                 <p class="mb-0">{{ event.description|linebreaks }}</p>
                             {% endif %}
                         </div>
@@ -121,30 +121,30 @@
                     <div class="card mb-4">
                         <div class="card-header">
                             <h5 class="card-title mb-0">
-                                <i class="fas fa-shopping-cart"></i> Sales Information
+                                <i class="fas fa-shopping-cart"></i> {% trans "Sales Information" %}
                             </h5>
                         </div>
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <h6 class="text-muted">Sales Start</h6>
+                                    <h6 class="text-muted">{% trans "Sales Start" %}</h6>
                                     <p class="mb-3">
                                         {% if event.sales_start_date %}
                                             <i class="fas fa-calendar-alt"></i> {{ event.sales_start_date|date:"F j, Y" }}
                                             <br><i class="fas fa-clock"></i> {{ event.sales_start_date|time:"g:i A" }}
                                         {% else %}
-                                            <span class="text-muted">Not set</span>
+                                            <span class="text-muted">{% trans "Not set" %}</span>
                                         {% endif %}
                                     </p>
                                 </div>
                                 <div class="col-md-6">
-                                    <h6 class="text-muted">Sales End</h6>
+                                    <h6 class="text-muted">{% trans "Sales End" %}</h6>
                                     <p class="mb-3">
                                         {% if event.sales_end_date %}
                                             <i class="fas fa-calendar-alt"></i> {{ event.sales_end_date|date:"F j, Y" }}
                                             <br><i class="fas fa-clock"></i> {{ event.sales_end_date|time:"g:i A" }}
                                         {% else %}
-                                            <span class="text-muted">Not set</span>
+                                            <span class="text-muted">{% trans "Not set" %}</span>
                                         {% endif %}
                                     </p>
                                 </div>
@@ -156,14 +156,14 @@
                     <div class="card mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0">
-                                <i class="fas fa-layer-group"></i> Event Zones
+                                <i class="fas fa-layer-group"></i> {% trans "Event Zones" %}
                             </h5>
                             <div class="btn-group" role="group">
                                 <a href="{% url 'events:zone_list' event.id %}" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-cog"></i> Manage Zones
+                                    <i class="fas fa-cog"></i> {% trans "Manage Zones" %}
                                 </a>
                                 <a href="/zones/events/{{ event.id }}/map-editor/" class="btn btn-sm btn-success">
-                                    <i class="fas fa-map"></i> Map Editor
+                                    <i class="fas fa-map"></i> {% trans "Map Editor" %}
                                 </a>
                             </div>
                         </div>
@@ -171,14 +171,14 @@
                             <div id="zones-container">
                                 <div class="text-center text-muted py-4">
                                     <i class="fas fa-map fa-3x mb-3 text-primary"></i>
-                                    <h5>Zone Layout & Management</h5>
-                                    <p class="mb-3">Configure and visually arrange your event zones</p>
+                                    <h5>{% trans "Zone Layout & Management" %}</h5>
+                                    <p class="mb-3">{% trans "Configure and visually arrange your event zones" %}</p>
                                     <div class="d-flex justify-content-center gap-2">
                                         <a href="{% url 'events:zone_list' event.id %}" class="btn btn-primary">
-                                            <i class="fas fa-cog"></i> Manage Zones
+                                            <i class="fas fa-cog"></i> {% trans "Manage Zones" %}
                                         </a>
                                         <a href="/zones/events/{{ event.id }}/map-editor/" class="btn btn-success">
-                                            <i class="fas fa-map"></i> Visual Map Editor
+                                            <i class="fas fa-map"></i> {% trans "Visual Map Editor" %}
                                         </a>
                                     </div>
                                 </div>
@@ -193,7 +193,7 @@
                     <div class="card mb-4">
                         <div class="card-header">
                             <h5 class="card-title mb-0">
-                                <i class="fas fa-bolt"></i> Quick Actions
+                                <i class="fas fa-bolt"></i> {% trans "Quick Actions" %}
                             </h5>
                         </div>
                         <div class="card-body">
@@ -201,36 +201,101 @@
                                 {% if event.status == 'draft' %}
                                     <form method="post" action="{% url 'events:event_activate' event.id %}">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-success" onclick="return confirm('¿Activar este evento?')">
-                                            <i class="fas fa-play"></i> Activate Event
+                                        <button type="submit" class="btn btn-success" onclick="return confirm('{% trans "¿Activar este evento?" %}')">
+                                            <i class="fas fa-play"></i> {% trans "Activate Event" %}
                                         </button>
                                     </form>
                                 {% elif event.status == 'active' %}
                                     <form method="post" action="{% url 'events:event_deactivate' event.id %}">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-warning" onclick="return confirm('¿Desactivar este evento?')">
-                                            <i class="fas fa-pause"></i> Deactivate Event
+                                        <button type="submit" class="btn btn-warning" onclick="return confirm('{% trans "¿Desactivar este evento?" %}')">
+                                            <i class="fas fa-pause"></i> {% trans "Deactivate Event" %}
                                         </button>
                                     </form>
                                 {% endif %}
-                                
+
                                 {% if event.status != 'cancelled' %}
                                     <form method="post" action="{% url 'events:event_cancel' event.id %}">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-danger" 
-                                               onclick="return confirm('¿Estás seguro de que quieres cancelar este evento?')">
-                                            <i class="fas fa-times"></i> Cancel Event
+                                        <button type="submit" class="btn btn-danger"
+                                               onclick="return confirm('{% trans "¿Estás seguro de que quieres cancelar este evento?" %}')">
+                                            <i class="fas fa-times"></i> {% trans "Cancel Event" %}
                                         </button>
                                     </form>
                                 {% endif %}
-                                
+
                                 <a href="{% url 'events:event_edit' event.id %}" class="btn btn-primary">
-                                    <i class="fas fa-edit"></i> Edit Event
+                                    <i class="fas fa-edit"></i> {% trans "Edit Event" %}
                                 </a>
-                                
+
                                 <a href="{% url 'pricing_web:price_stage_list' event_id=event.id %}" class="btn btn-outline-success">
-                                    <i class="bi bi-currency-dollar"></i> Manage Pricing
+                                    <i class="bi bi-currency-dollar"></i> {% trans "Manage Pricing" %}
                                 </a>
+
+                                <a href="{% url 'fiscal_web:tax_configurations_list' %}?event={{ event.id }}" class="btn btn-outline-warning">
+                                    <i class="fas fa-receipt"></i> {% trans "View Event Taxes" %}
+                                </a>
+
+                                <a href="{% url 'tickets_web:dashboard' %}?event={{ event.id }}" class="btn btn-outline-info">
+                                    <i class="fas fa-qrcode"></i> {% trans "Digital Tickets" %}
+                                </a>
+
+                                <a href="{% url 'tickets_web:validate_ticket' %}" class="btn btn-outline-success">
+                                    <i class="fas fa-check-circle"></i> {% trans "Validate Tickets" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tax Configuration -->
+                    <div class="card mb-4 border-warning">
+                        <div class="card-header bg-warning bg-opacity-10">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-receipt text-warning"></i> {% trans "Tax Configuration" %}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-3">
+                                {% trans "Configure taxes that will be applied to ticket sales for this event." %}
+                            </p>
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'fiscal_web:tax_configuration_create' %}?event={{ event.id }}" class="btn btn-warning">
+                                    <i class="fas fa-plus-circle"></i> {% trans "Add Event Tax" %}
+                                </a>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <a href="{% url 'fiscal_web:tax_configurations_list' %}?event={{ event.id }}" class="btn btn-outline-secondary w-100">
+                                            <i class="fas fa-list"></i> {% trans "View Event Taxes" %}
+                                        </a>
+                                    </div>
+                                    <div class="col-6">
+                                        <a href="{% url 'fiscal_web:tax_calculator' %}" class="btn btn-outline-info w-100">
+                                            <i class="fas fa-calculator"></i> {% trans "Calculator" %}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tax Configuration Summary -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-percentage"></i> {% trans "Active Taxes" %}
+                            </h5>
+                            <a href="{% url 'fiscal_web:tax_configuration_create' %}?event={{ event.id }}" class="btn btn-sm btn-warning">
+                                <i class="fas fa-plus"></i> {% trans "Add Tax" %}
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div id="event-taxes-summary">
+                                <div class="text-center text-muted py-3">
+                                    <div class="spinner-border spinner-border-sm" role="status">
+                                        <span class="visually-hidden">{% trans "Loading..." %}</span>
+                                    </div>
+                                    <p class="small mt-2 mb-0">{% trans "Loading tax configurations..." %}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -240,51 +305,51 @@
                     <div class="card mb-4">
                         <div class="card-header">
                             <h5 class="card-title mb-0">
-                                <i class="fas fa-cog"></i> Configuration
+                                <i class="fas fa-cog"></i> {% trans "Configuration" %}
                             </h5>
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
-                                <h6 class="text-muted mb-1">Payment Options</h6>
+                                <h6 class="text-muted mb-1">{% trans "Payment Options" %}</h6>
                                 <div class="small">
                                     {% if config.partial_payments_enabled %}
-                                        <i class="fas fa-check text-success"></i> Partial Payments<br>
+                                        <i class="fas fa-check text-success"></i> {% trans "Partial Payments" %}<br>
                                     {% endif %}
                                     {% if config.installment_plans_enabled %}
-                                        <i class="fas fa-check text-success"></i> Installment Plans<br>
+                                        <i class="fas fa-check text-success"></i> {% trans "Installment Plans" %}<br>
                                     {% endif %}
                                     {% if config.flexible_payments_enabled %}
-                                        <i class="fas fa-check text-success"></i> Flexible Payments<br>
+                                        <i class="fas fa-check text-success"></i> {% trans "Flexible Payments" %}<br>
                                     {% endif %}
                                 </div>
                             </div>
 
                             <div class="mb-3">
-                                <h6 class="text-muted mb-1">Notifications</h6>
+                                <h6 class="text-muted mb-1">{% trans "Notifications" %}</h6>
                                 <div class="small">
                                     {% if config.email_notifications %}
-                                        <i class="fas fa-check text-success"></i> Email<br>
+                                        <i class="fas fa-check text-success"></i> {% trans "Email" %}<br>
                                     {% endif %}
                                     {% if config.sms_notifications %}
-                                        <i class="fas fa-check text-success"></i> SMS<br>
+                                        <i class="fas fa-check text-success"></i> {% trans "SMS" %}<br>
                                     {% endif %}
                                     {% if config.whatsapp_notifications %}
-                                        <i class="fas fa-check text-success"></i> WhatsApp<br>
+                                        <i class="fas fa-check text-success"></i> {% trans "WhatsApp" %}<br>
                                     {% endif %}
                                 </div>
                             </div>
 
                             <div class="mb-0">
-                                <h6 class="text-muted mb-1">Digital Tickets</h6>
+                                <h6 class="text-muted mb-1">{% trans "Digital Tickets" %}</h6>
                                 <div class="small">
                                     {% if config.digital_tickets_enabled %}
-                                        <i class="fas fa-check text-success"></i> Digital Tickets<br>
+                                        <i class="fas fa-check text-success"></i> {% trans "Digital Tickets" %}<br>
                                     {% endif %}
                                     {% if config.qr_codes_enabled %}
-                                        <i class="fas fa-check text-success"></i> QR Codes<br>
+                                        <i class="fas fa-check text-success"></i> {% trans "QR Codes" %}<br>
                                     {% endif %}
                                     {% if config.pdf_tickets_enabled %}
-                                        <i class="fas fa-check text-success"></i> PDF Tickets<br>
+                                        <i class="fas fa-check text-success"></i> {% trans "PDF Tickets" %}<br>
                                     {% endif %}
                                 </div>
                             </div>
@@ -292,17 +357,51 @@
                     </div>
                     {% endif %}
 
+                    <!-- Digital Tickets Management -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-qrcode"></i> {% trans "Digital Tickets" %}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-3">
+                                {% trans "Manage digital tickets and QR codes for this event." %}
+                            </p>
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'tickets_web:dashboard' %}?event={{ event.id }}" class="btn btn-primary">
+                                    <i class="fas fa-ticket-alt"></i> {% trans "View All Tickets" %}
+                                </a>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <a href="{% url 'tickets_web:validate_ticket' %}" class="btn btn-success w-100">
+                                            <i class="fas fa-qrcode"></i> {% trans "Validate" %}
+                                        </a>
+                                    </div>
+                                    <div class="col-6">
+                                        <a href="{% url 'tickets_web:analytics' %}?event={{ event.id }}" class="btn btn-info w-100">
+                                            <i class="fas fa-chart-line"></i> {% trans "Analytics" %}
+                                        </a>
+                                    </div>
+                                </div>
+                                <a href="{% url 'tickets_web:validation_dashboard' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-tachometer-alt"></i> {% trans "Validation Dashboard" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Event Statistics -->
                     <div class="card">
                         <div class="card-header">
                             <h5 class="card-title mb-0">
-                                <i class="fas fa-chart-bar"></i> Statistics
+                                <i class="fas fa-chart-bar"></i> {% trans "Statistics" %}
                             </h5>
                         </div>
                         <div class="card-body">
                             <div class="text-center text-muted">
                                 <i class="fas fa-chart-bar fa-2x mb-2"></i>
-                                <p class="small">Statistics will be available once ticket sales begin</p>
+                                <p class="small">{% trans "Statistics will be available once ticket sales begin" %}</p>
                             </div>
                         </div>
                     </div>
@@ -314,19 +413,19 @@
 
 <!-- Zones Management Modal -->
 <div class="modal fade" id="zonesModal" tabindex="-1" aria-labelledby="zonesModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="zonesModalLabel">
-                    <i class="fas fa-layer-group"></i> Manage Event Zones
+                    <i class="fas fa-layer-group"></i> {% trans "Manage Event Zones" %}
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
             </div>
             <div class="modal-body">
                 <div id="zones-content">
                     <div class="text-center">
                         <div class="spinner-border" role="status">
-                            <span class="visually-hidden">Loading...</span>
+                            <span class="visually-hidden">{% trans "Loading..." %}</span>
                         </div>
                     </div>
                 </div>
@@ -338,6 +437,89 @@
 
 {% block extra_js %}
 <script>
+// Load event taxes on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadEventTaxes();
+});
+
+function loadEventTaxes() {
+    fetch(`/api/v1/fiscal/tax-configurations/?event={{ event.id }}`)
+        .then(response => response.json())
+        .then(data => {
+            displayEventTaxes(data.results || []);
+        })
+        .catch(error => {
+            console.error('Error loading taxes:', error);
+            document.getElementById('event-taxes-summary').innerHTML = `
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                    <p class="small mb-0">{% trans "Unable to load tax configurations" %}</p>
+                </div>
+            `;
+        });
+}
+
+function displayEventTaxes(taxes) {
+    const container = document.getElementById('event-taxes-summary');
+    
+    if (taxes.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-3">
+                <i class="fas fa-percentage fa-2x mb-2 opacity-50"></i>
+                <p class="mb-2">{% trans "No taxes configured for this event" %}</p>
+                <a href="{% url 'fiscal_web:tax_configuration_create' %}?event={{ event.id }}" class="btn btn-sm btn-warning">
+                    <i class="fas fa-plus"></i> {% trans "Add First Tax" %}
+                </a>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '<div class="row g-2">';
+    
+    taxes.forEach(tax => {
+        const rateDisplay = tax.tax_type === 'FIXED' ? 
+            `$${tax.fixed_amount}` : 
+            `${(tax.rate * 100).toFixed(2)}%`;
+        
+        const scopeIcon = tax.scope === 'EVENT' ? 'fas fa-calendar-alt' : 'fas fa-building';
+        const scopeText = tax.scope === 'EVENT' ? '{% trans "Event" %}' : '{% trans "Tenant" %}';
+        
+        html += `
+            <div class="col-md-6">
+                <div class="border rounded p-2 ${tax.is_active ? 'border-success' : 'border-secondary'}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">${tax.name}</h6>
+                            <div class="small text-muted">
+                                <i class="${scopeIcon}"></i> ${scopeText} • ${tax.tax_type}
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold ${tax.is_active ? 'text-success' : 'text-muted'}">${rateDisplay}</div>
+                            <span class="badge ${tax.is_active ? 'bg-success' : 'bg-secondary'} badge-sm">
+                                ${tax.is_active ? '{% trans "Active" %}' : '{% trans "Inactive" %}'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    
+    html += `
+        <div class="mt-3 text-center">
+            <a href="{% url 'fiscal_web:tax_configurations_list' %}?event={{ event.id }}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-list"></i> {% trans "Manage All Taxes" %}
+            </a>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
 function loadZones() {
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('zonesModal'));
@@ -354,7 +536,7 @@ function loadZones() {
             document.getElementById('zones-content').innerHTML = `
                 <div class="alert alert-danger">
                     <i class="fas fa-exclamation-triangle"></i>
-                    Error loading zones. Please try again.
+                    {% trans "Error loading zones. Please try again." %}
                 </div>
             `;
         });
@@ -367,10 +549,10 @@ function displayZones(zones) {
         container.innerHTML = `
             <div class="text-center text-muted py-4">
                 <i class="fas fa-layer-group fa-3x mb-3"></i>
-                <h5>No Zones Configured</h5>
-                <p>This event doesn't have any zones configured yet.</p>
+                <h5>{% trans "No Zones Configured" %}</h5>
+                <p>{% trans "This event doesn't have any zones configured yet." %}</p>
                 <button class="btn btn-primary" onclick="createZone()">
-                    <i class="fas fa-plus"></i> Create First Zone
+                    <i class="fas fa-plus"></i> {% trans "Create First Zone" %}
                 </button>
             </div>
         `;
@@ -379,9 +561,9 @@ function displayZones(zones) {
     
     let html = `
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="mb-0">${zones.length} Zone(s) Configured</h6>
+            <h6 class="mb-0">${zones.length} {% trans "Zone(s) Configured" %}</h6>
             <button class="btn btn-sm btn-primary" onclick="createZone()">
-                <i class="fas fa-plus"></i> Add Zone
+                <i class="fas fa-plus"></i> {% trans "Add Zone" %}
             </button>
         </div>
         <div class="row">
@@ -402,25 +584,25 @@ function displayZones(zones) {
                             <span class="badge ${statusBadge}">${zone.status}</span>
                         </div>
                         <p class="card-text small text-muted mb-2">
-                            ${zone.zone_type === 'numbered' ? 'Numbered Seating' : 'General Admission'}
+                            ${zone.zone_type === 'numbered' ? '{% trans "Numbered Seating" %}' : '{% trans "General Admission" %}'}
                         </p>
                         <div class="row text-center">
                             <div class="col-4">
-                                <div class="small text-muted">Capacity</div>
+                                <div class="small text-muted">{% trans "Capacity" %}</div>
                                 <div class="fw-bold">${zone.capacity}</div>
                             </div>
                             <div class="col-4">
-                                <div class="small text-muted">Available</div>
+                                <div class="small text-muted">{% trans "Available" %}</div>
                                 <div class="fw-bold text-success">${zone.available_capacity}</div>
                             </div>
                             <div class="col-4">
-                                <div class="small text-muted">Price</div>
+                                <div class="small text-muted">{% trans "Price" %}</div>
                                 <div class="fw-bold">$${zone.base_price}</div>
                             </div>
                         </div>
                         ${zone.zone_type === 'numbered' ? `
                             <div class="mt-2 small text-muted">
-                                ${zone.rows} rows × ${zone.seats_per_row} seats
+                                ${zone.rows} {% trans "rows" %} × ${zone.seats_per_row} {% trans "seats" %}
                             </div>
                         ` : ''}
                     </div>
@@ -435,7 +617,7 @@ function displayZones(zones) {
 
 function createZone() {
     // This would open a zone creation form
-    alert('Zone creation functionality would be implemented here');
+    alert('{% trans "Zone creation functionality would be implemented here" %}');
 }
 </script>
 {% endblock %}

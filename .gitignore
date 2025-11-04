@@ -176,3 +176,5 @@ seat_*.py
 # Temporary files
 *.tmp
 *.temp
+temp_*.txt
+celerybeat-schedule.db

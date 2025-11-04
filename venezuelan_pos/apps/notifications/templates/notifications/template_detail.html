@@ -1,0 +1,182 @@
+{% extends "notifications/base.html" %}
+
+{% block notification_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>{{ template.name }}</h2>
+    <div class="btn-group">
+        <a href="{% url 'notifications:template_edit' template.id %}" class="btn btn-primary">
+            <i class="fas fa-edit me-2"></i>Edit
+        </a>
+        <a href="{% url 'notifications:template_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Template Details -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Template Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Type:</strong>
+                        <span class="channel-badge channel-{{ template.template_type }} ms-2">
+                            {% if template.template_type == 'email' %}
+                                <i class="fas fa-envelope me-1"></i>Email
+                            {% elif template.template_type == 'sms' %}
+                                <i class="fas fa-sms me-1"></i>SMS
+                            {% elif template.template_type == 'whatsapp' %}
+                                <i class="fab fa-whatsapp me-1"></i>WhatsApp
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Status:</strong>
+                        {% if template.is_active %}
+                            <span class="badge bg-success ms-2">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary ms-2">Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if template.subject %}
+                <div class="mb-3">
+                    <strong>Subject:</strong>
+                    <div class="mt-1">
+                        <code>{{ template.subject }}</code>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <strong>Content:</strong>
+                    <div class="mt-1">
+                        <pre class="bg-light p-3 rounded"><code>{{ template.content }}</code></pre>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Created:</strong> {{ template.created_at|date:"M d, Y H:i" }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Updated:</strong> {{ template.updated_at|date:"M d, Y H:i" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Usage -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Usage</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_logs %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Recipient</th>
+                                <th>Status</th>
+                                <th>Sent At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in recent_logs %}
+                            <tr>
+                                <td>{{ log.recipient|truncatechars:30 }}</td>
+                                <td>
+                                    <span class="notification-status status-{{ log.status }}">
+                                        {{ log.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if log.sent_at %}
+                                        {{ log.sent_at|date:"M d, H:i" }}
+                                    {% else %}
+                                        {{ log.created_at|date:"M d, H:i" }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'notifications:log_detail' log.id %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">This template hasn't been used yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Test Template -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">Test Template</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'notifications:template_test' template.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="recipient" class="form-label">Test Recipient</label>
+                        <input type="text" name="recipient" id="recipient" class="form-control" 
+                               placeholder="{% if template.template_type == 'email' %}email@example.com{% else %}+58-412-1234567{% endif %}" required>
+                        <div class="form-text">
+                            {% if template.template_type == 'email' %}
+                                Enter email address
+                            {% else %}
+                                Enter phone number
+                            {% endif %}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-paper-plane me-2"></i>Send Test
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'notifications:template_edit' template.id %}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Edit Template
+                    </a>
+                    <a href="{% url 'notifications:send' %}?template={{ template.id }}" class="btn btn-outline-success">
+                        <i class="fas fa-paper-plane me-2"></i>Send Notification
+                    </a>
+                    <button type="button" class="btn btn-outline-info" onclick="copyTemplate()">
+                        <i class="fas fa-copy me-2"></i>Copy Template
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyTemplate() {
+    // Create a new template based on this one
+    const url = "{% url 'notifications:template_create' %}?copy={{ template.id }}";
+    window.location.href = url;
+}
+</script>
+{% endblock %}

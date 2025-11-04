@@ -14,13 +14,14 @@ from venezuelan_pos.apps.zones.models import Zone
 
 
 class PriceStageForm(forms.ModelForm):
-    """Form for creating and editing price stages."""
+    """Form for creating and editing hybrid price stages."""
     
     class Meta:
         model = PriceStage
         fields = [
-            'name', 'description', 'start_date', 'end_date',
-            'percentage_markup', 'stage_order', 'is_active'
+            'name', 'description', 'start_date', 'end_date', 'quantity_limit',
+            'modifier_type', 'modifier_value', 'scope', 'zone', 
+            'stage_order', 'is_active', 'auto_transition'
         ]
         
         widgets = {
@@ -41,11 +42,25 @@ class PriceStageForm(forms.ModelForm):
                 'class': 'form-control',
                 'type': 'datetime-local'
             }),
-            'percentage_markup': forms.NumberInput(attrs={
+            'quantity_limit': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Límite de tickets (opcional)',
+                'min': '1'
+            }),
+            'modifier_type': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'modifier_value': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'placeholder': '0.00',
                 'min': '0',
                 'step': '0.01'
+            }),
+            'scope': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'zone': forms.Select(attrs={
+                'class': 'form-select'
             }),
             'stage_order': forms.NumberInput(attrs={
                 'class': 'form-control',
@@ -54,6 +69,9 @@ class PriceStageForm(forms.ModelForm):
             }),
             'is_active': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
+            }),
+            'auto_transition': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
             })
         }
     
@@ -61,10 +79,18 @@ class PriceStageForm(forms.ModelForm):
         self.event = kwargs.pop('event', None)
         super().__init__(*args, **kwargs)
         
+        # Filter zones by event if provided
+        if self.event:
+            self.fields['zone'].queryset = self.event.zones.all()
+        else:
+            self.fields['zone'].queryset = Zone.objects.none()
+        
         # Set default values for new instances
         if not self.instance.pk:
             self.fields['is_active'].initial = True
-            self.fields['percentage_markup'].initial = Decimal('0.00')
+            self.fields['auto_transition'].initial = True
+            self.fields['modifier_value'].initial = Decimal('0.00')
+            self.fields['scope'].initial = PriceStage.StageScope.EVENT_WIDE
     
     def clean_name(self):
         """Validate stage name."""
@@ -73,18 +99,28 @@ class PriceStageForm(forms.ModelForm):
             raise ValidationError('El nombre de la etapa es obligatorio.')
         return name
     
-    def clean_percentage_markup(self):
-        """Validate percentage markup."""
-        markup = self.cleaned_data.get('percentage_markup')
-        if markup is not None and markup < 0:
-            raise ValidationError('El porcentaje de incremento no puede ser negativo.')
-        return markup
+    def clean_modifier_value(self):
+        """Validate modifier value."""
+        modifier_value = self.cleaned_data.get('modifier_value')
+        if modifier_value is not None and modifier_value < 0:
+            raise ValidationError('El valor del modificador no puede ser negativo.')
+        return modifier_value
+    
+    def clean_quantity_limit(self):
+        """Validate quantity limit."""
+        quantity_limit = self.cleaned_data.get('quantity_limit')
+        if quantity_limit is not None and quantity_limit <= 0:
+            raise ValidationError('El límite de cantidad debe ser positivo.')
+        return quantity_limit
     
     def clean(self):
         """Cross-field validation."""
         cleaned_data = super().clean()
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
+        scope = cleaned_data.get('scope')
+        zone = cleaned_data.get('zone')
+        quantity_limit = cleaned_data.get('quantity_limit')
         
         # Validate date range
         if start_date and end_date:
@@ -93,12 +129,35 @@ class PriceStageForm(forms.ModelForm):
                     'end_date': 'La fecha de fin debe ser posterior a la fecha de inicio.'
                 })
         
+        # Validate scope and zone relationship
+        if scope == PriceStage.StageScope.ZONE_SPECIFIC and not zone:
+            raise ValidationError({
+                'zone': 'Debe seleccionar una zona para etapas específicas de zona.'
+            })
+        
+        if scope == PriceStage.StageScope.EVENT_WIDE and zone:
+            raise ValidationError({
+                'zone': 'No debe seleccionar zona para etapas de evento completo.'
+            })
+        
+        # Validate quantity limit against capacity
+        if quantity_limit and zone and scope == PriceStage.StageScope.ZONE_SPECIFIC:
+            if quantity_limit > zone.capacity:
+                raise ValidationError({
+                    'quantity_limit': f'El límite de cantidad no puede exceder la capacidad de la zona ({zone.capacity})'
+                })
+        
         # Check for overlapping stages if event is provided
         if self.event and start_date and end_date:
             overlapping_stages = PriceStage.objects.filter(
                 event=self.event,
-                is_active=True
+                is_active=True,
+                scope=scope
             )
+            
+            # For zone-specific stages, only check within the same zone
+            if scope == PriceStage.StageScope.ZONE_SPECIFIC and zone:
+                overlapping_stages = overlapping_stages.filter(zone=zone)
             
             # Exclude current instance if updating
             if self.instance and self.instance.pk:
@@ -107,9 +166,10 @@ class PriceStageForm(forms.ModelForm):
             for stage in overlapping_stages:
                 if stage.start_date and stage.end_date:
                     if (start_date < stage.end_date and end_date > stage.start_date):
+                        scope_desc = f"zona {zone.name}" if zone else "evento"
                         raise ValidationError({
-                            'start_date': f'El rango de fechas se superpone con la etapa "{stage.name}"',
-                            'end_date': f'El rango de fechas se superpone con la etapa "{stage.name}"'
+                            'start_date': f'El rango de fechas se superpone con la etapa "{stage.name}" en {scope_desc}',
+                            'end_date': f'El rango de fechas se superpone con la etapa "{stage.name}" en {scope_desc}'
                         })
         
         return cleaned_data

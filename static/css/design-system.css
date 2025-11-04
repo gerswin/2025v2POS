@@ -21,6 +21,8 @@
   --primary-700: #213395;
   --primary-800: #152172;
   --primary-900: #0A0F4F;
+  --primary-color: var(--primary-500);       /* Alias para plantillas antiguas */
+  --primary-color-rgb: 59, 91, 219;
 
   /* ===== COLORES SECUNDARIOS - Gris azulado ===== */
   --secondary-50: #F8F9FA;
@@ -38,6 +40,7 @@
   --success: #10B981;     /* Verde moderno */
   --success-light: #D1FAE5;
   --success-dark: #065F46;
+  --success-color: var(--success);           /* Compatibilidad con plantillas */
 
   --warning: #F59E0B;     /* Amarillo cálido */
   --warning-light: #FEF3C7;

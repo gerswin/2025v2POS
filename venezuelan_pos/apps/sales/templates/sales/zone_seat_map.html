@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load l10n %}
 
 <!-- Zone Header -->
 <div class="row mb-4">
@@ -74,7 +75,7 @@
                      data-row="{{ seat.row_number }}"
                      data-seat="{{ seat.seat_number }}"
                      data-status="{{ seat.cached_status|default:seat.status }}"
-                     data-price="{{ seat.dynamic_price|floatformat:2 }}"
+                     data-price="{{ seat.dynamic_price|unlocalize }}"
                      title="{{ seat.seat_label }} - ${{ seat.dynamic_price|floatformat:2 }}"
                      onclick="toggleSeat(this)">
                     {{ seat.seat_number }}
@@ -300,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
             pricesLoaded++;
         } else {
             // Fallback to zone base price if seat price is not available
-            const zonePrice = {{ zone_price|floatformat:2 }};
+            const zonePrice = {{ zone_price|unlocalize }};
             window.seatPrices[seatId] = zonePrice;
             console.log(`⚠️ Using zone price ${zonePrice} for seat ${seatId}`);
         }

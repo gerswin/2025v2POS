@@ -1,0 +1,176 @@
+{% extends "fiscal/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-1">{% trans "Fiscal Audit Trail" %}</h1>
+                <p class="text-muted mb-0">
+                    {% trans "Immutable history of all fiscal operations performed in the system." %}
+                </p>
+            </div>
+            <a href="{% url 'fiscal:fiscal_dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Dashboard" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter panel -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-lg-3">
+                    <label for="{{ search_form.search_query.id_for_label }}" class="form-label fw-semibold">
+                        {% trans "Search" %}
+                    </label>
+                    {{ search_form.search_query }}
+                </div>
+                <div class="col-lg-2">
+                    <label for="{{ search_form.date_from.id_for_label }}" class="form-label fw-semibold">
+                        {% trans "From" %}
+                    </label>
+                    {{ search_form.date_from }}
+                </div>
+                <div class="col-lg-2">
+                    <label for="{{ search_form.date_to.id_for_label }}" class="form-label fw-semibold">
+                        {% trans "To" %}
+                    </label>
+                    {{ search_form.date_to }}
+                </div>
+                <div class="col-lg-3">
+                    <label for="{{ search_form.user.id_for_label }}" class="form-label fw-semibold">
+                        {% trans "User" %}
+                    </label>
+                    {{ search_form.user }}
+                </div>
+                <div class="col-lg-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-filter me-2"></i>{% trans "Apply" %}
+                    </button>
+                    <a href="{% url 'fiscal:audit_trail' %}" class="btn btn-outline-secondary" title="{% trans 'Clear filters' %}">
+                        <i class="fas fa-sync-alt"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if page_obj and page_obj.object_list %}
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{% trans "Audit Entries" %}</h5>
+            <span class="badge bg-primary-subtle text-primary">
+                {{ page_obj.paginator.count }} {% trans "records" %}
+            </span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">{% trans "Timestamp" %}</th>
+                            <th scope="col">{% trans "Action" %}</th>
+                            <th scope="col">{% trans "Object" %}</th>
+                            <th scope="col">{% trans "Description" %}</th>
+                            <th scope="col">{% trans "User" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in page_obj.object_list %}
+                        <tr>
+                            <td class="text-nowrap">
+                                <div class="fw-semibold">{{ log.timestamp|date:"M d, Y" }}</div>
+                                <small class="text-muted">{{ log.timestamp|time:"H:i:s" }}</small>
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if log.action_type == 'CREATE' %}bg-success-subtle text-success
+                                    {% elif log.action_type == 'UPDATE' %}bg-warning-subtle text-warning
+                                    {% elif log.action_type == 'DELETE' %}bg-danger-subtle text-danger
+                                    {% elif log.action_type == 'VOID' %}bg-orange-subtle text-warning
+                                    {% elif log.action_type == 'CLOSE' %}bg-primary-subtle text-primary
+                                    {% else %}bg-secondary-subtle text-secondary{% endif %}">
+                                    {{ log.get_action_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="fw-semibold">{{ log.object_type }}</div>
+                                <small class="text-muted">ID: {{ log.object_id }}</small>
+                            </td>
+                            <td style="max-width: 360px;">
+                                <div class="text-break">{{ log.description|default:_("No description provided.") }}</div>
+                                {% if log.old_values %}
+                                <details class="mt-2">
+                                    <summary class="small text-muted">{% trans "Previous values" %}</summary>
+                                    <pre class="bg-light p-2 rounded small mb-0">{{ log.old_values|pprint }}</pre>
+                                </details>
+                                {% endif %}
+                                {% if log.new_values %}
+                                <details class="mt-2">
+                                    <summary class="small text-muted">{% trans "New values" %}</summary>
+                                    <pre class="bg-light p-2 rounded small mb-0">{{ log.new_values|pprint }}</pre>
+                                </details>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if log.user %}
+                                    <span class="badge bg-secondary-subtle text-secondary">
+                                        <i class="fas fa-user me-1"></i>{{ log.user.get_full_name|default:log.user.username }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">{% trans "System" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-white">
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="{% trans 'Audit trail pagination' %}">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search_query %}&search_query={{ request.GET.search_query }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}{% if request.GET.user %}&user={{ request.GET.user }}{% endif %}">
+                                {% trans "Previous" %}
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item active">
+                        <span class="page-link">
+                            {% blocktrans %}Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}{% endblocktrans %}
+                        </span>
+                    </li>
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search_query %}&search_query={{ request.GET.search_query }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}{% if request.GET.user %}&user={{ request.GET.user }}{% endif %}">
+                                {% trans "Next" %}
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-clipboard fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">{% trans "No audit entries available" %}</h5>
+            <p class="text-muted">
+                {% if request.GET %}
+                    {% trans "Try adjusting the filters or clearing the search criteria." %}
+                {% else %}
+                    {% trans "Fiscal operations will appear here as they are performed in the system." %}
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

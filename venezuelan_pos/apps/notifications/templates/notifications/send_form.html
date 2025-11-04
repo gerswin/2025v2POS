@@ -1,0 +1,182 @@
+{% extends "notifications/base.html" %}
+
+{% block notification_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Send Notification</h2>
+    <a href="{% url 'notifications:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Send Manual Notification</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.template.id_for_label }}" class="form-label">Template</label>
+                            {{ form.template }}
+                            <div class="form-text">{{ form.template.help_text }}</div>
+                            {% if form.template.errors %}
+                                <div class="text-danger small">{{ form.template.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.recipient.id_for_label }}" class="form-label">Recipient</label>
+                            {{ form.recipient }}
+                            <div class="form-text">{{ form.recipient.help_text }}</div>
+                            {% if form.recipient.errors %}
+                                <div class="text-danger small">{{ form.recipient.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="{{ form.customer.id_for_label }}" class="form-label">Customer</label>
+                            {{ form.customer }}
+                            <div class="form-text">{{ form.customer.help_text }}</div>
+                            {% if form.customer.errors %}
+                                <div class="text-danger small">{{ form.customer.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.transaction.id_for_label }}" class="form-label">Transaction</label>
+                            {{ form.transaction }}
+                            <div class="form-text">{{ form.transaction.help_text }}</div>
+                            {% if form.transaction.errors %}
+                                <div class="text-danger small">{{ form.transaction.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.event.id_for_label }}" class="form-label">Event</label>
+                            {{ form.event }}
+                            <div class="form-text">{{ form.event.help_text }}</div>
+                            {% if form.event.errors %}
+                                <div class="text-danger small">{{ form.event.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.context.id_for_label }}" class="form-label">Context Data</label>
+                        {{ form.context }}
+                        <div class="form-text">{{ form.context.help_text }}</div>
+                        {% if form.context.errors %}
+                            <div class="text-danger small">{{ form.context.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Send Notification
+                        </button>
+                        <button type="button" class="btn btn-outline-info" onclick="fillSampleData()">
+                            <i class="fas fa-magic me-2"></i>Fill Sample Data
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'notifications:template_create' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus me-2"></i>Create Template
+                    </a>
+                    <a href="{% url 'notifications:template_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list me-2"></i>View Templates
+                    </a>
+                    <a href="{% url 'notifications:log_list' %}" class="btn btn-outline-info">
+                        <i class="fas fa-history me-2"></i>Notification History
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">Sample Context Data</h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted">Example JSON context for templates:</p>
+                <pre class="small bg-light p-2 rounded"><code>{
+  "customer": {
+    "name": "John",
+    "surname": "Doe",
+    "email": "john@example.com"
+  },
+  "event": {
+    "name": "Concert 2025",
+    "start_date": "2025-12-31 20:00"
+  },
+  "transaction": {
+    "fiscal_series": "TT00000001",
+    "total_amount": "150.00"
+  }
+}</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function fillSampleData() {
+    const contextField = document.getElementById('{{ form.context.id_for_label }}');
+    const sampleData = {
+        "customer": {
+            "name": "John",
+            "surname": "Doe",
+            "email": "john.doe@example.com",
+            "phone": "+58-412-1234567"
+        },
+        "event": {
+            "name": "Test Event",
+            "start_date": "2025-12-31 20:00:00",
+            "venue": {
+                "name": "Test Venue",
+                "address": "123 Test Street"
+            }
+        },
+        "transaction": {
+            "fiscal_series": "TT00000001",
+            "total_amount": "150.00",
+            "created_at": "2025-11-01 15:30:00"
+        },
+        "payment_plan": {
+            "remaining_balance": "75.00",
+            "next_payment_date": "2025-11-15"
+        }
+    };
+    
+    contextField.value = JSON.stringify(sampleData, null, 2);
+}
+
+// Auto-update recipient placeholder based on template type
+document.addEventListener('DOMContentLoaded', function() {
+    const templateField = document.getElementById('{{ form.template.id_for_label }}');
+    const recipientField = document.getElementById('{{ form.recipient.id_for_label }}');
+    
+    templateField.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption.text.includes('Email')) {
+            recipientField.placeholder = 'email@example.com';
+        } else {
+            recipientField.placeholder = '+58-412-1234567';
+        }
+    });
+});
+</script>
+{% endblock %}

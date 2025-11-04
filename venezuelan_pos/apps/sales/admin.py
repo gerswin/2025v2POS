@@ -9,6 +9,7 @@ from .models import (
     ReservedTicket,
     OfflineBlock
 )
+from .models_cart_lock import CartItemLock
 
 
 @admin.register(FiscalSeriesCounter)
@@ -408,3 +409,152 @@ class OfflineBlockAdmin(admin.ModelAdmin):
                 f"Successfully marked {synced} blocks as synced."
             )
     sync_blocks.short_description = "Mark selected blocks as synced"
+
+
+@admin.register(CartItemLock)
+class CartItemLockAdmin(admin.ModelAdmin):
+    """Admin interface for Cart Item Lock."""
+    
+    list_display = [
+        'item_description', 'session_key_short', 'user', 'status',
+        'locked_at', 'expires_at', 'time_remaining_display', 'price_at_lock'
+    ]
+    list_filter = ['status', 'zone', 'locked_at', 'expires_at']
+    search_fields = [
+        'session_key', 'user__email', 'zone__name',
+        'seat__row_number', 'seat__seat_number'
+    ]
+    readonly_fields = [
+        'id', 'locked_at', 'created_at', 'updated_at',
+        'time_remaining_display', 'item_key'
+    ]
+    
+    fieldsets = (
+        (None, {
+            'fields': (
+                'id', 'tenant', 'session_key', 'user', 'status'
+            )
+        }),
+        ('Locked Item', {
+            'fields': (
+                'zone', 'seat', 'quantity', 'price_at_lock', 'item_key'
+            )
+        }),
+        ('Timing', {
+            'fields': (
+                'locked_at', 'expires_at', 'time_remaining_display'
+            )
+        }),
+        ('Additional Information', {
+            'fields': ('metadata',),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def item_description(self, obj):
+        """Display item description."""
+        if obj.seat:
+            return f"{obj.zone.name} - Row {obj.seat.row_number}, Seat {obj.seat.seat_number}"
+        return f"{obj.zone.name} - General Admission (x{obj.quantity})"
+    item_description.short_description = 'Item'
+    
+    def session_key_short(self, obj):
+        """Display shortened session key."""
+        return f"{obj.session_key[:8]}..." if obj.session_key else '-'
+    session_key_short.short_description = 'Session'
+    
+    def time_remaining_display(self, obj):
+        """Display time remaining with color coding."""
+        if obj.status != CartItemLock.Status.ACTIVE:
+            return '-'
+        
+        if obj.is_expired:
+            return format_html('<span style="color: red;">Expired</span>')
+        
+        remaining = obj.time_remaining
+        total_seconds = int(remaining.total_seconds())
+        
+        if total_seconds < 120:  # Less than 2 minutes
+            color = 'red'
+        elif total_seconds < 300:  # Less than 5 minutes
+            color = 'orange'
+        else:
+            color = 'green'
+        
+        minutes = total_seconds // 60
+        seconds = total_seconds % 60
+        
+        return format_html(
+            '<span style="color: {};">{:02d}:{:02d}</span>',
+            color, minutes, seconds
+        )
+    time_remaining_display.short_description = 'Time Remaining'
+    
+    def get_queryset(self, request):
+        """Optimize queryset with select_related."""
+        return super().get_queryset(request).select_related(
+            'tenant', 'user', 'zone', 'seat'
+        )
+    
+    def has_add_permission(self, request):
+        """Prevent manual creation of locks."""
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        """Allow deletion only for expired/released locks."""
+        if obj and obj.status == CartItemLock.Status.ACTIVE:
+            return False
+        return super().has_delete_permission(request, obj)
+    
+    actions = ['release_locks', 'extend_locks', 'cleanup_expired']
+    
+    def release_locks(self, request, queryset):
+        """Release selected active locks."""
+        released = 0
+        for lock in queryset.filter(status=CartItemLock.Status.ACTIVE):
+            if lock.release():
+                released += 1
+        
+        if released:
+            self.message_user(
+                request,
+                f"Successfully released {released} locks."
+            )
+    release_locks.short_description = "Release selected locks"
+    
+    def extend_locks(self, request, queryset):
+        """Extend selected active locks by 15 minutes."""
+        extended = 0
+        for lock in queryset.filter(status=CartItemLock.Status.ACTIVE):
+            if lock.extend_lock(15):
+                extended += 1
+        
+        if extended:
+            self.message_user(
+                request,
+                f"Successfully extended {extended} locks by 15 minutes."
+            )
+    extend_locks.short_description = "Extend selected locks by 15 minutes"
+    
+    def cleanup_expired(self, request, queryset):
+        """Mark expired locks as expired."""
+        from django.utils import timezone
+        
+        expired = queryset.filter(
+            status=CartItemLock.Status.ACTIVE,
+            expires_at__lte=timezone.now()
+        ).update(
+            status=CartItemLock.Status.EXPIRED,
+            updated_at=timezone.now()
+        )
+        
+        if expired:
+            self.message_user(
+                request,
+                f"Successfully marked {expired} locks as expired."
+            )
+    cleanup_expired.short_description = "Mark expired locks as expired"

@@ -15,7 +15,7 @@ class PriceStageAdmin(admin.ModelAdmin):
     """Admin interface for PriceStage model."""
     
     list_display = [
-        'name', 'event', 'start_date', 'end_date', 'percentage_markup',
+        'name', 'event', 'start_date', 'end_date', 'modifier_value',
         'stage_order', 'is_active', 'status_indicator'
     ]
     list_filter = [
@@ -32,7 +32,7 @@ class PriceStageAdmin(admin.ModelAdmin):
             'fields': ('start_date', 'end_date')
         }),
         ('Pricing Configuration', {
-            'fields': ('percentage_markup', 'stage_order')
+            'fields': ('modifier_type', 'modifier_value', 'stage_order')
         }),
         ('Status', {
             'fields': ('is_active',)
@@ -239,7 +239,7 @@ class PriceStageInline(admin.TabularInline):
     model = PriceStage
     extra = 0
     fields = [
-        'name', 'start_date', 'end_date', 'percentage_markup',
+        'name', 'start_date', 'end_date', 'modifier_type', 'modifier_value',
         'stage_order', 'is_active'
     ]
     ordering = ['stage_order', 'start_date']

@@ -1,0 +1,470 @@
+{% extends "payments/base.html" %}
+{% load static %}
+
+{% block page_title %}Reconciliation Details{% endblock %}
+{% block page_header %}Reconciliation Details{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'payments_web:reconciliation_list' %}">Reconciliations</a>
+</li>
+<li class="breadcrumb-item active">{{ reconciliation.reconciliation_date|date:"M d, Y" }}</li>
+{% endblock %}
+
+{% block header_actions %}
+{% if reconciliation.status == 'pending' %}
+    <button class="btn btn-success btn-sm" onclick="completeReconciliation()">
+        <i class="fas fa-check me-1"></i>
+        Complete Reconciliation
+    </button>
+{% endif %}
+<button class="btn btn-info btn-sm" onclick="recalculateReconciliation()">
+    <i class="fas fa-calculator me-1"></i>
+    Recalculate
+</button>
+<a href="{% url 'payments_web:reconciliation_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back to List
+</a>
+{% endblock %}
+
+{% block main_content %}
+<div class="row">
+    <!-- Reconciliation Summary -->
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Reconciliation Summary</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="font-weight-bold">Date:</td>
+                                <td>{{ reconciliation.reconciliation_date|date:"F d, Y" }}</td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold">Payment Method:</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if reconciliation.payment_method.method_type == 'cash' %}
+                                            <i class="fas fa-money-bill-wave text-success me-2"></i>
+                                        {% elif reconciliation.payment_method.method_type == 'credit_card' %}
+                                            <i class="fas fa-credit-card text-primary me-2"></i>
+                                        {% elif reconciliation.payment_method.method_type == 'bank_transfer' %}
+                                            <i class="fas fa-university text-info me-2"></i>
+                                        {% else %}
+                                            <i class="fas fa-payment text-secondary me-2"></i>
+                                        {% endif %}
+                                        <div>
+                                            <div>{{ reconciliation.payment_method.name }}</div>
+                                            <small class="text-muted">{{ reconciliation.payment_method.get_method_type_display }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold">Period:</td>
+                                <td>
+                                    {{ reconciliation.start_datetime|date:"M d, Y H:i" }} - 
+                                    {{ reconciliation.end_datetime|date:"M d, Y H:i" }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold">Status:</td>
+                                <td>
+                                    {% if reconciliation.status == 'completed' %}
+                                        <span class="badge badge-success">Completed</span>
+                                    {% elif reconciliation.status == 'discrepancy' %}
+                                        <span class="badge badge-danger">Discrepancy Found</span>
+                                    {% elif reconciliation.status == 'in_progress' %}
+                                        <span class="badge badge-warning">In Progress</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">Pending</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="font-weight-bold">Created:</td>
+                                <td>{{ reconciliation.created_at|date:"M d, Y H:i" }}</td>
+                            </tr>
+                            {% if reconciliation.completed_at %}
+                                <tr>
+                                    <td class="font-weight-bold">Completed:</td>
+                                    <td>{{ reconciliation.completed_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                            {% endif %}
+                            <tr>
+                                <td class="font-weight-bold">System Transactions:</td>
+                                <td>{{ reconciliation.system_transaction_count }}</td>
+                            </tr>
+                            {% if reconciliation.external_transaction_count %}
+                                <tr>
+                                    <td class="font-weight-bold">External Transactions:</td>
+                                    <td>{{ reconciliation.external_transaction_count }}</td>
+                                </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Financial Summary -->
+                <div class="mt-4">
+                    <h6 class="font-weight-bold">Financial Summary</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                System Total
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                ${{ reconciliation.system_total|floatformat:2 }}
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-database fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                External Total
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                {% if reconciliation.external_total %}
+                                                    ${{ reconciliation.external_total|floatformat:2 }}
+                                                {% else %}
+                                                    <span class="text-muted">Not Set</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-university fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card border-left-{% if reconciliation.has_discrepancy %}danger{% else %}success{% endif %} shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-{% if reconciliation.has_discrepancy %}danger{% else %}success{% endif %} text-uppercase mb-1">
+                                                Discrepancy
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                {% if reconciliation.has_discrepancy %}
+                                                    ${{ reconciliation.discrepancy_amount|floatformat:2 }}
+                                                {% else %}
+                                                    $0.00
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            {% if reconciliation.has_discrepancy %}
+                                                <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                                            {% else %}
+                                                <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notes -->
+                {% if reconciliation.notes %}
+                    <div class="mt-4">
+                        <h6 class="font-weight-bold">Notes</h6>
+                        <div class="alert alert-info">
+                            {{ reconciliation.notes }}
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <!-- Reconciliation Data -->
+                {% if reconciliation.reconciliation_data %}
+                    <div class="mt-4">
+                        <h6 class="font-weight-bold">Reconciliation Data</h6>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <pre class="mb-0"><code>{{ reconciliation.reconciliation_data|pprint }}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Payments Table -->
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    Payments ({{ payments|length }})
+                </h6>
+                <span class="badge badge-primary">{{ payments|length }} transactions</span>
+            </div>
+            <div class="card-body">
+                {% if payments %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Date/Time</th>
+                                    <th>Transaction</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Reference</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments %}
+                                <tr>
+                                    <td>
+                                        <div>{{ payment.completed_at|date:"M d, Y" }}</div>
+                                        <small class="text-muted">{{ payment.completed_at|time:"H:i:s" }}</small>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'sales_web:transaction_detail' payment.transaction.pk %}">
+                                            {{ payment.transaction.fiscal_series|default:"Pending" }}
+                                        </a>
+                                        <br>
+                                        <small class="text-muted">{{ payment.transaction.event.name|truncatechars:30 }}</small>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'customers_web:customer_detail' payment.transaction.customer.pk %}">
+                                            {{ payment.transaction.customer.full_name }}
+                                        </a>
+                                        <br>
+                                        <small class="text-muted">{{ payment.transaction.customer.email|truncatechars:25 }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="font-weight-bold">${{ payment.amount|floatformat:2 }}</div>
+                                        {% if payment.processing_fee > 0 %}
+                                            <small class="text-muted">Fee: ${{ payment.processing_fee|floatformat:2 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if payment.reference_number %}
+                                            <code>{{ payment.reference_number }}</code>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-success">{{ payment.get_status_display }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-active">
+                                    <th colspan="3">Total</th>
+                                    <th>${{ reconciliation.system_total|floatformat:2 }}</th>
+                                    <th colspan="2">{{ payments|length }} payments</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-money-bill-wave fa-3x text-gray-300 mb-3"></i>
+                        <h5 class="text-gray-500">No Payments Found</h5>
+                        <p class="text-gray-400">
+                            No payments were found for this reconciliation period.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if reconciliation.status == 'pending' %}
+                        <button class="btn btn-success" onclick="completeReconciliation()">
+                            <i class="fas fa-check me-1"></i>
+                            Complete Reconciliation
+                        </button>
+                    {% endif %}
+                    
+                    <button class="btn btn-info" onclick="recalculateReconciliation()">
+                        <i class="fas fa-calculator me-1"></i>
+                        Recalculate Totals
+                    </button>
+                    
+                    <button class="btn btn-outline-primary" onclick="exportReconciliation()">
+                        <i class="fas fa-download me-1"></i>
+                        Export Report
+                    </button>
+                    
+                    <a href="{% url 'payments_web:reconciliation_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list me-1"></i>
+                        View All Reconciliations
+                    </a>
+                    
+                    <a href="{% url 'payments_web:reconciliation_create' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus me-1"></i>
+                        New Reconciliation
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment Method Info -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Payment Method Details</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Name:</strong><br>
+                    {{ reconciliation.payment_method.name }}
+                </div>
+                <div class="mb-3">
+                    <strong>Type:</strong><br>
+                    {{ reconciliation.payment_method.get_method_type_display }}
+                </div>
+                {% if reconciliation.payment_method.description %}
+                    <div class="mb-3">
+                        <strong>Description:</strong><br>
+                        <small class="text-muted">{{ reconciliation.payment_method.description }}</small>
+                    </div>
+                {% endif %}
+                <div class="mb-3">
+                    <strong>Processing Fee:</strong><br>
+                    {% if reconciliation.payment_method.processing_fee_percentage > 0 %}
+                        {{ reconciliation.payment_method.processing_fee_percentage|floatformat:4 }}%
+                    {% endif %}
+                    {% if reconciliation.payment_method.processing_fee_fixed > 0 %}
+                        {% if reconciliation.payment_method.processing_fee_percentage > 0 %} + {% endif %}
+                        ${{ reconciliation.payment_method.processing_fee_fixed }}
+                    {% endif %}
+                    {% if reconciliation.payment_method.processing_fee_percentage == 0 and reconciliation.payment_method.processing_fee_fixed == 0 %}
+                        <span class="text-success">Free</span>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <strong>Status:</strong><br>
+                    {% if reconciliation.payment_method.is_active %}
+                        <span class="badge badge-success">Active</span>
+                    {% else %}
+                        <span class="badge badge-secondary">Inactive</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reconciliation History -->
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Reconciliations</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <small class="text-muted">Recent reconciliations for this payment method would be shown here</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script>
+function completeReconciliation() {
+    const externalTotal = prompt('Enter external total amount:');
+    if (externalTotal !== null && externalTotal !== '') {
+        const externalCount = prompt('Enter external transaction count (optional):');
+        const notes = prompt('Enter reconciliation notes (optional):');
+        
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{% url "payments_web:reconciliation_complete" reconciliation.pk %}';
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        const totalInput = document.createElement('input');
+        totalInput.type = 'hidden';
+        totalInput.name = 'external_total';
+        totalInput.value = externalTotal;
+        form.appendChild(totalInput);
+        
+        if (externalCount) {
+            const countInput = document.createElement('input');
+            countInput.type = 'hidden';
+            countInput.name = 'external_transaction_count';
+            countInput.value = externalCount;
+            form.appendChild(countInput);
+        }
+        
+        if (notes) {
+            const notesInput = document.createElement('input');
+            notesInput.type = 'hidden';
+            notesInput.name = 'notes';
+            notesInput.value = notes;
+            form.appendChild(notesInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function recalculateReconciliation() {
+    if (confirm('Recalculate system totals for this reconciliation?')) {
+        fetch(`/api/v1/payments/reconciliations/{{ reconciliation.pk }}/recalculate/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        }).then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Failed to recalculate reconciliation');
+            }
+        });
+    }
+}
+
+function exportReconciliation() {
+    // This would implement PDF/Excel export functionality
+    alert('Export functionality would be implemented here');
+}
+</script>
+
+{% csrf_token %}
+{% endblock %}

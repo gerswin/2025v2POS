@@ -50,11 +50,12 @@ class PriceStageModelTest(TestCase):
             name="Early Bird",
             start_date=timezone.now(),
             end_date=timezone.now() + timedelta(days=7),
-            percentage_markup=Decimal('10.00')
+            modifier_type=PriceStage.ModifierType.PERCENTAGE,
+            modifier_value=Decimal('10.00')
         )
         
         self.assertEqual(stage.name, "Early Bird")
-        self.assertEqual(stage.percentage_markup, Decimal('10.00'))
+        self.assertEqual(stage.modifier_value, Decimal('10.00'))
         self.assertTrue(stage.is_active)
     
     def test_price_stage_validation(self):
@@ -67,7 +68,8 @@ class PriceStageModelTest(TestCase):
                 name="Invalid Stage",
                 start_date=timezone.now() + timedelta(days=7),
                 end_date=timezone.now(),  # End before start
-                percentage_markup=Decimal('10.00')
+                modifier_type=PriceStage.ModifierType.PERCENTAGE,
+                modifier_value=Decimal('10.00')
             )
             stage.clean()
     
@@ -80,7 +82,8 @@ class PriceStageModelTest(TestCase):
             name="Stage 1",
             start_date=timezone.now(),
             end_date=timezone.now() + timedelta(days=7),
-            percentage_markup=Decimal('10.00')
+            modifier_type=PriceStage.ModifierType.PERCENTAGE,
+            modifier_value=Decimal('10.00')
         )
         
         # Try to create overlapping stage
@@ -91,7 +94,8 @@ class PriceStageModelTest(TestCase):
                 name="Stage 2",
                 start_date=timezone.now() + timedelta(days=3),
                 end_date=timezone.now() + timedelta(days=10),
-                percentage_markup=Decimal('15.00')
+                modifier_type=PriceStage.ModifierType.PERCENTAGE,
+                modifier_value=Decimal('15.00')
             )
             stage.clean()
     
@@ -103,11 +107,12 @@ class PriceStageModelTest(TestCase):
             name="Test Stage",
             start_date=timezone.now(),
             end_date=timezone.now() + timedelta(days=7),
-            percentage_markup=Decimal('20.00')
+            modifier_type=PriceStage.ModifierType.PERCENTAGE,
+            modifier_value=Decimal('20.00')
         )
         
         base_price = Decimal('100.00')
-        markup_amount = stage.calculate_markup_amount(base_price)
+        markup_amount = stage.calculate_modifier_amount(base_price)
         final_price = stage.calculate_final_price(base_price)
         
         self.assertEqual(markup_amount, Decimal('20.00'))
@@ -245,7 +250,8 @@ class PricingCalculationServiceTest(TestCase):
             name="Early Bird",
             start_date=timezone.now() - timedelta(days=1),
             end_date=timezone.now() + timedelta(days=7),
-            percentage_markup=Decimal('15.00')
+            modifier_type=PriceStage.ModifierType.PERCENTAGE,
+            modifier_value=Decimal('15.00')
         )
         
         # Create row pricing
@@ -370,7 +376,8 @@ class PricingAPITest(APITestCase):
             'name': 'Early Bird',
             'start_date': timezone.now().isoformat(),
             'end_date': (timezone.now() + timedelta(days=7)).isoformat(),
-            'percentage_markup': '15.00',
+            'modifier_type': 'percentage',
+            'modifier_value': '15.00',
             'stage_order': 1
         }
         
@@ -400,7 +407,8 @@ class PricingAPITest(APITestCase):
             name="Test Stage",
             start_date=timezone.now() - timedelta(hours=1),
             end_date=timezone.now() + timedelta(days=7),
-            percentage_markup=Decimal('10.00')
+            modifier_type=PriceStage.ModifierType.PERCENTAGE,
+            modifier_value=Decimal('10.00')
         )
         
         RowPricing.objects.create(

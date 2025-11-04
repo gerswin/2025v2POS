@@ -30,6 +30,8 @@ from .cache import sales_cache
 from ..tenants.middleware import TenantRequiredMixin
 from ..zones.models import Zone, Seat
 from ..pricing.services import PricingCalculationService
+from ..pricing.sales_integration import stage_pricing_integration
+from ..pricing.stage_automation import stage_automation
 
 
 class TransactionListCreateAPIView(TenantRequiredMixin, generics.ListCreateAPIView):
@@ -214,6 +216,11 @@ class SeatSelectionAPIView(TenantRequiredMixin, APIView):
         zone = serializer.validated_data['zone']
         pricing_service = PricingCalculationService()
         
+        # Get current stage pricing information
+        current_stage_info = stage_pricing_integration.get_current_stage_pricing(
+            zone.event, zone
+        )
+        
         response_data = {
             'zone': {
                 'id': str(zone.id),
@@ -226,7 +233,8 @@ class SeatSelectionAPIView(TenantRequiredMixin, APIView):
             },
             'availability': {},
             'pricing': {},
-            'seats': []
+            'seats': [],
+            'current_stage': current_stage_info
         }
         
         if zone.zone_type == Zone.ZoneType.NUMBERED:
@@ -255,7 +263,11 @@ class SeatSelectionAPIView(TenantRequiredMixin, APIView):
                     'is_available': seat.is_available,
                     'price': str(seat_price),
                     'pricing_details': pricing_details,
-                    'cached_data': cached_availability
+                    'cached_data': cached_availability,
+                    'stage_info': {
+                        'current_stage': pricing_details.get('stages', [{}])[0] if pricing_details.get('stages') else None,
+                        'stage_pricing_applied': bool(pricing_details.get('stages'))
+                    }
                 }
                 response_data['seats'].append(seat_data)
             
@@ -290,7 +302,11 @@ class SeatSelectionAPIView(TenantRequiredMixin, APIView):
                 'quantity': quantity,
                 'total_price': str(total_price),
                 'currency': 'USD',
-                'pricing_details': pricing_details
+                'pricing_details': pricing_details,
+                'stage_info': {
+                    'current_stage': pricing_details.get('stages', [{}])[0] if pricing_details.get('stages') else None,
+                    'stage_pricing_applied': bool(pricing_details.get('stages'))
+                }
             }
             
             response_data['availability'] = {
@@ -567,8 +583,104 @@ def get_transaction_by_fiscal_series(request, fiscal_series):
 
 
 @extend_schema(
+    summary="Check stage transitions during purchase",
+    description="Check for stage transitions that may affect current purchase session",
+    parameters=[
+        OpenApiParameter(
+            name='event_id',
+            type=OpenApiTypes.UUID,
+            description='Event ID to check transitions for'
+        ),
+        OpenApiParameter(
+            name='zone_id',
+            type=OpenApiTypes.UUID,
+            description='Zone ID to check transitions for (optional)'
+        )
+    ],
+    responses={
+        200: {
+            "type": "object",
+            "properties": {
+                "transitions_occurred": {"type": "boolean"},
+                "transitions": {"type": "array"},
+                "new_current_stage": {"type": "object"},
+                "pricing_updates": {"type": "object"}
+            }
+        },
+        400: "Invalid parameters",
+        404: "Event not found"
+    }
+)
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def check_stage_transitions(request):
+    """Check for stage transitions during active purchase sessions."""
+    from ..events.models import Event
+    
+    event_id = request.query_params.get('event_id')
+    zone_id = request.query_params.get('zone_id')
+    
+    if not event_id:
+        return Response(
+            {'error': 'event_id parameter is required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        event = Event.objects.get(id=event_id, tenant=request.tenant)
+        zone = None
+        
+        if zone_id:
+            zone = Zone.objects.get(id=zone_id, event=event, tenant=request.tenant)
+        
+        # Check for transitions
+        transition_result = stage_pricing_integration.handle_stage_transition_during_purchase(
+            event, zone
+        )
+        
+        # Get updated pricing if transitions occurred
+        pricing_updates = {}
+        if transition_result.get('transitions_occurred'):
+            if zone:
+                pricing_updates = stage_pricing_integration.get_current_stage_pricing(event, zone)
+            else:
+                # Get pricing for all zones in the event
+                pricing_updates = {}
+                for event_zone in event.zones.all():
+                    pricing_updates[str(event_zone.id)] = stage_pricing_integration.get_current_stage_pricing(
+                        event, event_zone
+                    )
+        
+        response_data = {
+            **transition_result,
+            'pricing_updates': pricing_updates,
+            'event_id': str(event.id),
+            'zone_id': str(zone.id) if zone else None,
+            'check_timestamp': timezone.now().isoformat()
+        }
+        
+        return Response(response_data, status=status.HTTP_200_OK)
+        
+    except Event.DoesNotExist:
+        return Response(
+            {'error': 'Event not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Zone.DoesNotExist:
+        return Response(
+            {'error': 'Zone not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {'error': f'Failed to check stage transitions: {str(e)}'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+@extend_schema(
     summary="Get pricing information",
-    description="Get current pricing for zones, rows, or specific seats",
+    description="Get current pricing for zones, rows, or specific seats with stage information",
     parameters=[
         OpenApiParameter(
             name='zone_id',
@@ -593,7 +705,8 @@ def get_transaction_by_fiscal_series(request, fiscal_series):
                 "zone": {"type": "object"},
                 "pricing": {"type": "object"},
                 "current_stage": {"type": "object"},
-                "row_pricing": {"type": "object"}
+                "row_pricing": {"type": "object"},
+                "stage_status": {"type": "object"}
             }
         },
         400: "Invalid parameters",
@@ -628,6 +741,11 @@ def get_pricing_information(request):
                 seat = zone.seats.get(row_number=row_num, seat_number=seat_num)
                 final_price, pricing_details = pricing_service.calculate_seat_price(seat)
                 
+                # Get current stage information
+                current_stage_info = stage_pricing_integration.get_current_stage_pricing(
+                    zone.event, zone
+                )
+                
                 response_data = {
                     'zone': {
                         'id': str(zone.id),
@@ -643,7 +761,9 @@ def get_pricing_information(request):
                         'price_modifier': str(seat.price_modifier)
                     },
                     'pricing': pricing_details,
-                    'final_price': str(final_price)
+                    'final_price': str(final_price),
+                    'current_stage': current_stage_info,
+                    'stage_status': current_stage_info.get('status', {}) if current_stage_info.get('has_active_stage') else None
                 }
                 
             except Seat.DoesNotExist:
@@ -657,6 +777,11 @@ def get_pricing_information(request):
                 zone, row_num
             )
             
+            # Get current stage information
+            current_stage_info = stage_pricing_integration.get_current_stage_pricing(
+                zone.event, zone
+            )
+            
             response_data = {
                 'zone': {
                     'id': str(zone.id),
@@ -665,7 +790,9 @@ def get_pricing_information(request):
                     'base_price': str(zone.base_price)
                 },
                 'pricing': pricing_details,
-                'final_price': str(final_price)
+                'final_price': str(final_price),
+                'current_stage': current_stage_info,
+                'stage_status': current_stage_info.get('status', {}) if current_stage_info.get('has_active_stage') else None
             }
             
             if row_num:

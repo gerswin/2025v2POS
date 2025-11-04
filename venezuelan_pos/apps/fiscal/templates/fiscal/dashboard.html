@@ -1,0 +1,249 @@
+{% extends "fiscal/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{% trans "Fiscal Compliance Dashboard" %}</h1>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'fiscal:generate_fiscal_report' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> {% trans "Generate Report" %}
+                    </a>
+                    {% if fiscal_status.can_process_sales %}
+                    <a href="{% url 'fiscal:close_fiscal_day' %}" class="btn btn-warning">
+                        <i class="fas fa-lock"></i> {% trans "Close Fiscal Day" %}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Fiscal Status Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card fiscal-status-card {% if not fiscal_status.can_process_sales %}closed{% endif %}">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Fiscal Day Status" %}</h5>
+                    <p class="card-text">
+                        <span id="fiscal-status" class="fiscal-day-status {% if fiscal_status.can_process_sales %}open{% else %}closed{% endif %}">
+                            {% if fiscal_status.can_process_sales %}{% trans "Open" %}{% else %}{% trans "Closed" %}{% endif %}
+                        </span>
+                    </p>
+                    <small class="text-muted">
+                        {{ fiscal_status.fiscal_day.date|date:"Y-m-d" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Today's Sales" %}</h5>
+                    <p class="card-text" id="today-stats">
+                        <strong>{{ fiscal_status.today_stats.transactions }}</strong> {% trans "transactions" %}<br>
+                        <strong class="currency">{{ fiscal_status.today_stats.total_amount }}</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Active Tax Configs" %}</h5>
+                    <p class="card-text">
+                        <strong>{{ active_taxes.count }}</strong> {% trans "configurations" %}
+                    </p>
+                    <a href="{% url 'fiscal:tax_configurations_list' %}" class="btn btn-sm btn-outline-primary">
+                        {% trans "Manage" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Recent Reports" %}</h5>
+                    <p class="card-text">
+                        <strong>{{ recent_reports.count }}</strong> {% trans "reports" %}
+                    </p>
+                    <a href="{% url 'fiscal:fiscal_reports_list' %}" class="btn btn-sm btn-outline-primary">
+                        {% trans "View All" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "Recent Fiscal Series" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_series %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Series" %}</th>
+                                    <th>{% trans "Transaction" %}</th>
+                                    <th>{% trans "Issued" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for series in recent_series %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'fiscal:fiscal_series_detail' series.id %}" 
+                                           class="fiscal-series-number">
+                                            {{ series.series_number }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {% if series.transaction %}
+                                            <small>{{ series.transaction.id|truncatechars:8 }}</small>
+                                        {% else %}
+                                            <small class="text-muted">{% trans "No transaction" %}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ series.issued_at|date:"M d, H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        {% if series.is_voided %}
+                                            <span class="badge bg-danger">{% trans "Voided" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-success">{% trans "Active" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">{% trans "No fiscal series found." %}</p>
+                    {% endif %}
+                    
+                    <div class="text-end">
+                        <a href="{% url 'fiscal:fiscal_series_list' %}" class="btn btn-sm btn-outline-primary">
+                            {% trans "View All Series" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "Recent Fiscal Reports" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_reports %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Type" %}</th>
+                                    <th>{% trans "Number" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Amount" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report in recent_reports %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'fiscal:fiscal_report_detail' report.id %}">
+                                            {{ report.get_report_type_display }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="fiscal-series-number">#{{ report.report_number }}</span>
+                                    </td>
+                                    <td>
+                                        <small>{{ report.fiscal_date|date:"M d, Y" }}</small>
+                                    </td>
+                                    <td>
+                                        <small class="currency">{{ report.total_amount }}</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">{% trans "No fiscal reports found." %}</p>
+                    {% endif %}
+                    
+                    <div class="text-end">
+                        <a href="{% url 'fiscal:fiscal_reports_list' %}" class="btn btn-sm btn-outline-primary">
+                            {% trans "View All Reports" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Active Tax Configurations -->
+    {% if active_taxes %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "Active Tax Configurations" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for tax in active_taxes %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-left-primary">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <a href="{% url 'fiscal:tax_configuration_detail' tax.id %}">
+                                            {{ tax.name }}
+                                        </a>
+                                    </h6>
+                                    <p class="card-text">
+                                        <span class="tax-rate">
+                                            {% if tax.tax_type == 'FIXED' %}
+                                                ${{ tax.fixed_amount }}
+                                            {% else %}
+                                                {{ tax.rate|floatformat:2 }}%
+                                            {% endif %}
+                                        </span>
+                                        <br>
+                                        <small class="text-muted">
+                                            {{ tax.get_scope_display }}
+                                            {% if tax.event %} - {{ tax.event.name }}{% endif %}
+                                        </small>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="text-end">
+                        <a href="{% url 'fiscal:tax_configuration_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> {% trans "Add Tax Configuration" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

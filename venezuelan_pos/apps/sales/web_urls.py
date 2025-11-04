@@ -4,7 +4,7 @@ Provides web-based ticket sales interface for operators.
 """
 
 from django.urls import path
-from . import web_views
+from . import web_views, cart_lock_views
 
 app_name = 'sales'
 
@@ -30,6 +30,7 @@ urlpatterns = [
     path('checkout/', web_views.checkout, name='checkout'),
     path('checkout/customer/', web_views.checkout_customer, name='checkout_customer'),
     path('checkout/payment/', web_views.checkout_payment, name='checkout_payment'),
+    path('checkout/payment-option/', web_views.checkout_payment_option, name='checkout_payment_option'),
     path('checkout/confirm/', web_views.checkout_confirm, name='checkout_confirm'),
     
     # Transaction Management
@@ -48,4 +49,14 @@ urlpatterns = [
     path('ajax/zone-availability/', web_views.ajax_zone_availability, name='ajax_zone_availability'),
     path('ajax/pricing-info/', web_views.ajax_pricing_info, name='ajax_pricing_info'),
     path('ajax/cart-update/', web_views.ajax_cart_update, name='ajax_cart_update'),
+    
+    # Transaction status checking
+    path('transactions/<uuid:transaction_id>/status/', web_views.transaction_status, name='transaction_status'),
+    
+    # Cart item locking
+    path('cart/lock/', cart_lock_views.lock_cart_items, name='lock_cart_items'),
+    path('cart/lock/release/', cart_lock_views.release_cart_locks, name='release_cart_locks'),
+    path('cart/lock/extend/', cart_lock_views.extend_cart_locks, name='extend_cart_locks'),
+    path('cart/lock/status/', cart_lock_views.get_cart_lock_status, name='cart_lock_status'),
+    path('cart/lock/cleanup/', cart_lock_views.cleanup_expired_locks, name='cleanup_expired_locks'),
 ]

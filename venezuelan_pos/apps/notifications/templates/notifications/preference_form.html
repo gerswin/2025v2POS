@@ -1,0 +1,90 @@
+{% extends "notifications/base.html" %}
+{% load i18n %}
+
+{% block notification_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">{% trans "Edit Notification Preferences" %}</h2>
+        <p class="text-muted mb-0">
+            {% blocktrans with customer=preference.customer.full_name|default:preference.customer.email %}
+                Customer: {{ customer }}
+            {% endblocktrans %}
+        </p>
+    </div>
+    <a href="{% url 'notifications:preference_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Preferences" %}
+    </a>
+</div>
+
+<form method="post" class="row">
+    {% csrf_token %}
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">{% trans "Channels" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="form-check form-switch mb-3">
+                    {{ form.email_enabled }}
+                    <label class="form-check-label ms-2" for="{{ form.email_enabled.id_for_label }}">
+                        <i class="fas fa-envelope me-2"></i>{% trans "Email" %}
+                    </label>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    {{ form.sms_enabled }}
+                    <label class="form-check-label ms-2" for="{{ form.sms_enabled.id_for_label }}">
+                        <i class="fas fa-sms me-2"></i>{% trans "SMS" %}
+                    </label>
+                </div>
+                <div class="form-check form-switch">
+                    {{ form.whatsapp_enabled }}
+                    <label class="form-check-label ms-2" for="{{ form.whatsapp_enabled.id_for_label }}">
+                        <i class="fab fa-whatsapp me-2"></i>{% trans "WhatsApp" %}
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">{% trans "Notification Types" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="form-check mb-3">
+                    {{ form.purchase_confirmations }}
+                    <label class="form-check-label ms-2" for="{{ form.purchase_confirmations.id_for_label }}">
+                        <i class="fas fa-receipt me-2"></i>{% trans "Purchase confirmations" %}
+                    </label>
+                </div>
+                <div class="form-check mb-3">
+                    {{ form.payment_reminders }}
+                    <label class="form-check-label ms-2" for="{{ form.payment_reminders.id_for_label }}">
+                        <i class="fas fa-bell me-2"></i>{% trans "Payment reminders" %}
+                    </label>
+                </div>
+                <div class="form-check mb-3">
+                    {{ form.event_reminders }}
+                    <label class="form-check-label ms-2" for="{{ form.event_reminders.id_for_label }}">
+                        <i class="fas fa-calendar-alt me-2"></i>{% trans "Event reminders" %}
+                    </label>
+                </div>
+                <div class="form-check">
+                    {{ form.promotional_messages }}
+                    <label class="form-check-label ms-2" for="{{ form.promotional_messages.id_for_label }}">
+                        <i class="fas fa-bullhorn me-2"></i>{% trans "Promotional messages" %}
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+            <a href="{% url 'notifications:preference_list' %}" class="btn btn-outline-secondary">
+                {% trans "Cancel" %}
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-2"></i>{% trans "Save Changes" %}
+            </button>
+        </div>
+    </div>
+</form>
+{% endblock %}

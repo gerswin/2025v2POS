@@ -1,0 +1,525 @@
+{% extends "reports/base.html" %}
+{% load static %}
+
+{% block title %}Dashboard de Análisis Avanzado - Venezuelan POS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">Dashboard de Análisis Avanzado</h1>
+                    <p class="text-muted">Métricas detalladas y análisis en tiempo real</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary me-2" onclick="refreshAllCharts()">
+                        <i class="fas fa-sync-alt"></i> Actualizar
+                    </button>
+                    <a href="{% url 'reports:dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Period Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="metric-card revenue">
+                <div class="metric-value">
+                    ${{ metrics.month.revenue|floatformat:2 }}
+                </div>
+                <div class="metric-label">
+                    <i class="fas fa-calendar-alt"></i> Ingresos del Mes
+                </div>
+                <small class="d-block mt-2">
+                    Transacciones: {{ metrics.month.transactions }}
+                </small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card transactions">
+                <div class="metric-value">
+                    ${{ metrics.week.revenue|floatformat:2 }}
+                </div>
+                <div class="metric-label">
+                    <i class="fas fa-calendar-week"></i> Ingresos de la Semana
+                </div>
+                <small class="d-block mt-2">
+                    Tickets: {{ metrics.week.tickets }}
+                </small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card tickets">
+                <div class="metric-value">
+                    ${{ metrics.today.revenue|floatformat:2 }}
+                </div>
+                <div class="metric-label">
+                    <i class="fas fa-calendar-day"></i> Ingresos de Hoy
+                </div>
+                <small class="d-block mt-2">
+                    Promedio: ${{ metrics.today.avg_transaction|floatformat:2 }}
+                </small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card performance">
+                <div class="metric-value">
+                    {{ total_events }}
+                </div>
+                <div class="metric-label">
+                    <i class="fas fa-calendar-check"></i> Eventos Totales
+                </div>
+                <small class="d-block mt-2">
+                    Activos: {{ active_events }}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales Trends Chart -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="chart-container">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line text-primary"></i>
+                        Tendencias de Ventas (Últimos 30 días)
+                    </h5>
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="chartType" id="revenue" checked>
+                        <label class="btn btn-outline-primary btn-sm" for="revenue">Ingresos</label>
+                        
+                        <input type="radio" class="btn-check" name="chartType" id="transactions">
+                        <label class="btn btn-outline-primary btn-sm" for="transactions">Transacciones</label>
+                        
+                        <input type="radio" class="btn-check" name="chartType" id="tickets">
+                        <label class="btn btn-outline-primary btn-sm" for="tickets">Tickets</label>
+                    </div>
+                </div>
+                <canvas id="salesTrendsChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Events and Zone Performance -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-star text-warning"></i>
+                    Eventos con Mejor Rendimiento
+                </h5>
+                {% if top_events %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Evento</th>
+                                    <th>Ingresos</th>
+                                    <th>Tickets</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event_data in top_events %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ event_data.event.name|truncatechars:30 }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ event_data.event.start_date|date:"d/m/Y" }}</small>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">
+                                            ${{ event_data.revenue|floatformat:2 }}
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">
+                                            {{ event_data.tickets }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-times fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No hay datos de eventos</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-trophy text-success"></i>
+                    Ranking de Zonas por Popularidad
+                </h5>
+                {% if zone_ranking.ranking %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Zona</th>
+                                    <th>Puntuación</th>
+                                    <th>Ocupación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for zone_data in zone_ranking.ranking|slice:":5" %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ zone_data.rank }}</span>
+                                    </td>
+                                    <td>
+                                        <strong>{{ zone_data.zone_name|truncatechars:20 }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ zone_data.event_name|truncatechars:20 }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="performance-grade {{ zone_data.performance_grade|lower|slice:":1" }}">
+                                            {{ zone_data.performance_grade }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 15px; width: 60px;">
+                                            <div class="progress-bar" 
+                                                 style="width: {{ zone_data.fill_rate }}%">
+                                            </div>
+                                        </div>
+                                        <small>{{ zone_data.fill_rate }}%</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-map-marked-alt fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No hay datos de zonas</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Distribution and Hourly Analysis -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-chart-pie text-info"></i>
+                    Distribución de Rendimiento de Zonas
+                </h5>
+                <canvas id="performanceDistributionChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-clock text-warning"></i>
+                    Análisis de Ventas por Hora
+                </h5>
+                <canvas id="hourlyAnalysisChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-time Monitoring -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="chart-container">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-broadcast-tower text-danger"></i>
+                        Monitoreo en Tiempo Real
+                        <span class="real-time-indicator ms-2"></span>
+                    </h5>
+                    <div>
+                        <span class="badge bg-success" id="live-status">En Vivo</span>
+                        <small class="text-muted ms-2" id="last-update">
+                            Última actualización: {{ today|date:"H:i:s" }}
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card border-0 bg-light">
+                            <div class="card-body text-center">
+                                <h3 class="text-primary mb-1" id="live-revenue">$0.00</h3>
+                                <small class="text-muted">Ingresos de Hoy</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 bg-light">
+                            <div class="card-body text-center">
+                                <h3 class="text-success mb-1" id="live-transactions">0</h3>
+                                <small class="text-muted">Transacciones de Hoy</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 bg-light">
+                            <div class="card-body text-center">
+                                <h3 class="text-info mb-1" id="live-tickets">0</h3>
+                                <small class="text-muted">Tickets de Hoy</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Analysis Tools -->
+    <div class="row">
+        <div class="col-12">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-tools text-primary"></i>
+                    Herramientas de Análisis Rápido
+                </h5>
+                <div class="row">
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-primary w-100 mb-2" onclick="generateQuickReport('daily')">
+                            <i class="fas fa-calendar-day"></i><br>
+                            Reporte Diario
+                        </button>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-success w-100 mb-2" onclick="generateQuickReport('weekly')">
+                            <i class="fas fa-calendar-week"></i><br>
+                            Reporte Semanal
+                        </button>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-info w-100 mb-2" onclick="showZoneComparison()">
+                            <i class="fas fa-balance-scale"></i><br>
+                            Comparar Zonas
+                        </button>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-warning w-100 mb-2" onclick="showEventAnalysis()">
+                            <i class="fas fa-chart-area"></i><br>
+                            Análisis de Evento
+                        </button>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-danger w-100 mb-2" onclick="exportDashboard()">
+                            <i class="fas fa-download"></i><br>
+                            Exportar Dashboard
+                        </button>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-secondary w-100 mb-2" onclick="scheduleDashboard()">
+                            <i class="fas fa-clock"></i><br>
+                            Programar Envío
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+let salesTrendsChart;
+let performanceChart;
+let hourlyChart;
+
+$(document).ready(function() {
+    initializeCharts();
+    startRealTimeUpdates();
+    
+    // Chart type switcher
+    $('input[name="chartType"]').change(function() {
+        updateSalesTrendsChart(this.id);
+    });
+});
+
+function initializeCharts() {
+    // Sales Trends Chart
+    const trendsCtx = document.getElementById('salesTrendsChart').getContext('2d');
+    const salesData = {{ sales_trends|safe }};
+    
+    salesTrendsChart = new Chart(trendsCtx, {
+        type: 'line',
+        data: {
+            labels: salesData.map(d => new Date(d.date).toLocaleDateString('es-VE', {month: 'short', day: 'numeric'})),
+            datasets: [{
+                label: 'Ingresos',
+                data: salesData.map(d => d.revenue),
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return ReportsUtils.formatCurrency(value);
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Ingresos: ' + ReportsUtils.formatCurrency(context.parsed.y);
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Performance Distribution Chart
+    {% if zone_ranking.ranking %}
+    const performanceCtx = document.getElementById('performanceDistributionChart').getContext('2d');
+    const gradeData = {};
+    {% for zone in zone_ranking.ranking %}
+        const grade = '{{ zone.performance_grade }}';
+        gradeData[grade] = (gradeData[grade] || 0) + 1;
+    {% endfor %}
+    
+    performanceChart = new Chart(performanceCtx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(gradeData),
+            datasets: [{
+                data: Object.values(gradeData),
+                backgroundColor: ['#28a745', '#8bc34a', '#ffeb3b', '#ff9800', '#f44336'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // Hourly Analysis Chart (sample data)
+    const hourlyCtx = document.getElementById('hourlyAnalysisChart').getContext('2d');
+    hourlyChart = new Chart(hourlyCtx, {
+        type: 'bar',
+        data: {
+            labels: Array.from({length: 24}, (_, i) => i + ':00'),
+            datasets: [{
+                label: 'Ventas por Hora',
+                data: Array.from({length: 24}, () => Math.floor(Math.random() * 100)),
+                backgroundColor: 'rgba(255, 193, 7, 0.8)',
+                borderColor: '#ffc107',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function updateSalesTrendsChart(type) {
+    const salesData = {{ sales_trends|safe }};
+    let data, label, color;
+    
+    switch(type) {
+        case 'revenue':
+            data = salesData.map(d => d.revenue);
+            label = 'Ingresos';
+            color = '#007bff';
+            break;
+        case 'transactions':
+            data = salesData.map(d => d.transactions);
+            label = 'Transacciones';
+            color = '#28a745';
+            break;
+        case 'tickets':
+            data = salesData.map(d => d.tickets || 0);
+            label = 'Tickets';
+            color = '#dc3545';
+            break;
+    }
+    
+    salesTrendsChart.data.datasets[0].data = data;
+    salesTrendsChart.data.datasets[0].label = label;
+    salesTrendsChart.data.datasets[0].borderColor = color;
+    salesTrendsChart.data.datasets[0].backgroundColor = color + '20';
+    salesTrendsChart.update();
+}
+
+function startRealTimeUpdates() {
+    RealTimeUpdates.start(function() {
+        $.get('{% url "reports:ajax_real_time_metrics" %}')
+            .done(function(data) {
+                $('#live-revenue').text(ReportsUtils.formatCurrency(data.today.revenue));
+                $('#live-transactions').text(ReportsUtils.formatNumber(data.today.transactions));
+                $('#live-tickets').text(ReportsUtils.formatNumber(data.today.tickets));
+                $('#last-update').text('Última actualización: ' + new Date().toLocaleTimeString('es-VE'));
+            })
+            .fail(function() {
+                $('#live-status').removeClass('bg-success').addClass('bg-danger').text('Error');
+            });
+    }, 15000); // Update every 15 seconds
+}
+
+function refreshAllCharts() {
+    location.reload();
+}
+
+function generateQuickReport(type) {
+    const url = '{% url "reports:sales_report_create" %}?report_type=' + type;
+    window.open(url, '_blank');
+}
+
+function showZoneComparison() {
+    window.open('{% url "reports:occupancy_analysis_create" %}?analysis_type=comparative', '_blank');
+}
+
+function showEventAnalysis() {
+    window.open('{% url "reports:occupancy_analysis_create" %}?analysis_type=event', '_blank');
+}
+
+function exportDashboard() {
+    // Implementation for dashboard export
+    alert('Función de exportación en desarrollo');
+}
+
+function scheduleDashboard() {
+    window.open('{% url "reports:report_schedule_create" %}', '_blank');
+}
+</script>
+{% endblock %}

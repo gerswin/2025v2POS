@@ -59,4 +59,11 @@ urlpatterns = [
         views.get_pricing_information,
         name='pricing-information'
     ),
+    
+    # Stage transition monitoring
+    path(
+        'check-stage-transitions/',
+        views.check_stage_transitions,
+        name='check-stage-transitions'
+    ),
 ]

@@ -1,0 +1,209 @@
+{% extends "tickets/base.html" %}
+{% load static %}
+
+{% block title %}Ticket Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-chart-bar"></i> Ticket Analytics</h1>
+                <a href="{% url 'tickets:dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+            
+            <!-- Date Range Filter -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" 
+                                   value="{{ start_date|date:'Y-m-d' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="end_date" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" 
+                                   value="{{ end_date|date:'Y-m-d' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter"></i> Apply Filter
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Ticket Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="analytics-chart">
+                        <h5>Ticket Statistics</h5>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h3 class="text-primary">{{ ticket_stats.total }}</h3>
+                                <p class="mb-0">Total Tickets</p>
+                            </div>
+                            <div class="col-6">
+                                <h3 class="text-success">{{ ticket_stats.used }}</h3>
+                                <p class="mb-0">Used Tickets</p>
+                            </div>
+                        </div>
+                        <div class="row text-center mt-3">
+                            <div class="col-4">
+                                <h4 class="text-info">{{ ticket_stats.active }}</h4>
+                                <p class="mb-0 small">Active</p>
+                            </div>
+                            <div class="col-4">
+                                <h4 class="text-warning">{{ ticket_stats.expired }}</h4>
+                                <p class="mb-0 small">Expired</p>
+                            </div>
+                            <div class="col-4">
+                                <h4 class="text-secondary">{{ ticket_stats.cancelled }}</h4>
+                                <p class="mb-0 small">Cancelled</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="analytics-chart">
+                        <h5>Validation Statistics</h5>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h3 class="text-primary">{{ validation_stats.total }}</h3>
+                                <p class="mb-0">Total Validations</p>
+                            </div>
+                            <div class="col-6">
+                                <h3 class="text-success">
+                                    {% if validation_stats.total > 0 %}
+                                    {% widthratio validation_stats.successful validation_stats.total 100 %}%
+                                    {% else %}
+                                    0%
+                                    {% endif %}
+                                </h3>
+                                <p class="mb-0">Success Rate</p>
+                            </div>
+                        </div>
+                        <div class="row text-center mt-3">
+                            <div class="col-6">
+                                <h4 class="text-success">{{ validation_stats.successful }}</h4>
+                                <p class="mb-0 small">Successful</p>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-danger">{{ validation_stats.failed }}</h4>
+                                <p class="mb-0 small">Failed</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Usage by Event -->
+            {% if event_usage %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="analytics-chart">
+                        <h5>Usage by Event</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Total Tickets</th>
+                                        <th>Used Tickets</th>
+                                        <th>Usage Rate</th>
+                                        <th>Progress</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for event in event_usage %}
+                                    <tr>
+                                        <td>{{ event.event__name }}</td>
+                                        <td>{{ event.total_tickets }}</td>
+                                        <td>{{ event.used_tickets }}</td>
+                                        <td>
+                                            {% if event.total_tickets > 0 %}
+                                            {% widthratio event.used_tickets event.total_tickets 100 %}%
+                                            {% else %}
+                                            0%
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar" 
+                                                     role="progressbar" 
+                                                     style="width: {% if event.total_tickets > 0 %}{% widthratio event.used_tickets event.total_tickets 100 %}{% else %}0{% endif %}%">
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Validation Methods -->
+            {% if method_usage %}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="analytics-chart">
+                        <h5>Validation Methods</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Method</th>
+                                        <th>Count</th>
+                                        <th>Percentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for method in method_usage %}
+                                    <tr>
+                                        <td>{{ method.validation_method|title }}</td>
+                                        <td>{{ method.count }}</td>
+                                        <td>
+                                            {% if validation_stats.total > 0 %}
+                                            {% widthratio method.count validation_stats.total 100 %}%
+                                            {% else %}
+                                            0%
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="analytics-chart">
+                        <h5>Quick Actions</h5>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'tickets:validate_ticket' %}" class="btn btn-success">
+                                <i class="fas fa-qrcode"></i> Validate Tickets
+                            </a>
+                            <a href="{% url 'tickets:validation_dashboard' %}" class="btn btn-info">
+                                <i class="fas fa-shield-alt"></i> Validation Dashboard
+                            </a>
+                            <a href="{% url 'tickets:template_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-file-alt"></i> Manage Templates
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

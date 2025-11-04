@@ -1,0 +1,269 @@
+{% extends "tickets/base.html" %}
+{% load static %}
+
+{% block title %}
+{% if object %}Edit Template{% else %}Create Template{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>
+                    <i class="fas fa-file-alt"></i>
+                    {% if object %}Edit Template: {{ object.name }}{% else %}Create New Template{% endif %}
+                </h1>
+                <a href="{% url 'tickets:template_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Templates
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Template Content -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Template Content</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="{{ form.html_content.id_for_label }}" class="form-label">
+                                <strong>HTML Content</strong>
+                            </label>
+                            <textarea class="template-editor" 
+                                      id="{{ form.html_content.id_for_label }}"
+                                      name="{{ form.html_content.name }}"
+                                      rows="15">{{ form.html_content.value|default:"" }}</textarea>
+                            {% if form.html_content.help_text %}
+                            <div class="form-text">{{ form.html_content.help_text }}</div>
+                            {% endif %}
+                            {% if form.html_content.errors %}
+                            <div class="text-danger">{{ form.html_content.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.css_styles.id_for_label }}" class="form-label">
+                                <strong>CSS Styles</strong>
+                            </label>
+                            <textarea class="template-editor" 
+                                      id="{{ form.css_styles.id_for_label }}"
+                                      name="{{ form.css_styles.name }}"
+                                      rows="10">{{ form.css_styles.value|default:"" }}</textarea>
+                            {% if form.css_styles.help_text %}
+                            <div class="form-text">{{ form.css_styles.help_text }}</div>
+                            {% endif %}
+                            {% if form.css_styles.errors %}
+                            <div class="text-danger">{{ form.css_styles.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <!-- Template Settings -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Template Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                <strong>Template Name</strong>
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="{{ form.name.id_for_label }}"
+                                   name="{{ form.name.name }}"
+                                   value="{{ form.name.value|default:"" }}"
+                                   required>
+                            {% if form.name.errors %}
+                            <div class="text-danger">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.template_type.id_for_label }}" class="form-label">
+                                <strong>Template Type</strong>
+                            </label>
+                            <select class="form-select" 
+                                    id="{{ form.template_type.id_for_label }}"
+                                    name="{{ form.template_type.name }}"
+                                    required>
+                                {% for value, label in form.template_type.field.choices %}
+                                <option value="{{ value }}" 
+                                        {% if form.template_type.value == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.template_type.errors %}
+                            <div class="text-danger">{{ form.template_type.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.page_size.id_for_label }}" class="form-label">
+                                        <strong>Page Size</strong>
+                                    </label>
+                                    <select class="form-select" 
+                                            id="{{ form.page_size.id_for_label }}"
+                                            name="{{ form.page_size.name }}">
+                                        {% for value, label in form.page_size.field.choices %}
+                                        <option value="{{ value }}" 
+                                                {% if form.page_size.value == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.orientation.id_for_label }}" class="form-label">
+                                        <strong>Orientation</strong>
+                                    </label>
+                                    <select class="form-select" 
+                                            id="{{ form.orientation.id_for_label }}"
+                                            name="{{ form.orientation.name }}">
+                                        {% for value, label in form.orientation.field.choices %}
+                                        <option value="{{ value }}" 
+                                                {% if form.orientation.value == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Features -->
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Features</strong></label>
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       id="{{ form.include_qr_code.id_for_label }}"
+                                       name="{{ form.include_qr_code.name }}"
+                                       {% if form.include_qr_code.value %}checked{% endif %}>
+                                <label class="form-check-label" for="{{ form.include_qr_code.id_for_label }}">
+                                    Include QR Code
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       id="{{ form.include_barcode.id_for_label }}"
+                                       name="{{ form.include_barcode.name }}"
+                                       {% if form.include_barcode.value %}checked{% endif %}>
+                                <label class="form-check-label" for="{{ form.include_barcode.id_for_label }}">
+                                    Include Barcode
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       id="{{ form.include_logo.id_for_label }}"
+                                       name="{{ form.include_logo.name }}"
+                                       {% if form.include_logo.value %}checked{% endif %}>
+                                <label class="form-check-label" for="{{ form.include_logo.id_for_label }}">
+                                    Include Logo
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Status -->
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Status</strong></label>
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       id="{{ form.is_active.id_for_label }}"
+                                       name="{{ form.is_active.name }}"
+                                       {% if form.is_active.value %}checked{% endif %}>
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                    Active
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       id="{{ form.is_default.id_for_label }}"
+                                       name="{{ form.is_default.name }}"
+                                       {% if form.is_default.value %}checked{% endif %}>
+                                <label class="form-check-label" for="{{ form.is_default.id_for_label }}">
+                                    Default Template
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Template Variables -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Available Variables</h5>
+                    </div>
+                    <div class="card-body">
+                        <small class="text-muted">
+                            You can use these variables in your HTML template:
+                        </small>
+                        <ul class="list-unstyled mt-2" style="font-size: 0.875rem;">
+                            <li><code>{{ "{{ ticket.ticket_number }}" }}</code></li>
+                            <li><code>{{ "{{ customer.full_name }}" }}</code></li>
+                            <li><code>{{ "{{ customer.email }}" }}</code></li>
+                            <li><code>{{ "{{ customer.phone }}" }}</code></li>
+                            <li><code>{{ "{{ event.name }}" }}</code></li>
+                            <li><code>{{ "{{ event.start_date }}" }}</code></li>
+                            <li><code>{{ "{{ venue.name }}" }}</code></li>
+                            <li><code>{{ "{{ venue.address }}" }}</code></li>
+                            <li><code>{{ "{{ zone.name }}" }}</code></li>
+                            <li><code>{{ "{{ seat.seat_label }}" }}</code></li>
+                            <li><code>{{ "{{ ticket.total_price }}" }}</code></li>
+                            <li><code>{{ "{{ ticket.currency }}" }}</code></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i>
+                                {% if object %}Update Template{% else %}Create Template{% endif %}
+                            </button>
+                            <a href="{% url 'tickets:template_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+// Add syntax highlighting or code editor functionality if needed
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-resize textareas
+    const textareas = document.querySelectorAll('.template-editor');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,194 @@
+{% extends "notifications/base.html" %}
+{% load i18n humanize %}
+
+{% block notification_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">{% trans "Notification Logs" %}</h2>
+        <p class="text-muted mb-0">
+            {% trans "Review the delivery history for every notification sent by the system." %}
+        </p>
+    </div>
+    <a href="{% url 'notifications:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Dashboard" %}
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="channel" class="form-label fw-semibold">{% trans "Channel" %}</label>
+                <select name="channel" id="channel" class="form-control">
+                    <option value="">{% trans "All channels" %}</option>
+                    <option value="email" {% if channel == 'email' %}selected{% endif %}>{% trans "Email" %}</option>
+                    <option value="sms" {% if channel == 'sms' %}selected{% endif %}>{% trans "SMS" %}</option>
+                    <option value="whatsapp" {% if channel == 'whatsapp' %}selected{% endif %}>{% trans "WhatsApp" %}</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="status" class="form-label fw-semibold">{% trans "Status" %}</label>
+                <select name="status" id="status" class="form-control">
+                    <option value="">{% trans "All statuses" %}</option>
+                    <option value="pending" {% if status == 'pending' %}selected{% endif %}>{% trans "Pending" %}</option>
+                    <option value="sent" {% if status == 'sent' %}selected{% endif %}>{% trans "Sent" %}</option>
+                    <option value="failed" {% if status == 'failed' %}selected{% endif %}>{% trans "Failed" %}</option>
+                    <option value="retry" {% if status == 'retry' %}selected{% endif %}>{% trans "Retry" %}</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="search" class="form-label fw-semibold">{% trans "Search" %}</label>
+                <input type="text" name="search" id="search" class="form-control"
+                       value="{{ search }}" placeholder="{% trans "Recipient, subject or content" %}">
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-search me-2"></i>{% trans "Filter" %}
+                </button>
+                <a href="{% url 'notifications:log_list' %}" class="btn btn-outline-secondary" title="{% trans 'Clear filters' %}">
+                    <i class="fas fa-sync-alt"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if page_obj and page_obj.object_list %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center bg-white">
+        <h5 class="mb-0">{% trans "Log Entries" %}</h5>
+        <span class="badge bg-primary-subtle text-primary">
+            {{ page_obj.paginator.count }} {% trans "records" %}
+        </span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>{% trans "Timestamp" %}</th>
+                        <th>{% trans "Recipient" %}</th>
+                        <th>{% trans "Template" %}</th>
+                        <th>{% trans "Channel" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Subject" %}</th>
+                        <th class="text-end">{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in page_obj.object_list %}
+                    <tr>
+                        <td class="text-nowrap">
+                            <div class="fw-semibold">{{ log.created_at|date:"M d, Y" }}</div>
+                            <small class="text-muted">{{ log.created_at|time:"H:i:s" }}</small>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">{{ log.recipient }}</div>
+                            {% if log.customer %}
+                            <small class="text-muted d-block">
+                                <i class="fas fa-user me-1"></i>{{ log.customer.full_name|default:log.customer.email }}
+                            </small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if log.template %}
+                                <a href="{% url 'notifications:template_detail' log.template.id %}" class="text-decoration-none">
+                                    {{ log.template.name }}
+                                </a>
+                            {% else %}
+                                <span class="text-muted">{% trans "Ad-hoc" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="channel-badge channel-{{ log.channel }}">
+                                {% if log.channel == 'email' %}
+                                    <i class="fas fa-envelope me-1"></i>Email
+                                {% elif log.channel == 'sms' %}
+                                    <i class="fas fa-sms me-1"></i>SMS
+                                {% elif log.channel == 'whatsapp' %}
+                                    <i class="fab fa-whatsapp me-1"></i>WhatsApp
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="notification-status status-{{ log.status }}">
+                                {{ log.get_status_display }}
+                            </span>
+                            {% if log.sent_at %}
+                                <small class="d-block text-muted">
+                                    <i class="fas fa-check me-1"></i>{{ log.sent_at|date:"M d, Y H:i" }}
+                                </small>
+                            {% endif %}
+                        </td>
+                        <td class="text-break" style="max-width: 280px;">
+                            {{ log.subject|default:_("No subject") }}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'notifications:log_detail' log.id %}" class="btn btn-outline-primary" title="{% trans 'View detail' %}">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if log.status == 'failed' %}
+                                <form method="post" action="{% url 'notifications:log_retry' log.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger" title="{% trans 'Retry' %}">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white">
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="{% trans 'Log pagination' %}">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if channel %}&channel={{ channel }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if search %}&search={{ search }}{% endif %}">
+                        {% trans "Previous" %}
+                    </a>
+                </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">
+                        {% blocktrans %}Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}{% endblocktrans %}
+                    </span>
+                </li>
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if channel %}&channel={{ channel }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if search %}&search={{ search }}{% endif %}">
+                        {% trans "Next" %}
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">{% trans "No notifications logged yet" %}</h5>
+        <p class="text-muted">
+            {% if channel or status or search %}
+                {% trans "Try clearing the filters or searching with different criteria." %}
+            {% else %}
+                {% trans "When the system starts sending notifications they will appear here with their delivery status." %}
+            {% endif %}
+        </p>
+        <a href="{% url 'notifications:send' %}" class="btn btn-primary">
+            <i class="fas fa-paper-plane me-2"></i>{% trans "Send Test Notification" %}
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

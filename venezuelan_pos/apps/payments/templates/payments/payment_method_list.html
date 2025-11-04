@@ -1,0 +1,101 @@
+{% extends "payments/base.html" %}
+
+{% block title %}Payment Methods{% endblock %}
+
+{% block main_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Payment Methods</h1>
+    <a href="{% url 'payments:payment_method_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>
+        Add Payment Method
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if payment_methods %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Processing Fee</th>
+                            <th>Features</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for method in payment_methods %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold">{{ method.name }}</div>
+                                {% if method.description %}
+                                    <small class="text-muted">{{ method.description|truncatechars:50 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark">
+                                    {{ method.get_method_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if method.processing_fee_percentage > 0 or method.processing_fee_fixed > 0 %}
+                                    <div class="small">
+                                        {% if method.processing_fee_percentage > 0 %}
+                                            {{ method.processing_fee_percentage|floatformat:2 }}%
+                                        {% endif %}
+                                        {% if method.processing_fee_fixed > 0 %}
+                                            {% if method.processing_fee_percentage > 0 %} + {% endif %}
+                                            ${{ method.processing_fee_fixed }}
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">No fee</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    {% if method.allows_partial %}
+                                        <span class="badge bg-success">Partial</span>
+                                    {% endif %}
+                                    {% if method.requires_reference %}
+                                        <span class="badge bg-info">Reference</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if method.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'payments:payment_method_edit' method.pk %}" 
+                                       class="btn btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-credit-card fa-4x text-muted mb-3"></i>
+                <h5 class="text-muted">No Payment Methods</h5>
+                <p class="text-muted">Configure payment methods to start accepting payments.</p>
+                <a href="{% url 'payments:payment_method_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>
+                    Add First Payment Method
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

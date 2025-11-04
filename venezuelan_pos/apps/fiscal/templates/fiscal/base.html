@@ -1,0 +1,206 @@
+{% extends "events/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Fiscal Compliance" %} - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.fiscal-status-card {
+    border-left: 4px solid #28a745;
+}
+
+.fiscal-status-card.closed {
+    border-left-color: #dc3545;
+}
+
+.fiscal-series-number {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+
+.tax-rate {
+    color: #007bff;
+    font-weight: bold;
+}
+
+.audit-log-entry {
+    border-left: 3px solid #6c757d;
+    padding-left: 15px;
+    margin-bottom: 10px;
+}
+
+.audit-log-entry.create {
+    border-left-color: #28a745;
+}
+
+.audit-log-entry.update {
+    border-left-color: #ffc107;
+}
+
+.audit-log-entry.delete {
+    border-left-color: #dc3545;
+}
+
+.audit-log-entry.void {
+    border-left-color: #fd7e14;
+}
+
+.fiscal-report-summary {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.tax-calculation-result {
+    background: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.void-warning {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.fiscal-day-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.fiscal-day-status.open {
+    background: #d4edda;
+    color: #155724;
+}
+
+.fiscal-day-status.closed {
+    background: #f8d7da;
+    color: #721c24;
+}
+</style>
+{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h4>{% trans "Fiscal Compliance" %}</h4>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'fiscal_dashboard' %}active{% endif %}" 
+                   href="{% url 'fiscal:fiscal_dashboard' %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    {% trans "Dashboard" %}
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link {% if 'series' in request.resolver_match.url_name %}active{% endif %}" 
+                   href="{% url 'fiscal:fiscal_series_list' %}">
+                    <i class="fas fa-list-ol"></i>
+                    {% trans "Fiscal Series" %}
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link {% if 'report' in request.resolver_match.url_name %}active{% endif %}" 
+                   href="{% url 'fiscal:fiscal_reports_list' %}">
+                    <i class="fas fa-file-alt"></i>
+                    {% trans "Fiscal Reports" %}
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link {% if 'tax' in request.resolver_match.url_name %}active{% endif %}" 
+                   href="{% url 'fiscal:tax_configurations_list' %}">
+                    <i class="fas fa-percentage"></i>
+                    {% trans "Tax Configuration" %}
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'fiscal:tax_calculator' %}">
+                    <i class="fas fa-calculator"></i>
+                    {% trans "Tax Calculator" %}
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'fiscal:audit_trail' %}">
+                    <i class="fas fa-history"></i>
+                    {% trans "Audit Trail" %}
+                </a>
+            </li>
+            
+            <li class="nav-item mt-3">
+                <a class="nav-link btn btn-warning text-dark" href="{% url 'fiscal:close_fiscal_day' %}">
+                    <i class="fas fa-lock"></i>
+                    {% trans "Close Fiscal Day" %}
+                </a>
+            </li>
+            
+            <li class="nav-item mt-2">
+                <a class="nav-link btn btn-primary" href="{% url 'fiscal:generate_fiscal_report' %}">
+                    <i class="fas fa-plus"></i>
+                    {% trans "Generate Report" %}
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+// Auto-refresh fiscal status every 30 seconds
+function refreshFiscalStatus() {
+    fetch('{% url "fiscal:fiscal_status_api" %}')
+        .then(response => response.json())
+        .then(data => {
+            // Update fiscal status indicators
+            const statusElement = document.getElementById('fiscal-status');
+            if (statusElement && data.fiscal_day) {
+                const isOpen = !data.fiscal_day.is_closed;
+                statusElement.className = `fiscal-day-status ${isOpen ? 'open' : 'closed'}`;
+                statusElement.textContent = isOpen ? '{% trans "Open" %}' : '{% trans "Closed" %}';
+            }
+            
+            // Update today's stats
+            const statsElement = document.getElementById('today-stats');
+            if (statsElement && data.today_stats) {
+                statsElement.innerHTML = `
+                    <strong>${data.today_stats.transactions}</strong> {% trans "transactions" %} - 
+                    <strong>$${parseFloat(data.today_stats.total_amount).toFixed(2)}</strong>
+                `;
+            }
+        })
+        .catch(error => console.error('Error refreshing fiscal status:', error));
+}
+
+// Refresh every 30 seconds
+setInterval(refreshFiscalStatus, 30000);
+
+// Format currency values
+document.addEventListener('DOMContentLoaded', function() {
+    const currencyElements = document.querySelectorAll('.currency');
+    currencyElements.forEach(element => {
+        const value = parseFloat(element.textContent);
+        if (!isNaN(value)) {
+            element.textContent = '$' + value.toFixed(2);
+        }
+    });
+});
+</script>
+{% endblock %}

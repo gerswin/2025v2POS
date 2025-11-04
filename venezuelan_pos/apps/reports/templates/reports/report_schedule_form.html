@@ -1,0 +1,154 @@
+{% extends "reports/base.html" %}
+{% load i18n %}
+
+{% block title %}
+{% if schedule %}{% trans "Edit Schedule" %} - {{ schedule.name }}{% else %}{% trans "Create Schedule" %}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-1">
+                    {% if schedule %}{% trans "Edit Report Schedule" %}{% else %}{% trans "Create Report Schedule" %}{% endif %}
+                </h1>
+                <p class="text-muted mb-0">
+                    {% trans "Automate report delivery with flexible frequency and recipient lists." %}
+                </p>
+            </div>
+            <a href="{% url 'reports:report_schedules_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Back to schedules" %}
+            </a>
+        </div>
+    </div>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-lg-7">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">{% trans "General information" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small">{{ form.name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small">{{ form.description.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="{{ form.report_type.id_for_label }}">{{ form.report_type.label }}</label>
+                                {{ form.report_type }}
+                                {% if form.report_type.errors %}
+                                    <div class="text-danger small">{{ form.report_type.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="{{ form.frequency.id_for_label }}">{{ form.frequency.label }}</label>
+                                {{ form.frequency }}
+                                {% if form.frequency.errors %}
+                                    <div class="text-danger small">{{ form.frequency.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="{{ form.next_run.id_for_label }}">{{ form.next_run.label }}</label>
+                                {{ form.next_run }}
+                                {% if form.next_run.errors %}
+                                    <div class="text-danger small">{{ form.next_run.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
+                                {{ form.status }}
+                                {% if form.status.errors %}
+                                    <div class="text-danger small">{{ form.status.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">{% trans "Delivery settings" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="{{ form.email_recipients_text.id_for_label }}">
+                                {{ form.email_recipients_text.label }}
+                            </label>
+                            {{ form.email_recipients_text }}
+                            {% if form.email_recipients_text.help_text %}
+                                <div class="form-text">{{ form.email_recipients_text.help_text }}</div>
+                            {% endif %}
+                            {% if form.email_recipients_text.errors %}
+                                <div class="text-danger small">{{ form.email_recipients_text.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold d-block">{{ form.export_formats_choices.label }}</label>
+                            <div class="d-flex flex-wrap gap-3">
+                                {% for checkbox in form.export_formats_choices %}
+                                <div class="form-check">
+                                    {{ checkbox.tag }}
+                                    <label class="form-check-label ms-2" for="{{ checkbox.id_for_label }}">
+                                        {{ checkbox.choice_label|upper }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.export_formats_choices.errors %}
+                                <div class="text-danger small">{{ form.export_formats_choices.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">{% trans "Tips" %}</h5>
+                    </div>
+                    <div class="card-body small text-muted">
+                        <ul class="mb-0">
+                            <li class="mb-2">{% trans "Use the frequency that matches how often stakeholders need the data." %}</li>
+                            <li class="mb-2">{% trans "Multiple email recipients can be added, one per line." %}</li>
+                            <li>{% trans "You can export in multiple formats to feed accounting systems or BI dashboards." %}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <a href="{% url 'reports:report_schedules_list' %}" class="btn btn-outline-secondary">
+                {% trans "Cancel" %}
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-2"></i>{% trans "Save schedule" %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

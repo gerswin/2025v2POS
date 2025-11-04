@@ -1,0 +1,22 @@
+¡PAGO RECIBIDO!
+
+Estimado/a {{ customer.name }} {{ customer.surname }},
+
+Hemos recibido su pago exitosamente.
+
+DETALLES DEL PAGO:
+- Evento: {{ event.name }}
+- Fecha del Pago: {{ payment.completed_at|date:"d/m/Y H:i" }}
+- Monto Pagado: ${{ amount_paid }}
+{% if remaining_balance > 0 %}- Saldo Pendiente: ${{ remaining_balance }}{% else %}- Estado: ¡Pago Completo!{% endif %}
+
+{% if remaining_balance > 0 %}PRÓXIMOS PASOS:
+- Su reserva se mantiene activa
+- Complete el pago restante antes de la fecha límite
+- Recibirá recordatorios automáticos{% else %}¡FELICITACIONES! Ha completado el pago de sus entradas. Sus entradas digitales serán enviadas por separado.{% endif %}
+
+¡Gracias por su pago!
+
+---
+Venezuelan POS System
+Este es un correo automático, por favor no responda.

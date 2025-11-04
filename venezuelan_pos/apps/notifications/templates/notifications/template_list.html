@@ -1,0 +1,144 @@
+{% extends "notifications/base.html" %}
+
+{% block notification_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Notification Templates</h2>
+    <a href="{% url 'notifications:template_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Create Template
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="type" class="form-label">Type</label>
+                <select name="type" id="type" class="form-control">
+                    <option value="">All Types</option>
+                    <option value="email" {% if template_type == 'email' %}selected{% endif %}>Email</option>
+                    <option value="sms" {% if template_type == 'sms' %}selected{% endif %}>SMS</option>
+                    <option value="whatsapp" {% if template_type == 'whatsapp' %}selected{% endif %}>WhatsApp</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="search" class="form-label">Search</label>
+                <input type="text" name="search" id="search" class="form-control" 
+                       value="{{ search }}" placeholder="Search templates...">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-outline-primary d-block w-100">
+                    <i class="fas fa-search me-2"></i>Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Templates -->
+<div class="card">
+    <div class="card-body">
+        {% if page_obj %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for template in page_obj %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'notifications:template_detail' template.id %}" class="fw-bold">
+                                {{ template.name }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="channel-badge channel-{{ template.template_type }}">
+                                {% if template.template_type == 'email' %}
+                                    <i class="fas fa-envelope me-1"></i>Email
+                                {% elif template.template_type == 'sms' %}
+                                    <i class="fas fa-sms me-1"></i>SMS
+                                {% elif template.template_type == 'whatsapp' %}
+                                    <i class="fab fa-whatsapp me-1"></i>WhatsApp
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>{{ template.subject|truncatechars:50|default:"-" }}</td>
+                        <td>
+                            {% if template.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ template.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'notifications:template_detail' template.id %}" 
+                                   class="btn btn-outline-primary" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'notifications:template_edit' template.id %}" 
+                                   class="btn btn-outline-secondary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Template pagination">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if template_type %}&type={{ template_type }}{% endif %}{% if search %}&search={{ search }}{% endif %}">Previous</a>
+                    </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if template_type %}&type={{ template_type }}{% endif %}{% if search %}&search={{ search }}{% endif %}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if template_type %}&type={{ template_type }}{% endif %}{% if search %}&search={{ search }}{% endif %}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No templates found</h5>
+            <p class="text-muted">Create your first notification template to get started.</p>
+            <a href="{% url 'notifications:template_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Create Template
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

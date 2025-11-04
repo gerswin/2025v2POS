@@ -1,0 +1,287 @@
+{% load i18n %}
+
+<!-- Real-time Stage Status Widget -->
+<div class="card stage-status-widget" data-event-id="{{ event.id }}" data-zone-id="{{ zone.id|default:'' }}">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            <i class="bi bi-speedometer2 me-2"></i>
+            {% trans "Current Pricing Stage" %}
+        </span>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshStageStatus(this)">
+            <i class="bi bi-arrow-clockwise"></i>
+        </button>
+    </div>
+    <div class="card-body stage-status-content">
+        {% if current_stage %}
+            <div class="current-stage-info">
+                <h5 class="mb-2">{{ current_stage.name }}</h5>
+                
+                <!-- Modifier Display -->
+                <div class="mb-3">
+                    {% if current_stage.modifier_type == 'percentage' %}
+                        <span class="badge bg-primary fs-6">{{ current_stage.modifier_value|floatformat:1 }}%</span>
+                    {% else %}
+                        <span class="badge bg-primary fs-6">${{ current_stage.modifier_value }}</span>
+                    {% endif %}
+                    <small class="text-muted ms-2">{{ current_stage.get_modifier_type_display }}</small>
+                </div>
+                
+                <!-- Scope Display -->
+                <div class="mb-3">
+                    {% if current_stage.scope == 'zone' and current_stage.zone %}
+                        <span class="badge bg-info">{% trans "Zone:" %} {{ current_stage.zone.name }}</span>
+                    {% else %}
+                        <span class="badge bg-success">{% trans "Event-wide" %}</span>
+                    {% endif %}
+                </div>
+                
+                <!-- Time Remaining -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="text-muted">{% trans "Time Remaining" %}</small>
+                        <span class="stage-time-countdown" data-end-date="{{ current_stage.end_date|date:'c' }}">
+                            {% if current_stage.days_remaining > 0 %}
+                                {{ current_stage.days_remaining }}d {{ current_stage.hours_remaining|add:"-24"|floatformat:0 }}h
+                            {% elif current_stage.hours_remaining > 0 %}
+                                {{ current_stage.hours_remaining }}h
+                            {% else %}
+                                {% trans "Expired" %}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        {% with total_duration=current_stage.end_date|timeuntil:current_stage.start_date %}
+                        {% with remaining_duration=current_stage.end_date|timeuntil %}
+                        <div class="progress-bar bg-info" 
+                             role="progressbar" 
+                             style="width: {{ remaining_duration|percentage:total_duration }}%">
+                        </div>
+                        {% endwith %}
+                        {% endwith %}
+                    </div>
+                </div>
+                
+                <!-- Quantity Progress (if applicable) -->
+                {% if current_stage.quantity_limit %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="text-muted">{% trans "Quantity Progress" %}</small>
+                        <span class="stage-quantity-info">
+                            {{ current_stage.get_sold_quantity }}/{{ current_stage.quantity_limit }}
+                        </span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        {% with sold_percentage=current_stage.get_sold_quantity|percentage:current_stage.quantity_limit %}
+                        <div class="progress-bar bg-warning" 
+                             role="progressbar" 
+                             style="width: {{ sold_percentage }}%">
+                        </div>
+                        {% endwith %}
+                    </div>
+                    {% if current_stage.remaining_quantity %}
+                        <small class="text-muted">{{ current_stage.remaining_quantity }} {% trans "tickets remaining" %}</small>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <!-- Transition Status -->
+                {% if current_stage.should_transition %}
+                <div class="alert alert-warning py-2">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <small>{% trans "Ready to transition to next stage" %}</small>
+                </div>
+                {% endif %}
+                
+                <!-- Next Stage Preview -->
+                {% if current_stage.get_next_stage %}
+                {% with next_stage=current_stage.get_next_stage %}
+                <div class="next-stage-preview">
+                    <small class="text-muted">{% trans "Next Stage:" %}</small>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">{{ next_stage.name }}</span>
+                        {% if next_stage.modifier_type == 'percentage' %}
+                            <span class="badge bg-outline-primary">{{ next_stage.modifier_value|floatformat:1 }}%</span>
+                        {% else %}
+                            <span class="badge bg-outline-primary">${{ next_stage.modifier_value }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endwith %}
+                {% endif %}
+                
+                <!-- Auto-transition Indicator -->
+                {% if current_stage.auto_transition %}
+                <div class="mt-2">
+                    <small class="text-success">
+                        <i class="bi bi-gear me-1"></i>{% trans "Auto-transition enabled" %}
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="no-stage-info text-center text-muted py-4">
+                <i class="bi bi-clock display-4"></i>
+                <h6 class="mt-2">{% trans "No Active Stage" %}</h6>
+                <p class="mb-0">{% trans "No pricing stage is currently active" %}</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Widget Footer with Actions -->
+    <div class="card-footer bg-light">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted stage-last-updated">
+                {% trans "Updated:" %} <span class="update-timestamp">{% now "H:i:s" %}</span>
+            </small>
+            <div class="btn-group btn-group-sm">
+                {% if event %}
+                <a href="{% url 'pricing_web:price_stage_list' event_id=event.id %}" 
+                   class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-gear"></i> {% trans "Manage" %}
+                </a>
+                <a href="{% url 'pricing_web:stage_performance_analytics' event_id=event.id %}" 
+                   class="btn btn-outline-info btn-sm">
+                    <i class="bi bi-graph-up"></i> {% trans "Analytics" %}
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Real-time stage status widget functionality
+function refreshStageStatus(button) {
+    const widget = button.closest('.stage-status-widget');
+    const eventId = widget.dataset.eventId;
+    const zoneId = widget.dataset.zoneId;
+    const content = widget.querySelector('.stage-status-content');
+    const timestamp = widget.querySelector('.update-timestamp');
+    
+    // Show loading state
+    button.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i>';
+    button.disabled = true;
+    
+    // Construct URL parameters
+    let url = '{% url "pricing_web:ajax_get_stage_status" %}';
+    const params = new URLSearchParams();
+    if (eventId) params.append('event_id', eventId);
+    if (zoneId) params.append('zone_id', zoneId);
+    
+    fetch(`${url}?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateStageStatusDisplay(content, data.status);
+                timestamp.textContent = new Date().toLocaleTimeString();
+            } else {
+                console.error('Error refreshing stage status:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error refreshing stage status:', error);
+        })
+        .finally(() => {
+            // Reset button state
+            button.innerHTML = '<i class="bi bi-arrow-clockwise"></i>';
+            button.disabled = false;
+        });
+}
+
+function updateStageStatusDisplay(container, stageStatus) {
+    // Update the stage status display with new data
+    // This would be implemented based on the specific status structure
+    // For now, we'll just reload the widget content
+    location.reload();
+}
+
+// Auto-refresh every 30 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const widgets = document.querySelectorAll('.stage-status-widget');
+    
+    widgets.forEach(widget => {
+        setInterval(() => {
+            const refreshButton = widget.querySelector('button[onclick*="refreshStageStatus"]');
+            if (refreshButton && !refreshButton.disabled) {
+                refreshStageStatus(refreshButton);
+            }
+        }, 30000);
+        
+        // Update countdown timers every second
+        setInterval(() => {
+            updateCountdownTimers(widget);
+        }, 1000);
+    });
+});
+
+function updateCountdownTimers(widget) {
+    const countdowns = widget.querySelectorAll('.stage-time-countdown');
+    
+    countdowns.forEach(countdown => {
+        const endDate = new Date(countdown.dataset.endDate);
+        const now = new Date();
+        const timeDiff = endDate - now;
+        
+        if (timeDiff > 0) {
+            const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            let timeText = '';
+            if (days > 0) {
+                timeText = `${days}d ${hours}h`;
+            } else if (hours > 0) {
+                timeText = `${hours}h ${minutes}m`;
+            } else {
+                timeText = `${minutes}m`;
+            }
+            
+            countdown.textContent = timeText;
+        } else {
+            countdown.textContent = '{% trans "Expired" %}';
+            countdown.classList.add('text-danger');
+        }
+    });
+}
+</script>
+
+<style>
+.stage-status-widget {
+    border-left: 4px solid #0d6efd;
+}
+
+.stage-status-widget .current-stage-info h5 {
+    color: #0d6efd;
+}
+
+.stage-time-countdown {
+    font-family: monospace;
+    font-weight: bold;
+}
+
+.next-stage-preview {
+    background: #f8f9fa;
+    padding: 8px;
+    border-radius: 4px;
+    border-left: 3px solid #6c757d;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+.badge.bg-outline-primary {
+    color: #0d6efd;
+    border: 1px solid #0d6efd;
+    background: transparent;
+}
+</style>

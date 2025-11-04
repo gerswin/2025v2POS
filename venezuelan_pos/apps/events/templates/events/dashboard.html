@@ -194,13 +194,25 @@
                         <i class="bi bi-building-add"></i>
                         <span>{% trans "Add Venue" %}</span>
                     </a>
-                    <a href="#" class="btn btn-modern btn-secondary-modern">
+                    <a href="{% url 'reports_web:dashboard' %}" class="btn btn-modern btn-secondary-modern">
                         <i class="bi bi-graph-up"></i>
                         <span>{% trans "View Reports" %}</span>
                     </a>
-                    <a href="#" class="btn btn-modern" style="background-color: var(--info-light); color: var(--info); border: 1px solid var(--info);">
-                        <i class="bi bi-gear"></i>
-                        <span>{% trans "Settings" %}</span>
+                    <a href="{% url 'fiscal_web:fiscal_dashboard' %}" class="btn btn-modern" style="background-color: var(--warning-light); color: var(--warning); border: 1px solid var(--warning);">
+                        <i class="bi bi-receipt"></i>
+                        <span>{% trans "Fiscal" %}</span>
+                    </a>
+                    <a href="{% url 'fiscal_web:tax_configurations_list' %}" class="btn btn-modern" style="background-color: var(--info-light); color: var(--info); border: 1px solid var(--info);">
+                        <i class="bi bi-percent"></i>
+                        <span>{% trans "Taxes" %}</span>
+                    </a>
+                    <a href="{% url 'tickets_web:dashboard' %}" class="btn btn-modern" style="background-color: var(--success-light); color: var(--success); border: 1px solid var(--success);">
+                        <i class="bi bi-qr-code"></i>
+                        <span>{% trans "Digital Tickets" %}</span>
+                    </a>
+                    <a href="{% url 'tickets_web:validate_ticket' %}" class="btn btn-modern" style="background-color: var(--primary-light); color: var(--primary); border: 1px solid var(--primary);">
+                        <i class="bi bi-check-circle"></i>
+                        <span>{% trans "Validate Tickets" %}</span>
                     </a>
                 </div>
             </div>

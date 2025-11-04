@@ -1,0 +1,784 @@
+{% extends "reports/base.html" %}
+{% load static %}
+
+{% block title %}Constructor de Reportes Personalizados - Venezuelan POS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">Constructor de Reportes Personalizados</h1>
+                    <p class="text-muted">Crea reportes personalizados con filtros y métricas específicas</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-info me-2" onclick="loadTemplate()">
+                        <i class="fas fa-file-import"></i> Cargar Plantilla
+                    </button>
+                    <a href="{% url 'reports:dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" id="customReportForm">
+        {% csrf_token %}
+        
+        <div class="row">
+            <!-- Configuration Panel -->
+            <div class="col-md-4">
+                <!-- Basic Configuration -->
+                <div class="filter-panel mb-3">
+                    <h5 class="mb-3">
+                        <i class="fas fa-cog text-primary"></i>
+                        Configuración Básica
+                    </h5>
+
+                    <div class="mb-3">
+                        <label for="{{ form.report_name.id_for_label }}" class="form-label">
+                            {{ form.report_name.label }}
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.report_name }}
+                        {% if form.report_name.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.report_name.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.date_range_type.id_for_label }}" class="form-label">
+                            {{ form.date_range_type.label }}
+                        </label>
+                        {{ form.date_range_type }}
+                    </div>
+
+                    <div id="custom-date-range" style="display: none;">
+                        <div class="row">
+                            <div class="col-6">
+                                <label for="{{ form.custom_start_date.id_for_label }}" class="form-label">
+                                    {{ form.custom_start_date.label }}
+                                </label>
+                                {{ form.custom_start_date }}
+                            </div>
+                            <div class="col-6">
+                                <label for="{{ form.custom_end_date.id_for_label }}" class="form-label">
+                                    {{ form.custom_end_date.label }}
+                                </label>
+                                {{ form.custom_end_date }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filter-panel mb-3">
+                    <h5 class="mb-3">
+                        <i class="fas fa-filter text-warning"></i>
+                        Filtros
+                    </h5>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.events.label }}</label>
+                        <div class="drag-drop-area" id="events-drop-area">
+                            <p class="mb-2">Arrastra eventos aquí o selecciona de la lista</p>
+                            <select multiple class="form-select" size="4" id="events-select">
+                                {% for event in form.events.queryset %}
+                                    <option value="{{ event.id }}" draggable="true">
+                                        {{ event.name }} ({{ event.start_date|date:"d/m/Y" }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div id="selected-events" class="mt-2"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.zones.label }}</label>
+                        <div class="drag-drop-area" id="zones-drop-area">
+                            <p class="mb-2">Arrastra zonas aquí o selecciona de la lista</p>
+                            <select multiple class="form-select" size="4" id="zones-select">
+                                {% for zone in form.zones.queryset %}
+                                    <option value="{{ zone.id }}" draggable="true">
+                                        {{ zone.name }} - {{ zone.event.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div id="selected-zones" class="mt-2"></div>
+                    </div>
+                </div>
+
+                <!-- Grouping and Metrics -->
+                <div class="filter-panel mb-3">
+                    <h5 class="mb-3">
+                        <i class="fas fa-layer-group text-info"></i>
+                        Agrupación y Métricas
+                    </h5>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.group_by.label }}</label>
+                        <div class="row">
+                            {% for choice in form.group_by %}
+                                <div class="col-6 mb-2">
+                                    <div class="form-check">
+                                        {{ choice.tag }}
+                                        <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                            {{ choice.choice_label }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.metrics.label }}</label>
+                        <div class="row">
+                            {% for choice in form.metrics %}
+                                <div class="col-12 mb-2">
+                                    <div class="form-check">
+                                        {{ choice.tag }}
+                                        <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                            {{ choice.choice_label }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Options -->
+                <div class="filter-panel">
+                    <h5 class="mb-3">
+                        <i class="fas fa-download text-success"></i>
+                        Opciones de Exportación
+                    </h5>
+
+                    <div class="mb-3">
+                        <label for="{{ form.export_format.id_for_label }}" class="form-label">
+                            {{ form.export_format.label }}
+                        </label>
+                        {{ form.export_format }}
+                    </div>
+
+                    <div class="form-check mb-3">
+                        {{ form.include_charts }}
+                        <label class="form-check-label" for="{{ form.include_charts.id_for_label }}">
+                            {{ form.include_charts.label }}
+                        </label>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary" id="generateReportBtn">
+                            <i class="fas fa-chart-bar"></i> Generar Reporte
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="saveTemplate()">
+                            <i class="fas fa-save"></i> Guardar como Plantilla
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview and Builder Area -->
+            <div class="col-md-8">
+                <!-- Report Builder Canvas -->
+                <div class="chart-container mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">
+                            <i class="fas fa-tools text-primary"></i>
+                            Constructor Visual
+                        </h5>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearBuilder()">
+                                <i class="fas fa-trash"></i> Limpiar
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="previewReport()">
+                                <i class="fas fa-eye"></i> Vista Previa
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="report-builder-canvas">
+                        <div class="row">
+                            <!-- Filters Section -->
+                            <div class="col-md-6">
+                                <div class="builder-section" id="filters-section">
+                                    <h6 class="mb-2">
+                                        <i class="fas fa-filter"></i> Filtros Aplicados
+                                    </h6>
+                                    <div class="drop-zone" data-type="filters">
+                                        <p class="text-muted mb-0">Arrastra filtros aquí</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Grouping Section -->
+                            <div class="col-md-6">
+                                <div class="builder-section" id="grouping-section">
+                                    <h6 class="mb-2">
+                                        <i class="fas fa-layer-group"></i> Agrupación
+                                    </h6>
+                                    <div class="drop-zone" data-type="grouping">
+                                        <p class="text-muted mb-0">Arrastra opciones de agrupación aquí</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <!-- Metrics Section -->
+                            <div class="col-12">
+                                <div class="builder-section" id="metrics-section">
+                                    <h6 class="mb-2">
+                                        <i class="fas fa-chart-line"></i> Métricas Seleccionadas
+                                    </h6>
+                                    <div class="drop-zone large" data-type="metrics">
+                                        <p class="text-muted mb-0">Arrastra métricas aquí para incluir en el reporte</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Preview -->
+                <div class="chart-container">
+                    <h5 class="mb-3">
+                        <i class="fas fa-eye text-success"></i>
+                        Vista Previa en Tiempo Real
+                        <span class="real-time-indicator ms-2"></span>
+                    </h5>
+
+                    <div id="live-preview">
+                        <div class="text-center py-5">
+                            <i class="fas fa-chart-area fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">Configura tu reporte personalizado</h4>
+                            <p class="text-muted">
+                                Selecciona filtros, métricas y opciones de agrupación para ver una vista previa
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Template Modal -->
+<div class="modal fade" id="templateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Plantillas de Reportes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card template-card" onclick="applyTemplate('sales_summary')">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chart-bar fa-2x text-primary mb-2"></i>
+                                <h6>Resumen de Ventas</h6>
+                                <small class="text-muted">Reporte básico de ventas por período</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card template-card" onclick="applyTemplate('zone_performance')">
+                            <div class="card-body text-center">
+                                <i class="fas fa-map-marked-alt fa-2x text-success mb-2"></i>
+                                <h6>Rendimiento de Zonas</h6>
+                                <small class="text-muted">Análisis comparativo de zonas</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card template-card" onclick="applyTemplate('operator_analysis')">
+                            <div class="card-body text-center">
+                                <i class="fas fa-users fa-2x text-info mb-2"></i>
+                                <h6>Análisis de Operadores</h6>
+                                <small class="text-muted">Rendimiento por operador</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+let selectedEvents = [];
+let selectedZones = [];
+let builderConfig = {
+    filters: [],
+    grouping: [],
+    metrics: []
+};
+
+$(document).ready(function() {
+    initializeDragAndDrop();
+    setupFormHandlers();
+    
+    // Date range type change handler
+    $('#id_date_range_type').change(function() {
+        if ($(this).val() === 'custom') {
+            $('#custom-date-range').show();
+        } else {
+            $('#custom-date-range').hide();
+        }
+        updatePreview();
+    });
+
+    // Form change handlers
+    $('#customReportForm input, #customReportForm select').change(updatePreview);
+});
+
+function initializeDragAndDrop() {
+    // Make select options draggable
+    $('#events-select option, #zones-select option').attr('draggable', true);
+    
+    // Events drag and drop
+    $('#events-select').on('dragstart', 'option', function(e) {
+        e.originalEvent.dataTransfer.setData('text/plain', JSON.stringify({
+            type: 'event',
+            id: $(this).val(),
+            text: $(this).text()
+        }));
+    });
+    
+    $('#events-drop-area').on('dragover', function(e) {
+        e.preventDefault();
+        $(this).addClass('dragover');
+    }).on('dragleave', function(e) {
+        $(this).removeClass('dragover');
+    }).on('drop', function(e) {
+        e.preventDefault();
+        $(this).removeClass('dragover');
+        
+        const data = JSON.parse(e.originalEvent.dataTransfer.getData('text/plain'));
+        if (data.type === 'event') {
+            addSelectedEvent(data.id, data.text);
+        }
+    });
+    
+    // Zones drag and drop
+    $('#zones-select').on('dragstart', 'option', function(e) {
+        e.originalEvent.dataTransfer.setData('text/plain', JSON.stringify({
+            type: 'zone',
+            id: $(this).val(),
+            text: $(this).text()
+        }));
+    });
+    
+    $('#zones-drop-area').on('dragover', function(e) {
+        e.preventDefault();
+        $(this).addClass('dragover');
+    }).on('dragleave', function(e) {
+        $(this).removeClass('dragover');
+    }).on('drop', function(e) {
+        e.preventDefault();
+        $(this).removeClass('dragover');
+        
+        const data = JSON.parse(e.originalEvent.dataTransfer.getData('text/plain'));
+        if (data.type === 'zone') {
+            addSelectedZone(data.id, data.text);
+        }
+    });
+
+    // Builder canvas drop zones
+    $('.drop-zone').on('dragover', function(e) {
+        e.preventDefault();
+        $(this).addClass('dragover');
+    }).on('dragleave', function(e) {
+        $(this).removeClass('dragover');
+    }).on('drop', function(e) {
+        e.preventDefault();
+        $(this).removeClass('dragover');
+        
+        const dropType = $(this).data('type');
+        // Handle drops in builder canvas
+        handleBuilderDrop(e, dropType);
+    });
+}
+
+function setupFormHandlers() {
+    // Double-click to add/remove items
+    $('#events-select').on('dblclick', 'option', function() {
+        addSelectedEvent($(this).val(), $(this).text());
+    });
+    
+    $('#zones-select').on('dblclick', 'option', function() {
+        addSelectedZone($(this).val(), $(this).text());
+    });
+}
+
+function addSelectedEvent(id, text) {
+    if (!selectedEvents.find(e => e.id === id)) {
+        selectedEvents.push({id, text});
+        updateSelectedEventsDisplay();
+        updateBuilderCanvas();
+        updatePreview();
+    }
+}
+
+function addSelectedZone(id, text) {
+    if (!selectedZones.find(z => z.id === id)) {
+        selectedZones.push({id, text});
+        updateSelectedZonesDisplay();
+        updateBuilderCanvas();
+        updatePreview();
+    }
+}
+
+function removeSelectedEvent(id) {
+    selectedEvents = selectedEvents.filter(e => e.id !== id);
+    updateSelectedEventsDisplay();
+    updateBuilderCanvas();
+    updatePreview();
+}
+
+function removeSelectedZone(id) {
+    selectedZones = selectedZones.filter(z => z.id !== id);
+    updateSelectedZonesDisplay();
+    updateBuilderCanvas();
+    updatePreview();
+}
+
+function updateSelectedEventsDisplay() {
+    const container = $('#selected-events');
+    container.empty();
+    
+    selectedEvents.forEach(event => {
+        container.append(`
+            <span class="filter-chip" onclick="removeSelectedEvent('${event.id}')">
+                ${event.text} <i class="fas fa-times ms-1"></i>
+            </span>
+        `);
+    });
+}
+
+function updateSelectedZonesDisplay() {
+    const container = $('#selected-zones');
+    container.empty();
+    
+    selectedZones.forEach(zone => {
+        container.append(`
+            <span class="filter-chip" onclick="removeSelectedZone('${zone.id}')">
+                ${zone.text} <i class="fas fa-times ms-1"></i>
+            </span>
+        `);
+    });
+}
+
+function updateBuilderCanvas() {
+    // Update filters section
+    const filtersHtml = `
+        ${selectedEvents.length > 0 ? `<div class="mb-2"><strong>Eventos:</strong> ${selectedEvents.length} seleccionados</div>` : ''}
+        ${selectedZones.length > 0 ? `<div class="mb-2"><strong>Zonas:</strong> ${selectedZones.length} seleccionadas</div>` : ''}
+    `;
+    
+    if (filtersHtml) {
+        $('#filters-section .drop-zone').html(filtersHtml);
+    }
+    
+    // Update grouping section
+    const selectedGrouping = $('input[name="group_by"]:checked').map(function() {
+        return $(this).next('label').text();
+    }).get();
+    
+    if (selectedGrouping.length > 0) {
+        $('#grouping-section .drop-zone').html(`
+            <div><strong>Agrupado por:</strong> ${selectedGrouping.join(', ')}</div>
+        `);
+    }
+    
+    // Update metrics section
+    const selectedMetrics = $('input[name="metrics"]:checked').map(function() {
+        return $(this).next('label').text();
+    }).get();
+    
+    if (selectedMetrics.length > 0) {
+        $('#metrics-section .drop-zone').html(`
+            <div><strong>Métricas:</strong> ${selectedMetrics.join(', ')}</div>
+        `);
+    }
+}
+
+function updatePreview() {
+    const config = getReportConfig();
+    
+    if (!config.report_name) {
+        $('#live-preview').html(`
+            <div class="text-center py-5">
+                <i class="fas fa-edit fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">Ingresa un nombre para el reporte</h4>
+            </div>
+        `);
+        return;
+    }
+    
+    // Show loading
+    $('#live-preview').html(`
+        <div class="text-center py-4">
+            <div class="loading-spinner mb-2"></div>
+            <p class="text-muted">Generando vista previa...</p>
+        </div>
+    `);
+    
+    // Simulate preview generation
+    setTimeout(() => {
+        const previewHtml = generatePreviewHTML(config);
+        $('#live-preview').html(previewHtml);
+    }, 1500);
+}
+
+function getReportConfig() {
+    return {
+        report_name: $('#id_report_name').val(),
+        date_range_type: $('#id_date_range_type').val(),
+        custom_start_date: $('#id_custom_start_date').val(),
+        custom_end_date: $('#id_custom_end_date').val(),
+        events: selectedEvents,
+        zones: selectedZones,
+        group_by: $('input[name="group_by"]:checked').map(function() { return this.value; }).get(),
+        metrics: $('input[name="metrics"]:checked').map(function() { return this.value; }).get(),
+        export_format: $('#id_export_format').val(),
+        include_charts: $('#id_include_charts').is(':checked')
+    };
+}
+
+function generatePreviewHTML(config) {
+    return `
+        <div class="mb-3">
+            <h6>${config.report_name}</h6>
+            <small class="text-muted">
+                Período: ${getDateRangeText(config)} | 
+                Formato: ${config.export_format.toUpperCase()} |
+                ${config.include_charts ? 'Con gráficos' : 'Solo datos'}
+            </small>
+        </div>
+        
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <div class="card border-0 bg-light">
+                    <div class="card-body text-center">
+                        <h4 class="text-primary">${Math.floor(Math.random() * 1000)}</h4>
+                        <small>Transacciones</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 bg-light">
+                    <div class="card-body text-center">
+                        <h4 class="text-success">$${(Math.random() * 50000).toFixed(0)}</h4>
+                        <small>Ingresos</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 bg-light">
+                    <div class="card-body text-center">
+                        <h4 class="text-info">${Math.floor(Math.random() * 5000)}</h4>
+                        <small>Tickets</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 bg-light">
+                    <div class="card-body text-center">
+                        <h4 class="text-warning">$${(Math.random() * 100).toFixed(2)}</h4>
+                        <small>Promedio</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        ${config.include_charts ? `
+            <div class="mb-3">
+                <canvas id="previewChart" height="100"></canvas>
+            </div>
+        ` : ''}
+        
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <strong>Vista previa:</strong> Los datos mostrados son simulados. 
+            El reporte real contendrá los datos actuales según los filtros configurados.
+        </div>
+    `;
+}
+
+function getDateRangeText(config) {
+    const rangeTypes = {
+        'last_7_days': 'Últimos 7 días',
+        'last_30_days': 'Últimos 30 días',
+        'last_90_days': 'Últimos 90 días',
+        'this_month': 'Este mes',
+        'last_month': 'Mes pasado',
+        'custom': config.custom_start_date && config.custom_end_date ? 
+            `${config.custom_start_date} a ${config.custom_end_date}` : 'Personalizado'
+    };
+    
+    return rangeTypes[config.date_range_type] || 'No especificado';
+}
+
+function clearBuilder() {
+    selectedEvents = [];
+    selectedZones = [];
+    $('#customReportForm')[0].reset();
+    updateSelectedEventsDisplay();
+    updateSelectedZonesDisplay();
+    updateBuilderCanvas();
+    updatePreview();
+}
+
+function previewReport() {
+    updatePreview();
+}
+
+function loadTemplate() {
+    $('#templateModal').modal('show');
+}
+
+function applyTemplate(templateType) {
+    const templates = {
+        'sales_summary': {
+            report_name: 'Resumen de Ventas - ' + new Date().toLocaleDateString('es-VE'),
+            date_range_type: 'last_30_days',
+            group_by: ['event', 'day'],
+            metrics: ['total_revenue', 'total_transactions', 'total_tickets', 'average_ticket_price'],
+            export_format: 'csv',
+            include_charts: true
+        },
+        'zone_performance': {
+            report_name: 'Rendimiento de Zonas - ' + new Date().toLocaleDateString('es-VE'),
+            date_range_type: 'this_month',
+            group_by: ['zone', 'event'],
+            metrics: ['total_revenue', 'total_tickets', 'fill_rate'],
+            export_format: 'pdf',
+            include_charts: true
+        },
+        'operator_analysis': {
+            report_name: 'Análisis de Operadores - ' + new Date().toLocaleDateString('es-VE'),
+            date_range_type: 'last_7_days',
+            group_by: ['operator', 'day'],
+            metrics: ['total_transactions', 'total_revenue', 'average_ticket_price'],
+            export_format: 'csv',
+            include_charts: false
+        }
+    };
+    
+    const template = templates[templateType];
+    if (template) {
+        $('#id_report_name').val(template.report_name);
+        $('#id_date_range_type').val(template.date_range_type).trigger('change');
+        $('#id_export_format').val(template.export_format);
+        $('#id_include_charts').prop('checked', template.include_charts);
+        
+        // Clear and set checkboxes
+        $('input[name="group_by"]').prop('checked', false);
+        $('input[name="metrics"]').prop('checked', false);
+        
+        template.group_by.forEach(value => {
+            $(`input[name="group_by"][value="${value}"]`).prop('checked', true);
+        });
+        
+        template.metrics.forEach(value => {
+            $(`input[name="metrics"][value="${value}"]`).prop('checked', true);
+        });
+        
+        updateBuilderCanvas();
+        updatePreview();
+        $('#templateModal').modal('hide');
+    }
+}
+
+function saveTemplate() {
+    const config = getReportConfig();
+    
+    if (!config.report_name) {
+        alert('Por favor ingresa un nombre para el reporte antes de guardar la plantilla');
+        return;
+    }
+    
+    // Implementation for saving template
+    alert('Función de guardar plantilla en desarrollo');
+}
+
+// Form submission
+$('#customReportForm').submit(function(e) {
+    // Add selected events and zones to form data
+    selectedEvents.forEach((event, index) => {
+        $(this).append(`<input type="hidden" name="events" value="${event.id}">`);
+    });
+    
+    selectedZones.forEach((zone, index) => {
+        $(this).append(`<input type="hidden" name="zones" value="${zone.id}">`);
+    });
+    
+    $('#generateReportBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Generando...');
+});
+</script>
+
+<style>
+.template-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.template-card:hover {
+    border-color: #007bff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.builder-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.drop-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    background: white;
+    transition: all 0.3s ease;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drop-zone.large {
+    min-height: 100px;
+}
+
+.drop-zone.dragover {
+    border-color: #007bff;
+    background: #e3f2fd;
+}
+
+.filter-chip {
+    cursor: pointer;
+}
+
+.filter-chip:hover {
+    background: #dc3545 !important;
+    color: white !important;
+}
+</style>
+{% endblock %}

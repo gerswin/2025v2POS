@@ -1,63 +1,68 @@
 {% extends 'events/base.html' %}
+{% load i18n %}
 
-{% block title %}Venues - Tiquemax{% endblock %}
+{% block title %}{% trans "Venues" %} - Tiquemax{% endblock %}
 
 {% block breadcrumb_items %}
-<li class="breadcrumb-item active">Venues</li>
+<li class="breadcrumb-item active">{% trans "Venues" %}</li>
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0">
-        <i class="bi bi-building me-2"></i>
-        Gestión de Venues
-    </h1>
-    <a href="{% url 'events:venue_create' %}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-2"></i>
-        Nueva Venue
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+    <div>
+        <h1 class="h3 mb-1 d-flex align-items-center gap-2">
+            <i class="bi bi-building-fill"></i>
+            <span>{% trans "Venue Management" %}</span>
+        </h1>
+        <p class="text-muted mb-0">{% trans "Manage your venues and their features" %}</p>
+    </div>
+    <a href="{% url 'events:venue_create' %}" class="btn btn-modern btn-primary-modern">
+        <i class="bi bi-plus-circle"></i>
+        <span>{% trans "New Venue" %}</span>
     </a>
 </div>
 
 <!-- Filters and Search -->
-<div class="card mb-4">
-    <div class="card-body">
+<div class="card-modern mb-4">
+    <div class="card-body-modern">
         <form method="get" class="row g-3">
-            <div class="col-md-4">
-                <label for="search" class="form-label">Buscar</label>
-                <input type="text" class="form-control" id="search" name="search" 
-                       value="{{ request.GET.search }}" placeholder="Nombre, ciudad, dirección...">
+            <div class="col-12 col-md-4">
+                <label for="search" class="form-label-modern">{% trans "Search" %}</label>
+                <input type="text" class="form-control-modern" id="search" name="search"
+                       value="{{ request.GET.search }}" placeholder="{% trans 'Name, city, address...' %}">
             </div>
-            <div class="col-md-2">
-                <label for="venue_type" class="form-label">Tipo</label>
-                <select class="form-select" id="venue_type" name="venue_type">
-                    <option value="">Todos</option>
-                    <option value="physical" {% if request.GET.venue_type == 'physical' %}selected{% endif %}>Física</option>
-                    <option value="virtual" {% if request.GET.venue_type == 'virtual' %}selected{% endif %}>Virtual</option>
-                    <option value="hybrid" {% if request.GET.venue_type == 'hybrid' %}selected{% endif %}>Híbrida</option>
+            <div class="col-6 col-md-2">
+                <label for="venue_type" class="form-label-modern">{% trans "Type" %}</label>
+                <select class="form-select-modern" id="venue_type" name="venue_type">
+                    <option value="">{% trans "All" %}</option>
+                    <option value="physical" {% if request.GET.venue_type == 'physical' %}selected{% endif %}>{% trans "Physical" %}</option>
+                    <option value="virtual" {% if request.GET.venue_type == 'virtual' %}selected{% endif %}>{% trans "Virtual" %}</option>
+                    <option value="hybrid" {% if request.GET.venue_type == 'hybrid' %}selected{% endif %}>{% trans "Hybrid" %}</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <label for="city" class="form-label">Ciudad</label>
-                <select class="form-select" id="city" name="city">
-                    <option value="">Todas</option>
+            <div class="col-6 col-md-2">
+                <label for="city" class="form-label-modern">{% trans "City" %}</label>
+                <select class="form-select-modern" id="city" name="city">
+                    <option value="">{% trans "All" %}</option>
                     {% for city in cities %}
                     <option value="{{ city }}" {% if request.GET.city == city %}selected{% endif %}>{{ city }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2">
-                <label for="is_active" class="form-label">Estado</label>
-                <select class="form-select" id="is_active" name="is_active">
-                    <option value="">Todos</option>
-                    <option value="true" {% if request.GET.is_active == 'true' %}selected{% endif %}>Activas</option>
-                    <option value="false" {% if request.GET.is_active == 'false' %}selected{% endif %}>Inactivas</option>
+            <div class="col-6 col-md-2">
+                <label for="is_active" class="form-label-modern">{% trans "Status" %}</label>
+                <select class="form-select-modern" id="is_active" name="is_active">
+                    <option value="">{% trans "All" %}</option>
+                    <option value="true" {% if request.GET.is_active == 'true' %}selected{% endif %}>{% trans "Active" %}</option>
+                    <option value="false" {% if request.GET.is_active == 'false' %}selected{% endif %}>{% trans "Inactive" %}</option>
                 </select>
             </div>
-            <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-outline-primary me-2">
-                    <i class="bi bi-search"></i> Filtrar
+            <div class="col-6 col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-modern btn-primary-modern flex-grow-1">
+                    <i class="bi bi-funnel"></i>
+                    <span class="d-none d-sm-inline">{% trans "Filter" %}</span>
                 </button>
-                <a href="{% url 'events:venue_list' %}" class="btn btn-outline-secondary">
+                <a href="{% url 'events:venue_list' %}" class="btn btn-modern btn-outline-modern">
                     <i class="bi bi-x-circle"></i>
                 </a>
             </div>
@@ -66,96 +71,100 @@
 </div>
 
 <!-- Venues List -->
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
+<div class="card-modern">
+    <div class="card-header-modern d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
-            Venues ({{ venues|length }} de {{ total_venues }})
+            {% trans "Venues" %} <span class="text-muted">({{ venues|length }} {% trans "of" %} {{ total_venues }})</span>
         </h5>
         <div class="btn-group btn-group-sm" role="group">
             <input type="radio" class="btn-check" name="view" id="grid-view" checked>
             <label class="btn btn-outline-secondary" for="grid-view">
-                <i class="bi bi-grid"></i>
+                <i class="bi bi-grid-3x3-gap"></i>
             </label>
             <input type="radio" class="btn-check" name="view" id="list-view">
             <label class="btn btn-outline-secondary" for="list-view">
-                <i class="bi bi-list"></i>
+                <i class="bi bi-list-ul"></i>
             </label>
         </div>
     </div>
-    <div class="card-body">
+    <div class="card-body-modern">
         {% if venues %}
             <!-- Grid View -->
-            <div id="grid-container" class="row">
+            <div id="grid-container" class="row g-3">
                 {% for venue in venues %}
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card h-100 venue-card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0 text-truncate">{{ venue.name }}</h6>
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card-modern card-interactive h-100 d-flex flex-column">
+                        <div class="card-header-modern d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 text-truncate fw-semibold">{{ venue.name }}</h6>
                             <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                <button class="btn btn-modern btn-sm-modern btn-icon-modern"
+                                        style="background-color: var(--surface-tertiary); border: none;"
                                         type="button" data-bs-toggle="dropdown">
-                                    <i class="bi bi-three-dots"></i>
+                                    <i class="bi bi-three-dots-vertical"></i>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
+                                <ul class="dropdown-menu dropdown-menu-end shadow">
                                     <li><a class="dropdown-item" href="{% url 'events:venue_detail' venue.id %}">
-                                        <i class="bi bi-eye me-2"></i>Ver Detalles
+                                        <i class="bi bi-eye me-2"></i>{% trans "View Details" %}
                                     </a></li>
                                     <li><a class="dropdown-item" href="{% url 'events:venue_edit' venue.id %}">
-                                        <i class="bi bi-pencil me-2"></i>Editar
+                                        <i class="bi bi-pencil me-2"></i>{% trans "Edit" %}
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="#" 
+                                    <li><a class="dropdown-item text-danger" href="#"
                                            onclick="confirmDelete('{{ venue.name }}', '{% url 'events:venue_delete' venue.id %}')">
-                                        <i class="bi bi-trash me-2"></i>Eliminar
+                                        <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
                                     </a></li>
                                 </ul>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <div class="mb-2">
-                                <span class="badge bg-primary">{{ venue.get_venue_type_display }}</span>
+                        <div class="card-body-modern flex-grow-1">
+                            <div class="mb-3 d-flex gap-2 flex-wrap">
+                                <span class="table-badge badge-info">{{ venue.get_venue_type_display }}</span>
                                 {% if venue.is_active %}
-                                    <span class="badge bg-success">Activa</span>
+                                    <span class="table-badge badge-success">{% trans "Active" %}</span>
                                 {% else %}
-                                    <span class="badge bg-secondary">Inactiva</span>
+                                    <span class="table-badge badge-secondary">{% trans "Inactive" %}</span>
                                 {% endif %}
                             </div>
-                            
-                            <div class="mb-2">
-                                <i class="bi bi-geo-alt text-muted me-1"></i>
-                                <small>{{ venue.city }}{% if venue.state %}, {{ venue.state }}{% endif %}</small>
-                            </div>
-                            
-                            {% if venue.capacity %}
-                            <div class="mb-2">
-                                <i class="bi bi-people text-muted me-1"></i>
-                                <small>Capacidad: {{ venue.capacity|floatformat:0 }} personas</small>
-                            </div>
-                            {% endif %}
-                            
-                            {% if venue.contact_phone %}
-                            <div class="mb-2">
-                                <i class="bi bi-telephone text-muted me-1"></i>
-                                <small>{{ venue.contact_phone }}</small>
-                            </div>
-                            {% endif %}
-                            
-                            <div class="text-muted">
-                                <small>
-                                    <i class="bi bi-calendar-event me-1"></i>
-                                    {{ venue.events_count|default:0 }} eventos
-                                </small>
+
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex align-items-center gap-2 text-muted small">
+                                    <i class="bi bi-geo-alt-fill" style="color: var(--primary-500);"></i>
+                                    <span>{{ venue.city }}{% if venue.state %}, {{ venue.state }}{% endif %}</span>
+                                </div>
+
+                                {% if venue.capacity %}
+                                <div class="d-flex align-items-center gap-2 text-muted small">
+                                    <i class="bi bi-people-fill" style="color: var(--success);"></i>
+                                    <span>{{ venue.capacity|floatformat:0 }} {% trans "people" %}</span>
+                                </div>
+                                {% endif %}
+
+                                {% if venue.contact_phone %}
+                                <div class="d-flex align-items-center gap-2 text-muted small">
+                                    <i class="bi bi-telephone-fill" style="color: var(--info);"></i>
+                                    <span>{{ venue.contact_phone }}</span>
+                                </div>
+                                {% endif %}
+
+                                <div class="d-flex align-items-center gap-2 mt-2">
+                                    <i class="bi bi-calendar-event" style="color: var(--secondary-500);"></i>
+                                    <span class="small fw-semibold">{{ venue.events_count|default:0 }} {% trans "events" %}</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="card-footer bg-transparent">
-                            <div class="btn-group w-100" role="group">
-                                <a href="{% url 'events:venue_detail' venue.id %}" 
-                                   class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-eye"></i> Ver
+                        <div class="card-footer-modern">
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'events:venue_detail' venue.id %}"
+                                   class="btn btn-modern btn-sm-modern flex-1"
+                                   style="flex: 1; background-color: var(--info-light); color: var(--info); border: none;">
+                                    <i class="bi bi-eye"></i>
+                                    <span>{% trans "View" %}</span>
                                 </a>
-                                <a href="{% url 'events:venue_edit' venue.id %}" 
-                                   class="btn btn-outline-secondary btn-sm">
-                                    <i class="bi bi-pencil"></i> Editar
+                                <a href="{% url 'events:venue_edit' venue.id %}"
+                                   class="btn btn-modern btn-secondary-modern btn-sm-modern flex-1" style="flex: 1;">
+                                    <i class="bi bi-pencil"></i>
+                                    <span>{% trans "Edit" %}</span>
                                 </a>
                             </div>
                         </div>
@@ -170,13 +179,13 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>Venue</th>
-                                <th>Ubicación</th>
-                                <th>Tipo</th>
-                                <th>Capacidad</th>
-                                <th>Estado</th>
-                                <th>Eventos</th>
-                                <th>Acciones</th>
+                                <th>{% trans "Venue" %}</th>
+                                <th>{% trans "Location" %}</th>
+                                <th>{% trans "Type" %}</th>
+                                <th>{% trans "Capacity" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th>{% trans "Events" %}</th>
+                                <th>{% trans "Actions" %}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -206,9 +215,9 @@
                                 </td>
                                 <td>
                                     {% if venue.is_active %}
-                                        <span class="badge bg-success">Activa</span>
+                                        <span class="badge bg-success">{% trans "Active" %}</span>
                                     {% else %}
-                                        <span class="badge bg-secondary">Inactiva</span>
+                                        <span class="badge bg-secondary">{% trans "Inactive" %}</span>
                                     {% endif %}
                                 </td>
                                 <td>
@@ -216,15 +225,15 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{% url 'events:venue_detail' venue.id %}" 
-                                           class="btn btn-outline-primary" title="Ver">
+                                        <a href="{% url 'events:venue_detail' venue.id %}"
+                                           class="btn btn-outline-primary" title="{% trans 'View' %}">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="{% url 'events:venue_edit' venue.id %}" 
-                                           class="btn btn-outline-secondary" title="Editar">
+                                        <a href="{% url 'events:venue_edit' venue.id %}"
+                                           class="btn btn-outline-secondary" title="{% trans 'Edit' %}">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <button class="btn btn-outline-danger" title="Eliminar"
+                                        <button class="btn btn-outline-danger" title="{% trans 'Delete' %}"
                                                 onclick="confirmDelete('{{ venue.name }}', '{% url 'events:venue_delete' venue.id %}')">
                                             <i class="bi bi-trash"></i>
                                         </button>
@@ -243,23 +252,23 @@
                 <ul class="pagination justify-content-center">
                     {% if page_obj.has_previous %}
                         <li class="page-item">
-                            <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.venue_type %}&venue_type={{ request.GET.venue_type }}{% endif %}{% if request.GET.city %}&city={{ request.GET.city }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">Primera</a>
+                            <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.venue_type %}&venue_type={{ request.GET.venue_type }}{% endif %}{% if request.GET.city %}&city={{ request.GET.city }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">{% trans "First" %}</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.venue_type %}&venue_type={{ request.GET.venue_type }}{% endif %}{% if request.GET.city %}&city={{ request.GET.city }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">Anterior</a>
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.venue_type %}&venue_type={{ request.GET.venue_type }}{% endif %}{% if request.GET.city %}&city={{ request.GET.city }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">{% trans "Previous" %}</a>
                         </li>
                     {% endif %}
-                    
+
                     <li class="page-item active">
-                        <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                        <span class="page-link">{{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}</span>
                     </li>
-                    
+
                     {% if page_obj.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.venue_type %}&venue_type={{ request.GET.venue_type }}{% endif %}{% if request.GET.city %}&city={{ request.GET.city }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">Siguiente</a>
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.venue_type %}&venue_type={{ request.GET.venue_type }}{% endif %}{% if request.GET.city %}&city={{ request.GET.city }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">{% trans "Next" %}</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.venue_type %}&venue_type={{ request.GET.venue_type }}{% endif %}{% if request.GET.city %}&city={{ request.GET.city }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">Última</a>
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.venue_type %}&venue_type={{ request.GET.venue_type }}{% endif %}{% if request.GET.city %}&city={{ request.GET.city }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">{% trans "Last" %}</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -269,17 +278,17 @@
         {% else %}
             <div class="text-center py-5">
                 <i class="bi bi-building-x display-1 text-muted"></i>
-                <h4 class="mt-3">No se encontraron venues</h4>
+                <h4 class="mt-3">{% trans "No venues found" %}</h4>
                 <p class="text-muted">
                     {% if request.GET.search or request.GET.venue_type or request.GET.city or request.GET.is_active %}
-                        No hay venues que coincidan con los filtros aplicados.
+                        {% trans "No venues match the applied filters." %}
                     {% else %}
-                        Aún no has creado ninguna venue.
+                        {% trans "You haven't created any venues yet." %}
                     {% endif %}
                 </p>
                 <a href="{% url 'events:venue_create' %}" class="btn btn-primary">
                     <i class="bi bi-plus-circle me-2"></i>
-                    Crear Primera Venue
+                    {% trans "Create First Venue" %}
                 </a>
             </div>
         {% endif %}
@@ -288,19 +297,19 @@
 
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <h5 class="modal-title">{% trans "Confirm Deletion" %}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>¿Estás seguro de que deseas eliminar la venue <strong id="venue-name"></strong>?</p>
-                <p class="text-muted">Esta acción no se puede deshacer.</p>
+                <p>{% trans "Are you sure you want to delete the venue" %} <strong id="venue-name"></strong>?</p>
+                <p class="text-muted">{% trans "This action cannot be undone." %}</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <a href="#" id="delete-confirm" class="btn btn-danger">Eliminar</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                <a href="#" id="delete-confirm" class="btn btn-danger">{% trans "Delete" %}</a>
             </div>
         </div>
     </div>

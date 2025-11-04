@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Localization Translation Monitor",
+  "description": "Monitors changes to localization files (JSON, YAML, PO files) and automatically generates translations for all configured target languages when new or modified text content is detected",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "locale/*/LC_MESSAGES/django.po",
+      "**/*.json",
+      "**/*.yaml",
+      "**/*.yml"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A localization file has been modified. Please analyze the changes to identify new or modified user-facing text content. For any new text strings found, generate appropriate translations for all configured target languages (currently Spanish based on the locale/es directory). Ensure translations:\n\n1. Maintain proper context and meaning from the source text\n2. Follow locale-specific conventions and cultural norms\n3. Preserve any formatting placeholders or special characters\n4. Use appropriate formality levels for the target audience\n5. Consider technical terminology consistency across the application\n\nPlease provide the translations in the appropriate file format and suggest any updates needed to maintain translation consistency across the application."
+  }
+}

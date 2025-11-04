@@ -1,0 +1,370 @@
+{% extends "events/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+.payment-summary-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.payment-summary-card h6 {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.payment-summary-card .value {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+.payment-method-card {
+    border: 1px solid #e3e6f0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.payment-method-card:hover {
+    border-color: #5a5c69;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.payment-status-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.progress-payment {
+    height: 8px;
+    border-radius: 4px;
+    background-color: #f8f9fc;
+}
+
+.progress-payment .progress-bar {
+    border-radius: 4px;
+}
+
+.payment-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.payment-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #e3e6f0;
+}
+
+.payment-timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.payment-timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -1.75rem;
+    top: 0.25rem;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #5a5c69;
+}
+
+.payment-timeline-item.completed::before {
+    background-color: #1cc88a;
+}
+
+.payment-timeline-item.pending::before {
+    background-color: #f6c23e;
+}
+
+.payment-timeline-item.failed::before {
+    background-color: #e74a3b;
+}
+
+.payment-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.payment-actions .btn {
+    flex: 1;
+    min-width: 120px;
+}
+
+@media (max-width: 768px) {
+    .payment-summary-card .value {
+        font-size: 1.5rem;
+    }
+    
+    .payment-actions {
+        flex-direction: column;
+    }
+    
+    .payment-actions .btn {
+        width: 100%;
+    }
+}
+
+.reconciliation-status {
+    padding: 0.5rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.reconciliation-status.pending {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.reconciliation-status.completed {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.reconciliation-status.discrepancy {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.fiscal-audit-item {
+    background: #f8f9fc;
+    border-left: 4px solid #5a5c69;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0 6px 6px 0;
+}
+
+.fiscal-audit-item.warning {
+    border-left-color: #f6c23e;
+    background: #fffbf0;
+}
+
+.fiscal-audit-item.error {
+    border-left-color: #e74a3b;
+    background: #fdf2f2;
+}
+
+.fiscal-audit-item.success {
+    border-left-color: #1cc88a;
+    background: #f0fdf4;
+}
+</style>
+{% endblock %}
+
+{% block title %}{% block page_title %}Payments{% endblock %} - Venezuelan POS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-credit-card me-2"></i>
+            {% block page_header %}Payments{% endblock %}
+        </h1>
+        
+        <div class="d-flex gap-2">
+            {% block header_actions %}
+            <a href="{% url 'payments_web:dashboard' %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-tachometer-alt me-1"></i>
+                Dashboard
+            </a>
+            {% endblock %}
+        </div>
+    </div>
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'payments_web:dashboard' %}">
+                    <i class="fas fa-home"></i> Payments
+                </a>
+            </li>
+            {% block breadcrumb %}{% endblock %}
+        </ol>
+    </nav>
+
+    <!-- Alerts -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {% if message.tags == 'error' %}
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                {% elif message.tags == 'success' %}
+                    <i class="fas fa-check-circle me-2"></i>
+                {% elif message.tags == 'warning' %}
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                {% elif message.tags == 'info' %}
+                    <i class="fas fa-info-circle me-2"></i>
+                {% endif %}
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Main Content -->
+    {% block main_content %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <p class="text-muted">Select a payment section from the navigation menu.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Payment-specific JavaScript utilities
+const PaymentUtils = {
+    // Format currency
+    formatCurrency: function(amount, currency = 'USD') {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currency
+        }).format(amount);
+    },
+    
+    // Format percentage
+    formatPercentage: function(value, decimals = 2) {
+        return (value * 100).toFixed(decimals) + '%';
+    },
+    
+    // Update progress bar
+    updateProgressBar: function(selector, percentage) {
+        const progressBar = document.querySelector(selector);
+        if (progressBar) {
+            progressBar.style.width = percentage + '%';
+            progressBar.setAttribute('aria-valuenow', percentage);
+        }
+    },
+    
+    // Show confirmation dialog
+    confirmAction: function(message, callback) {
+        if (confirm(message)) {
+            callback();
+        }
+    },
+    
+    // Show loading state
+    showLoading: function(element) {
+        const originalText = element.innerHTML;
+        element.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+        element.disabled = true;
+        element.dataset.originalText = originalText;
+    },
+    
+    // Hide loading state
+    hideLoading: function(element) {
+        if (element.dataset.originalText) {
+            element.innerHTML = element.dataset.originalText;
+            element.disabled = false;
+            delete element.dataset.originalText;
+        }
+    },
+    
+    // Auto-refresh functionality
+    autoRefresh: function(interval = 30000) {
+        setInterval(function() {
+            if (document.querySelector('[data-auto-refresh="true"]')) {
+                location.reload();
+            }
+        }, interval);
+    },
+    
+    // Copy to clipboard
+    copyToClipboard: function(text) {
+        navigator.clipboard.writeText(text).then(function() {
+            // Show success message
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.innerHTML = '<i class="fas fa-check me-1"></i>Copied to clipboard';
+            document.body.appendChild(toast);
+            
+            setTimeout(function() {
+                toast.remove();
+            }, 3000);
+        });
+    }
+};
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Initialize popovers
+    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+        return new bootstrap.Popover(popoverTriggerEl);
+    });
+    
+    // Auto-refresh if enabled
+    if (document.querySelector('[data-auto-refresh="true"]')) {
+        PaymentUtils.autoRefresh();
+    }
+});
+
+// Add toast notification styles
+const toastStyles = `
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #1cc88a;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 9999;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+`;
+
+// Inject toast styles
+const styleSheet = document.createElement('style');
+styleSheet.textContent = toastStyles;
+document.head.appendChild(styleSheet);
+</script>
+
+{% block page_js %}{% endblock %}
+{% endblock %}

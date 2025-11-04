@@ -1,7 +1,7 @@
 {% extends 'events/base.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}{% if form.instance.pk %}Edit Event{% else %}Create Event{% endif %} - Tiquemax{% endblock %}
+{% block title %}{% if form.instance.pk %}{% trans "Edit Event" %}{% else %}{% trans "Create Event" %}{% endif %} - Tiquemax{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -12,22 +12,22 @@
                 <div>
                     <h1 class="h3 mb-0">
                         {% if form.instance.pk %}
-                            <i class="fas fa-edit"></i> Edit Event
+                            <i class="fas fa-edit"></i> {% trans "Edit Event" %}
                         {% else %}
-                            <i class="fas fa-plus"></i> Create Event
+                            <i class="fas fa-plus"></i> {% trans "Create Event" %}
                         {% endif %}
                     </h1>
                     <p class="text-muted mb-0">
                         {% if form.instance.pk %}
-                            Update event information and settings
+                            {% trans "Update event information and settings" %}
                         {% else %}
-                            Create a new event for ticket sales
+                            {% trans "Create a new event for ticket sales" %}
                         {% endif %}
                     </p>
                 </div>
                 <div>
                     <a href="{% if form.instance.pk %}{% url 'events:event_detail' form.instance.id %}{% else %}{% url 'events:event_list' %}{% endif %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left"></i> Back
+                        <i class="fas fa-arrow-left"></i> {% trans "Back" %}
                     </a>
                 </div>
             </div>
@@ -41,7 +41,7 @@
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">
-                                    <i class="fas fa-info-circle"></i> Basic Information
+                                    <i class="fas fa-info-circle"></i> {% trans "Basic Information" %}
                                 </h5>
                             </div>
                             <div class="card-body">
@@ -49,7 +49,7 @@
                                     <div class="col-md-8">
                                         <div class="mb-3">
                                             <label for="{{ form.name.id_for_label }}" class="form-label">
-                                                Event Name <span class="text-danger">*</span>
+                                                {% trans "Event Name" %} <span class="text-danger">*</span>
                                             </label>
                                             {{ form.name }}
                                             {% if form.name.errors %}
@@ -62,7 +62,7 @@
                                     <div class="col-md-4">
                                         <div class="mb-3">
                                             <label for="{{ form.event_type.id_for_label }}" class="form-label">
-                                                Event Type <span class="text-danger">*</span>
+                                                {% trans "Event Type" %} <span class="text-danger">*</span>
                                             </label>
                                             {{ form.event_type }}
                                             {% if form.event_type.errors %}
@@ -76,7 +76,7 @@
 
                                 <div class="mb-3">
                                     <label for="{{ form.description.id_for_label }}" class="form-label">
-                                        Description
+                                        {% trans "Description" %}
                                     </label>
                                     {{ form.description }}
                                     {% if form.description.errors %}
@@ -88,7 +88,7 @@
 
                                 <div class="mb-3">
                                     <label for="{{ form.venue.id_for_label }}" class="form-label">
-                                        Venue <span class="text-danger">*</span>
+                                        {% trans "Venue" %} <span class="text-danger">*</span>
                                     </label>
                                     {{ form.venue }}
                                     {% if form.venue.errors %}
@@ -98,7 +98,7 @@
                                     {% endif %}
                                     <div class="form-text">
                                         <a href="{% url 'events:venue_create' %}" target="_blank">
-                                            <i class="fas fa-plus"></i> Create new venue
+                                            <i class="fas fa-plus"></i> {% trans "Create new venue" %}
                                         </a>
                                     </div>
                                 </div>
@@ -109,7 +109,7 @@
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">
-                                    <i class="fas fa-calendar-alt"></i> Date and Time
+                                    <i class="fas fa-calendar-alt"></i> {% trans "Date and Time" %}
                                 </h5>
                             </div>
                             <div class="card-body">
@@ -117,7 +117,7 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="{{ form.start_date.id_for_label }}" class="form-label">
-                                                Start Date & Time <span class="text-danger">*</span>
+                                                {% trans "Start Date & Time" %} <span class="text-danger">*</span>
                                             </label>
                                             {{ form.start_date }}
                                             {% if form.start_date.errors %}
@@ -130,7 +130,7 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="{{ form.end_date.id_for_label }}" class="form-label">
-                                                End Date & Time <span class="text-danger">*</span>
+                                                {% trans "End Date & Time" %} <span class="text-danger">*</span>
                                             </label>
                                             {{ form.end_date }}
                                             {% if form.end_date.errors %}
@@ -146,7 +146,7 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="{{ form.sales_start_date.id_for_label }}" class="form-label">
-                                                Sales Start Date & Time
+                                                {% trans "Sales Start Date & Time" %}
                                             </label>
                                             {{ form.sales_start_date }}
                                             {% if form.sales_start_date.errors %}
@@ -154,13 +154,13 @@
                                                     {{ form.sales_start_date.errors.0 }}
                                                 </div>
                                             {% endif %}
-                                            <div class="form-text">Leave empty to start sales immediately</div>
+                                            <div class="form-text">{% trans "Leave empty to start sales immediately" %}</div>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="{{ form.sales_end_date.id_for_label }}" class="form-label">
-                                                Sales End Date & Time
+                                                {% trans "Sales End Date & Time" %}
                                             </label>
                                             {{ form.sales_end_date }}
                                             {% if form.sales_end_date.errors %}
@@ -168,7 +168,7 @@
                                                     {{ form.sales_end_date.errors.0 }}
                                                 </div>
                                             {% endif %}
-                                            <div class="form-text">Leave empty to sell until event starts</div>
+                                            <div class="form-text">{% trans "Leave empty to sell until event starts" %}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -179,7 +179,7 @@
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">
-                                    <i class="fas fa-dollar-sign"></i> Currency Settings
+                                    <i class="fas fa-dollar-sign"></i> {% trans "Currency Settings" %}
                                 </h5>
                             </div>
                             <div class="card-body">
@@ -187,7 +187,7 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="{{ form.base_currency.id_for_label }}" class="form-label">
-                                                Base Currency <span class="text-danger">*</span>
+                                                {% trans "Base Currency" %} <span class="text-danger">*</span>
                                             </label>
                                             {{ form.base_currency }}
                                             {% if form.base_currency.errors %}
@@ -200,7 +200,7 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="{{ form.currency_conversion_rate.id_for_label }}" class="form-label">
-                                                Conversion Rate
+                                                {% trans "Conversion Rate" %}
                                             </label>
                                             {{ form.currency_conversion_rate }}
                                             {% if form.currency_conversion_rate.errors %}
@@ -208,9 +208,402 @@
                                                     {{ form.currency_conversion_rate.errors.0 }}
                                                 </div>
                                             {% endif %}
-                                            <div class="form-text">Rate from USD to local currency (1.0000 = USD)</div>
+                                            <div class="form-text">{% trans "Rate from USD to local currency (1.0000 = USD)" %}</div>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Configuration -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-credit-card"></i> {% trans "Payment Configuration" %}
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% if event_configuration_form.non_field_errors %}
+                                    <div class="alert alert-danger small mb-3">
+                                        {% for error in event_configuration_form.non_field_errors %}
+                                            {{ error }}{% if not forloop.last %}<br>{% endif %}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.partial_payments_enabled }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.partial_payments_enabled.id_for_label }}">
+                                                {% trans "Allow Partial Payments" %}
+                                            </label>
+                                        </div>
+                                        <small class="text-muted d-block">{% trans "Enable customers to split their payments." %}</small>
+                                        {% if event_configuration_form.partial_payments_enabled.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.partial_payments_enabled.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.installment_plans_enabled }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.installment_plans_enabled.id_for_label }}">
+                                                {% trans "Offer Installment Plans" %}
+                                            </label>
+                                        </div>
+                                        <small class="text-muted d-block">{% trans "Let buyers pay through scheduled installments." %}</small>
+                                        {% if event_configuration_form.installment_plans_enabled.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.installment_plans_enabled.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.flexible_payments_enabled }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.flexible_payments_enabled.id_for_label }}">
+                                                {% trans "Enable Flexible Plans" %}
+                                            </label>
+                                        </div>
+                                        <small class="text-muted d-block">{% trans "Allow tailored payment schedules for VIP cases." %}</small>
+                                        {% if event_configuration_form.flexible_payments_enabled.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.flexible_payments_enabled.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div id="partial-payment-settings" class="row g-3 mt-3 d-none">
+                                    <div class="col-md-6">
+                                        <label for="{{ event_configuration_form.min_down_payment_percentage.id_for_label }}" class="form-label">
+                                            {% trans "Minimum Down Payment (%)" %}
+                                        </label>
+                                        {{ event_configuration_form.min_down_payment_percentage }}
+                                        {% if event_configuration_form.min_down_payment_percentage.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.min_down_payment_percentage.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">{% trans "Percentage required to confirm the reservation." %}</div>
+                                    </div>
+                                </div>
+
+                                <div id="installment-settings" class="row g-3 mt-3 d-none">
+                                    <div class="col-md-6">
+                                        <label for="{{ event_configuration_form.max_installments.id_for_label }}" class="form-label">
+                                            {% trans "Maximum Installments" %}
+                                        </label>
+                                        {{ event_configuration_form.max_installments }}
+                                        {% if event_configuration_form.max_installments.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.max_installments.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">{% trans "Limit the number of installment payments per order." %}</div>
+                                    </div>
+                                </div>
+
+                                <div id="plan-expiry-settings" class="row g-3 mt-3 d-none">
+                                    <div class="col-md-6">
+                                        <label for="{{ event_configuration_form.payment_plan_expiry_days.id_for_label }}" class="form-label">
+                                            {% trans "Payment Plan Expiry (days)" %}
+                                        </label>
+                                        {{ event_configuration_form.payment_plan_expiry_days }}
+                                        {% if event_configuration_form.payment_plan_expiry_days.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.payment_plan_expiry_days.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">{% trans "Days allowed to complete the agreed plan." %}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Methods -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-money-bill-wave"></i> {% trans "Payment Methods" %}
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">{% trans "Select which payment methods customers can use for this event" %}</p>
+                                <div class="row g-3">
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.cash_enabled }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.cash_enabled.id_for_label }}">
+                                                <i class="fas fa-money-bill"></i> {% trans "Cash" %}
+                                            </label>
+                                        </div>
+                                        <small class="text-muted d-block">{% trans "Accept cash payments" %}</small>
+                                        {% if event_configuration_form.cash_enabled.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.cash_enabled.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.credit_card_enabled }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.credit_card_enabled.id_for_label }}">
+                                                <i class="fas fa-credit-card"></i> {% trans "Credit Card" %}
+                                            </label>
+                                        </div>
+                                        <small class="text-muted d-block">{% trans "Accept credit card payments" %}</small>
+                                        {% if event_configuration_form.credit_card_enabled.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.credit_card_enabled.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.debit_card_enabled }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.debit_card_enabled.id_for_label }}">
+                                                <i class="fas fa-credit-card"></i> {% trans "Debit Card" %}
+                                            </label>
+                                        </div>
+                                        <small class="text-muted d-block">{% trans "Accept debit card payments" %}</small>
+                                        {% if event_configuration_form.debit_card_enabled.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.debit_card_enabled.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.bank_transfer_enabled }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.bank_transfer_enabled.id_for_label }}">
+                                                <i class="fas fa-university"></i> {% trans "Bank Transfer" %}
+                                            </label>
+                                        </div>
+                                        <small class="text-muted d-block">{% trans "Accept bank transfers" %}</small>
+                                        {% if event_configuration_form.bank_transfer_enabled.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.bank_transfer_enabled.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.mobile_payment_enabled }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.mobile_payment_enabled.id_for_label }}">
+                                                <i class="fas fa-mobile-alt"></i> {% trans "Mobile Payment" %}
+                                            </label>
+                                        </div>
+                                        <small class="text-muted d-block">{% trans "Accept mobile payments (Pago Móvil, Zelle, etc.)" %}</small>
+                                        {% if event_configuration_form.mobile_payment_enabled.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.mobile_payment_enabled.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notification Preferences -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-bell"></i> {% trans "Notification Preferences" %}
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.notifications_enabled }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.notifications_enabled.id_for_label }}">
+                                                {% trans "Enable Notifications" %}
+                                            </label>
+                                        </div>
+                                        <small class="text-muted d-block">{% trans "Control global notifications for this event." %}</small>
+                                        {% if event_configuration_form.notifications_enabled.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.notifications_enabled.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div id="notification-channel-settings" class="row g-3 mt-3 d-none">
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.email_notifications }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.email_notifications.id_for_label }}">
+                                                {% trans "Email" %}
+                                            </label>
+                                        </div>
+                                        {% if event_configuration_form.email_notifications.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.email_notifications.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.sms_notifications }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.sms_notifications.id_for_label }}">
+                                                {% trans "SMS" %}
+                                            </label>
+                                        </div>
+                                        {% if event_configuration_form.sms_notifications.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.sms_notifications.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.whatsapp_notifications }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.whatsapp_notifications.id_for_label }}">
+                                                {% trans "WhatsApp" %}
+                                            </label>
+                                        </div>
+                                        {% if event_configuration_form.whatsapp_notifications.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.whatsapp_notifications.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div id="notification-event-settings" class="row g-3 mt-3 d-none">
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.send_purchase_confirmation }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.send_purchase_confirmation.id_for_label }}">
+                                                {% trans "Purchase Confirmation" %}
+                                            </label>
+                                        </div>
+                                        {% if event_configuration_form.send_purchase_confirmation.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.send_purchase_confirmation.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.send_payment_reminders }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.send_payment_reminders.id_for_label }}">
+                                                {% trans "Payment Reminders" %}
+                                            </label>
+                                        </div>
+                                        {% if event_configuration_form.send_payment_reminders.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.send_payment_reminders.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.send_event_reminders }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.send_event_reminders.id_for_label }}">
+                                                {% trans "Event Reminders" %}
+                                            </label>
+                                        </div>
+                                        {% if event_configuration_form.send_event_reminders.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.send_event_reminders.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div id="event-reminder-days" class="row g-3 mt-3 d-none">
+                                    <div class="col-md-4">
+                                        <label for="{{ event_configuration_form.event_reminder_days.id_for_label }}" class="form-label">
+                                            {% trans "Reminder Lead Time (days)" %}
+                                        </label>
+                                        {{ event_configuration_form.event_reminder_days }}
+                                        {% if event_configuration_form.event_reminder_days.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.event_reminder_days.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">{% trans "Number of days before the event to send a reminder." %}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Digital Tickets -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-ticket-alt"></i> {% trans "Digital Tickets" %}
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.digital_tickets_enabled }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.digital_tickets_enabled.id_for_label }}">
+                                                {% trans "Generate Digital Tickets" %}
+                                            </label>
+                                        </div>
+                                        {% if event_configuration_form.digital_tickets_enabled.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.digital_tickets_enabled.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.qr_codes_enabled }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.qr_codes_enabled.id_for_label }}">
+                                                {% trans "Include QR Codes" %}
+                                            </label>
+                                        </div>
+                                        {% if event_configuration_form.qr_codes_enabled.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.qr_codes_enabled.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            {{ event_configuration_form.pdf_tickets_enabled }}
+                                            <label class="form-check-label" for="{{ event_configuration_form.pdf_tickets_enabled.id_for_label }}">
+                                                {% trans "Generate PDF Tickets" %}
+                                            </label>
+                                        </div>
+                                        {% if event_configuration_form.pdf_tickets_enabled.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ event_configuration_form.pdf_tickets_enabled.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Settings -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-cogs"></i> {% trans "Additional Configuration" %}
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <label for="{{ event_configuration_form.configuration.id_for_label }}" class="form-label">
+                                    {% trans "Advanced JSON Settings" %}
+                                </label>
+                                {{ event_configuration_form.configuration }}
+                                {% if event_configuration_form.configuration.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ event_configuration_form.configuration.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    {% trans "Fine-tune configuration details (expects valid JSON)." %}
                                 </div>
                             </div>
                         </div>
@@ -220,13 +613,13 @@
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">
-                                    <i class="fas fa-toggle-on"></i> Event Status
+                                    <i class="fas fa-toggle-on"></i> {% trans "Event Status" %}
                                 </h5>
                             </div>
                             <div class="card-body">
                                 <div class="mb-3">
                                     <label for="{{ form.status.id_for_label }}" class="form-label">
-                                        Status <span class="text-danger">*</span>
+                                        {% trans "Status" %} <span class="text-danger">*</span>
                                     </label>
                                     {{ form.status }}
                                     {% if form.status.errors %}
@@ -246,30 +639,30 @@
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">
-                                    <i class="fas fa-save"></i> Actions
+                                    <i class="fas fa-save"></i> {% trans "Actions" %}
                                 </h5>
                             </div>
                             <div class="card-body">
                                 <div class="d-grid gap-2">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save"></i> 
-                                        {% if form.instance.pk %}Update Event{% else %}Create Event{% endif %}
+                                        <i class="fas fa-save"></i>
+                                        {% if form.instance.pk %}{% trans "Update Event" %}{% else %}{% trans "Create Event" %}{% endif %}
                                     </button>
-                                    
+
                                     {% if form.instance.pk %}
                                         <a href="{% url 'events:event_detail' form.instance.id %}" class="btn btn-outline-secondary">
-                                            <i class="fas fa-eye"></i> View Event
+                                            <i class="fas fa-eye"></i> {% trans "View Event" %}
                                         </a>
-                                        
+
                                         {% if form.instance.status == 'draft' %}
                                             <button type="submit" name="activate" value="true" class="btn btn-success">
-                                                <i class="fas fa-play"></i> Save & Activate
+                                                <i class="fas fa-play"></i> {% trans "Save & Activate" %}
                                             </button>
                                         {% endif %}
                                     {% endif %}
-                                    
+
                                     <a href="{% if form.instance.pk %}{% url 'events:event_detail' form.instance.id %}{% else %}{% url 'events:event_list' %}{% endif %}" class="btn btn-outline-danger">
-                                        <i class="fas fa-times"></i> Cancel
+                                        <i class="fas fa-times"></i> {% trans "Cancel" %}
                                     </a>
                                 </div>
                             </div>
@@ -279,31 +672,31 @@
                         <div class="card">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">
-                                    <i class="fas fa-question-circle"></i> Help
+                                    <i class="fas fa-question-circle"></i> {% trans "Help" %}
                                 </h5>
                             </div>
                             <div class="card-body">
                                 <div class="small">
-                                    <h6>Event Types:</h6>
+                                    <h6>{% trans "Event Types:" %}</h6>
                                     <ul class="mb-3">
-                                        <li><strong>General Assignment:</strong> Open seating, first-come first-served</li>
-                                        <li><strong>Numbered Seating:</strong> Specific seat assignments</li>
-                                        <li><strong>Mixed:</strong> Combination of both types</li>
+                                        <li><strong>{% trans "General Assignment:" %}</strong> {% trans "Open seating, first-come first-served" %}</li>
+                                        <li><strong>{% trans "Numbered Seating:" %}</strong> {% trans "Specific seat assignments" %}</li>
+                                        <li><strong>{% trans "Mixed:" %}</strong> {% trans "Combination of both types" %}</li>
                                     </ul>
 
-                                    <h6>Status Options:</h6>
+                                    <h6>{% trans "Status Options:" %}</h6>
                                     <ul class="mb-3">
-                                        <li><strong>Draft:</strong> Event is being prepared</li>
-                                        <li><strong>Active:</strong> Event is live and selling tickets</li>
-                                        <li><strong>Closed:</strong> Event has ended</li>
-                                        <li><strong>Cancelled:</strong> Event was cancelled</li>
+                                        <li><strong>{% trans "Draft:" %}</strong> {% trans "Event is being prepared" %}</li>
+                                        <li><strong>{% trans "Active:" %}</strong> {% trans "Event is live and selling tickets" %}</li>
+                                        <li><strong>{% trans "Closed:" %}</strong> {% trans "Event has ended" %}</li>
+                                        <li><strong>{% trans "Cancelled:" %}</strong> {% trans "Event was cancelled" %}</li>
                                     </ul>
 
-                                    <h6>Tips:</h6>
+                                    <h6>{% trans "Tips:" %}</h6>
                                     <ul class="mb-0">
-                                        <li>Set sales dates to control when tickets go on sale</li>
-                                        <li>Use conversion rates for local currency pricing</li>
-                                        <li>Create zones after saving the event</li>
+                                        <li>{% trans "Set sales dates to control when tickets go on sale" %}</li>
+                                        <li>{% trans "Use conversion rates for local currency pricing" %}</li>
+                                        <li>{% trans "Create zones after saving the event" %}</li>
                                     </ul>
                                 </div>
                             </div>
@@ -337,6 +730,64 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    const toggleSection = (section, visible) => {
+        if (!section) {
+            return;
+        }
+        section.classList.toggle('d-none', !visible);
+    };
+
+    // Payment configuration toggles
+    const partialPaymentsCheckbox = document.getElementById('id_partial_payments_enabled');
+    const installmentPlansCheckbox = document.getElementById('id_installment_plans_enabled');
+    const flexiblePlansCheckbox = document.getElementById('id_flexible_payments_enabled');
+    const partialSettings = document.getElementById('partial-payment-settings');
+    const installmentSettings = document.getElementById('installment-settings');
+    const planExpirySettings = document.getElementById('plan-expiry-settings');
+
+    const refreshPaymentSettings = () => {
+        const partialEnabled = partialPaymentsCheckbox ? partialPaymentsCheckbox.checked : false;
+        const installmentEnabled = installmentPlansCheckbox ? installmentPlansCheckbox.checked : false;
+        const flexibleEnabled = flexiblePlansCheckbox ? flexiblePlansCheckbox.checked : false;
+
+        toggleSection(partialSettings, partialEnabled);
+        toggleSection(installmentSettings, partialEnabled && installmentEnabled);
+        toggleSection(planExpirySettings, (partialEnabled && installmentEnabled) || flexibleEnabled);
+    };
+
+    [partialPaymentsCheckbox, installmentPlansCheckbox, flexiblePlansCheckbox].forEach(cb => {
+        if (cb) {
+            cb.addEventListener('change', refreshPaymentSettings);
+        }
+    });
+
+    refreshPaymentSettings();
+
+    // Notification configuration toggles
+    const notificationsEnabledCheckbox = document.getElementById('id_notifications_enabled');
+    const notificationChannels = document.getElementById('notification-channel-settings');
+    const notificationEvents = document.getElementById('notification-event-settings');
+    const eventRemindersCheckbox = document.getElementById('id_send_event_reminders');
+    const eventReminderDaysSection = document.getElementById('event-reminder-days');
+
+    const refreshNotificationSettings = () => {
+        const notificationsEnabled = notificationsEnabledCheckbox ? notificationsEnabledCheckbox.checked : false;
+        const remindersEnabled = eventRemindersCheckbox ? eventRemindersCheckbox.checked : false;
+
+        toggleSection(notificationChannels, notificationsEnabled);
+        toggleSection(notificationEvents, notificationsEnabled);
+        toggleSection(eventReminderDaysSection, notificationsEnabled && remindersEnabled);
+    };
+
+    if (notificationsEnabledCheckbox) {
+        notificationsEnabledCheckbox.addEventListener('change', refreshNotificationSettings);
+    }
+    if (eventRemindersCheckbox) {
+        eventRemindersCheckbox.addEventListener('change', refreshNotificationSettings);
+    }
+
+    refreshNotificationSettings();
+
     // Add form validation
     const form = document.querySelector('form');
     form.addEventListener('submit', function(e) {
@@ -348,7 +799,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Validate date logic
         if (startDate.value && endDate.value) {
             if (new Date(startDate.value) >= new Date(endDate.value)) {
-                alert('End date must be after start date');
+                alert('{% trans "End date must be after start date" %}');
                 e.preventDefault();
                 return;
             }
@@ -356,7 +807,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (salesStart.value && salesEnd.value) {
             if (new Date(salesStart.value) >= new Date(salesEnd.value)) {
-                alert('Sales end date must be after sales start date');
+                alert('{% trans "Sales end date must be after sales start date" %}');
                 e.preventDefault();
                 return;
             }
@@ -364,7 +815,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (salesEnd.value && startDate.value) {
             if (new Date(salesEnd.value) > new Date(startDate.value)) {
-                alert('Sales must end before the event starts');
+                alert('{% trans "Sales must end before the event starts" %}');
                 e.preventDefault();
                 return;
             }

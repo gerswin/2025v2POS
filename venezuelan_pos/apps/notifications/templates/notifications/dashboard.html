@@ -1,0 +1,160 @@
+{% extends "notifications/base.html" %}
+
+{% block notification_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Notification Dashboard</h2>
+    <a href="{% url 'notifications:send' %}" class="btn btn-primary">
+        <i class="fas fa-paper-plane me-2"></i>Send Notification
+    </a>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ stats.total_sent }}</div>
+            <div class="stats-label">Total Sent (7 days)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ stats.success_rate|floatformat:1 }}%</div>
+            <div class="stats-label">Success Rate</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ stats.by_status.sent|default:0 }}</div>
+            <div class="stats-label">Successful</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ stats.by_status.failed|default:0 }}</div>
+            <div class="stats-label">Failed</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Channel Statistics -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">By Channel</h5>
+            </div>
+            <div class="card-body">
+                {% for channel, count in stats.by_channel.items %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="channel-badge channel-{{ channel }}">
+                        {% if channel == 'email' %}
+                            <i class="fas fa-envelope me-1"></i>Email
+                        {% elif channel == 'sms' %}
+                            <i class="fas fa-sms me-1"></i>SMS
+                        {% elif channel == 'whatsapp' %}
+                            <i class="fab fa-whatsapp me-1"></i>WhatsApp
+                        {% endif %}
+                    </span>
+                    <span class="fw-bold">{{ count }}</span>
+                </div>
+                {% empty %}
+                <p class="text-muted">No notifications sent yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Template Statistics -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Templates by Type</h5>
+            </div>
+            <div class="card-body">
+                {% for template_stat in template_stats %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="channel-badge channel-{{ template_stat.template_type }}">
+                        {% if template_stat.template_type == 'email' %}
+                            <i class="fas fa-envelope me-1"></i>Email
+                        {% elif template_stat.template_type == 'sms' %}
+                            <i class="fas fa-sms me-1"></i>SMS
+                        {% elif template_stat.template_type == 'whatsapp' %}
+                            <i class="fab fa-whatsapp me-1"></i>WhatsApp
+                        {% endif %}
+                    </span>
+                    <span class="fw-bold">{{ template_stat.count }}</span>
+                </div>
+                {% empty %}
+                <p class="text-muted">No templates created yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Notifications -->
+<div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Recent Notifications</h5>
+        <a href="{% url 'notifications:log_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+    </div>
+    <div class="card-body">
+        {% if recent_logs %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Channel</th>
+                        <th>Recipient</th>
+                        <th>Template</th>
+                        <th>Status</th>
+                        <th>Sent At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in recent_logs %}
+                    <tr>
+                        <td>
+                            <span class="channel-badge channel-{{ log.channel }}">
+                                {% if log.channel == 'email' %}
+                                    <i class="fas fa-envelope me-1"></i>Email
+                                {% elif log.channel == 'sms' %}
+                                    <i class="fas fa-sms me-1"></i>SMS
+                                {% elif log.channel == 'whatsapp' %}
+                                    <i class="fab fa-whatsapp me-1"></i>WhatsApp
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>{{ log.recipient|truncatechars:30 }}</td>
+                        <td>
+                            {% if log.template %}
+                                <a href="{% url 'notifications:template_detail' log.template.id %}">
+                                    {{ log.template.name }}
+                                </a>
+                            {% else %}
+                                <em>Manual</em>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="notification-status status-{{ log.status }}">
+                                {{ log.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if log.sent_at %}
+                                {{ log.sent_at|date:"M d, H:i" }}
+                            {% else %}
+                                {{ log.created_at|date:"M d, H:i" }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No notifications sent yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

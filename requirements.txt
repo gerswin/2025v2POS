@@ -7,6 +7,7 @@ djangorestframework-simplejwt==5.3.*
 psycopg2-binary==2.9.*
 django-redis==5.4.*
 redis==5.0.*
+django-db-pool==1.0.*
 
 # Async Processing
 celery==5.3.*
@@ -30,6 +31,11 @@ django-phonenumber-field==7.2.*
 django-localflavor==4.0.*
 python-decouple==3.8
 django-cors-headers==4.3.*
+
+# Digital Tickets and QR Codes
+cryptography==41.*
+qrcode[pil]==7.4.*
+reportlab==4.0.*
 
 # Health Checks and Monitoring
 django-health-check==3.17.*

@@ -17,6 +17,8 @@ from ..events.models import Event
 from ..zones.models import Zone, Seat
 from ..customers.models import Customer
 from ..pricing.services import PricingCalculationService
+from ..pricing.sales_integration import stage_pricing_integration
+from ..pricing.stage_automation import stage_automation
 
 
 class TransactionItemCreateSerializer(serializers.Serializer):
@@ -171,6 +173,19 @@ class TransactionCreateSerializer(serializers.Serializer):
                 'idempotency_key': 'Transaction with this idempotency key already exists'
             })
         
+        # Validate purchase against current pricing stages
+        is_valid, validation_result = stage_pricing_integration.validate_purchase_with_stages(
+            event, items, idempotency_key
+        )
+        
+        if not is_valid:
+            raise serializers.ValidationError({
+                'stage_validation': validation_result.get('errors', ['Stage validation failed'])
+            })
+        
+        # Store stage validation result for use in create method
+        data['_stage_validation'] = validation_result
+        
         return data
     
     def create(self, validated_data):
@@ -179,6 +194,7 @@ class TransactionCreateSerializer(serializers.Serializer):
         customer = validated_data['customer']
         items_data = validated_data.pop('items')
         idempotency_key = validated_data.pop('idempotency_key')
+        stage_validation = validated_data.pop('_stage_validation', {})
         
         # Use Redis lock to prevent race conditions
         lock_key = f"transaction_lock:{idempotency_key}"
@@ -260,6 +276,12 @@ class TransactionCreateSerializer(serializers.Serializer):
             
             # Cache transaction data
             sales_cache.cache_transaction(transaction_obj)
+            
+            # Confirm stage purchases after successful transaction creation
+            if stage_validation:
+                stage_pricing_integration.confirm_stage_purchases(
+                    transaction_obj, idempotency_key
+                )
             
             return transaction_obj
 

@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-26 16:47-0400\n"
+"POT-Creation-Date: 2025-10-27 14:56-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,27 +21,20 @@ msgstr ""
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:191
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:256
 msgid "Login"
-msgstr ""
-
-#: venezuelan_pos/apps/authentication/templates/authentication/login.html:7
-#: venezuelan_pos/apps/authentication/templates/authentication/login.html:129
-#: venezuelan_pos/apps/authentication/templates/authentication/login.html:288
-#: venezuelan_pos/apps/events/templates/events/base.html:7
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:4
-msgid "Venezuelan POS System"
-msgstr "Venezuelan POS System"
+msgstr "Login"
 
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:130
 msgid "Event Management System"
-msgstr ""
+msgstr "Event Management System"
 
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:135
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:15
 msgid "Venue Management"
-msgstr ""
+msgstr "Venue Management"
 
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:139
 msgid "Event Administration"
-msgstr ""
+msgstr "Event Administration"
 
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:143
 #, fuzzy
@@ -52,236 +44,4561 @@ msgstr "Tickets"
 
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:147
 msgid "Reports and Analytics"
-msgstr ""
+msgstr "Reports and Analytics"
 
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:151
 msgid "Secure Multi-tenant"
-msgstr ""
+msgstr "Secure Multi-tenant"
 
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:192
 msgid "Access your administration panel"
-msgstr ""
+msgstr "Access your administration panel"
 
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:215
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:271
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:278
 msgid "Username"
-msgstr ""
+msgstr "Username"
 
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:227
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:272
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:279
 msgid "Password"
-msgstr ""
+msgstr "Password"
 
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:241
 msgid "Remember me"
-msgstr ""
+msgstr "Remember me"
 
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:265
 msgid "Test Credentials"
-msgstr ""
+msgstr "Test Credentials"
 
 #: venezuelan_pos/apps/authentication/templates/authentication/login.html:288
 msgid "All rights reserved"
+msgstr "All rights reserved"
+
+#: venezuelan_pos/apps/customers/templates/customers/base.html:131
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:187
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:131
+msgid "No customers found"
 msgstr ""
 
-#: venezuelan_pos/apps/events/templates/events/base.html:182
-msgid "Profile"
-msgstr "Profile"
+#: venezuelan_pos/apps/customers/templates/customers/base.html:137
+msgid "Search error occurred"
+msgstr ""
 
-#: venezuelan_pos/apps/events/templates/events/base.html:183
-#: venezuelan_pos/apps/events/templates/events/base.html:226
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:182
-msgid "Settings"
-msgstr "Settings"
+#: venezuelan_pos/apps/customers/templates/customers/base.html:152
+msgid "Customer not found"
+msgstr ""
 
-#: venezuelan_pos/apps/events/templates/events/base.html:185
-msgid "Logout"
-msgstr "Logout"
+#: venezuelan_pos/apps/customers/templates/customers/base.html:157
+msgid "Lookup error occurred"
+msgstr ""
 
-#: venezuelan_pos/apps/events/templates/events/base.html:209
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:4
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:8
-msgid "Dashboard"
-msgstr "Dashboard"
+#: venezuelan_pos/apps/customers/templates/customers/base.html:174
+msgid "Name and surname are required"
+msgstr ""
 
-#: venezuelan_pos/apps/events/templates/events/base.html:213
-msgid "Venues"
-msgstr "Venues"
+#: venezuelan_pos/apps/customers/templates/customers/base.html:179
+msgid "At least phone or email is required"
+msgstr ""
 
-#: venezuelan_pos/apps/events/templates/events/base.html:217
-msgid "Events"
-msgstr "Events"
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:4
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:11
+msgid "Customer Management"
+msgstr ""
 
-#: venezuelan_pos/apps/events/templates/events/base.html:220
-msgid "Tickets"
-msgstr "Tickets"
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:14
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:181
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:14
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:190
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:14
+msgid "Add Customer"
+msgstr ""
 
-#: venezuelan_pos/apps/events/templates/events/base.html:223
-msgid "Reports"
-msgstr "Reports"
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:17
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:43
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:48
+#: venezuelan_pos/apps/events/templates/events/event_list.html:27
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:30
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:146
+msgid "Search"
+msgstr "Search"
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:21
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:29
 #, fuzzy
 #| msgid "Venues"
-msgid "Total Venues"
+msgid "Total Customers"
 msgstr "Venues"
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:24
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:37
-msgid "active"
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:35
+msgid "Active Customers"
 msgstr ""
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:34
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:41
+msgid "With Phone"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:47
+msgid "With Email"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:57
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:176
 #, fuzzy
 #| msgid "Events"
-msgid "Total Events"
+msgid "Recent Customers"
 msgstr "Events"
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:47
-msgid "Upcoming Events"
-msgstr ""
-
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:50
-msgid "This month"
-msgstr ""
-
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:60
-#, fuzzy
-#| msgid "Events"
-msgid "Draft Events"
-msgstr "Events"
-
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:63
-msgid "Pending"
-msgstr ""
-
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:77
-#, fuzzy
-#| msgid "Events"
-msgid "Recent Events"
-msgstr "Events"
-
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:80
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:226
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:59
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:94
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:247
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:238
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:282
 msgid "View All"
+msgstr "View All"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:68
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:74
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:234
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:68
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:105
+msgid "Name"
+msgstr "Name"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:69
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:66
+msgid "Contact"
+msgstr "Contact"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:70
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:73
+#: venezuelan_pos/apps/customers/templates/customers/customer_form.html:118
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:76
+msgid "Identification"
 msgstr ""
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:89
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:71
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:97
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:156
+#: venezuelan_pos/apps/customers/templates/customers/customer_form.html:189
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:77
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:100
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:106
+#: venezuelan_pos/apps/events/templates/events/event_form.html:229
+#: venezuelan_pos/apps/events/templates/events/event_list.html:32
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:632
+#: venezuelan_pos/apps/events/templates/events/table_management.html:106
+#: venezuelan_pos/apps/events/templates/events/table_management.html:392
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:189
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:53
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:186
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:54
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:151
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:71
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:108
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:100
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:152
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:163
+msgid "Status"
+msgstr "Status"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:72
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:109
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:78
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:216
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:383
+msgid "Created"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:73
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:157
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:79
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:107
+#: venezuelan_pos/apps/events/templates/events/event_form.html:249
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:190
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:188
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:112
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:73
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:109
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:310
+msgid "Actions"
+msgstr "Actions"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:90
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:101
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:109
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:103
+#: venezuelan_pos/apps/customers/templates/customers/customer_preferences.html:33
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:106
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:127
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:30
+#: venezuelan_pos/apps/events/templates/events/event_list.html:36
+#: venezuelan_pos/apps/events/templates/events/event_list.html:83
+#: venezuelan_pos/apps/events/templates/events/event_list.html:151
+#: venezuelan_pos/apps/events/templates/events/table_management.html:108
+#: venezuelan_pos/apps/events/templates/events/table_management.html:394
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:18
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:118
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:211
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:56
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:124
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:218
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:57
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:153
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:273
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:99
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:141
+msgid "Active"
+msgstr "Active"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:90
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:103
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:111
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:103
+#: venezuelan_pos/apps/customers/templates/customers/customer_preferences.html:33
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:106
+#: venezuelan_pos/apps/events/templates/events/event_list.html:153
+#: venezuelan_pos/apps/events/templates/events/table_management.html:109
+#: venezuelan_pos/apps/events/templates/events/table_management.html:395
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:20
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:57
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:126
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:220
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:154
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:274
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:101
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:143
+msgid "Inactive"
+msgstr "Inactive"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:99
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:173
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:141
+#: venezuelan_pos/apps/events/templates/events/event_list.html:164
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:223
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:162
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:229
+msgid "View"
+msgstr "View"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:110
+msgid "No customers yet"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:112
+msgid "Add First Customer"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:124
+#: venezuelan_pos/apps/customers/templates/customers/customer_preferences.html:11
+msgid "Communication Preferences"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:129
+msgid "Email Enabled"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:140
+msgid "SMS Enabled"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:151
+msgid "WhatsApp Enabled"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:162
+msgid "Promotional Messages"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:176
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:313
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:184
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:196
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:137
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:289
+msgid "Quick Actions"
+msgstr "Quick Actions"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:184
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:4
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:11
+msgid "Search Customers"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:187
+msgid "Lookup by ID"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_dashboard.html:190
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:17
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:17
+msgid "All Customers"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:14
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:319
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:117
+#: venezuelan_pos/apps/customers/web_views.py:112
+msgid "Edit Customer"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:17
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:129
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:121
+msgid "Preferences"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:22
+msgid "Deactivate"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:24
+#: venezuelan_pos/apps/events/templates/events/event_list.html:175
+msgid "Activate"
+msgstr "Activate"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:28
+#: venezuelan_pos/apps/customers/templates/customers/customer_form.html:19
+msgid "Back to List"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:41
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:170
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:195
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:158
+msgid "Customer Information"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:49
+msgid "Full Name"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:53
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:249
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:74
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:266
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:269
+msgid "Email"
+msgstr "Email"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:58
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:68
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:78
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:92
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:79
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:89
+msgid "Not provided"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:63
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:264
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:84
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:261
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:176
+msgid "Phone"
+msgstr "Phone"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:87
+msgid "Date of Birth"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:113
+msgid "Last Updated"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:123
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:102
+msgid "Address"
+msgstr "Address"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:132
+msgid "Notes"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:144
+msgid "Purchase History"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:153
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:105
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:188
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:50
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:104
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:153
+msgid "Date"
+msgstr "Date"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:154
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:103
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:186
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:190
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:35
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:105
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:170
 #, fuzzy
 #| msgid "Events"
 msgid "Event"
 msgstr "Events"
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:90
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:155
+msgid "Amount"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:184
+msgid "No purchase history yet"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:186
+msgid ""
+"Purchase history will appear here when the customer makes ticket purchases."
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:200
+msgid "Sales Validation"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:206
+msgid "Customer is valid for purchases"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:210
+msgid "Customer has validation issues"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:221
+msgid "Warnings"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:236
+msgid "Communication"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:240
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:125
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:116
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:147
+#: venezuelan_pos/apps/events/templates/events/event_list.html:168
+#: venezuelan_pos/apps/events/templates/events/table_management.html:298
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:26
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:227
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:11
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:110
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:167
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:233
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:267
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:17
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:124
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:17
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:149
+msgid "Edit"
+msgstr "Edit"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:245
+msgid "Enabled Channels"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:254
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:269
+msgid "SMS"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:259
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:272
+msgid "WhatsApp"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:271
+#: venezuelan_pos/apps/customers/templates/customers/customer_preferences.html:114
+msgid "Notification Types"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:276
+msgid "Purchases"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:281
+msgid "Payments"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:286
+#: venezuelan_pos/apps/events/templates/events/base.html:220
+#: venezuelan_pos/apps/events/templates/events/event_list.html:5
+#: venezuelan_pos/apps/events/templates/events/event_list.html:11
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:187
+msgid "Events"
+msgstr "Events"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:291
+msgid "Promotions"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:297
+msgid "Preferred Language"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:300
+msgid "Spanish"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:302
+msgid "English"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:322
+msgid "Edit Preferences"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:325
+msgid "Print Details"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_detail.html:329
+msgid "Send Email"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_form.html:15
+#: venezuelan_pos/apps/customers/templates/customers/customer_preferences.html:14
+msgid "Back to Customer"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_form.html:44
+#: venezuelan_pos/apps/events/templates/events/event_form.html:44
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:38
+msgid "Basic Information"
+msgstr "Basic Information"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_form.html:79
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:75
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:167
+msgid "Contact Information"
+msgstr "Contact Information"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_form.html:80
+msgid "At least one required"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_form.html:127
+msgid "Venezuelan cédula format: V-12345678 or E-12345678"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_form.html:154
+msgid "Additional Information"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_form.html:214
+#: venezuelan_pos/apps/customers/templates/customers/customer_form.html:218
+#: venezuelan_pos/apps/customers/templates/customers/customer_preferences.html:219
+#: venezuelan_pos/apps/events/templates/events/event_form.html:272
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:353
+#: venezuelan_pos/apps/events/templates/events/table_management.html:114
+#: venezuelan_pos/apps/events/templates/events/table_management.html:139
+#: venezuelan_pos/apps/events/templates/events/table_management.html:178
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:273
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:237
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:311
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:211
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:236
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:129
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:166
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:201
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:168
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:264
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:198
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:287
+msgid "Cancel"
+msgstr "Cancel"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:4
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:11
+msgid "Customers"
+msgstr "Customers"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:17
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:14
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:149
+msgid "Advanced Search"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:57
+#, python-format
+msgid ""
+"\n"
+"                    Showing %(page_obj.paginator.count)s of %(total)s "
+"customers (%(active)s active)\n"
+"                "
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:99
+msgid "No contact info"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:121
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:113
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:112
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:107
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:167
+#, fuzzy
+#| msgid "Reports"
+msgid "View Details"
+msgstr "Reports"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:144
+msgid "Customer pagination"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:149
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:255
+msgid "First"
+msgstr "First"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:154
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:258
+msgid "Previous"
+msgstr "Previous"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:161
+#, python-format
+msgid ""
+"\n"
+"                                    Page %(current)s of %(total)s\n"
+"                                "
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:170
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:268
+msgid "Next"
+msgstr "Next"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:175
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:271
+msgid "Last"
+msgstr "Last"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_list.html:188
+msgid "Try adjusting your search criteria or add a new customer."
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:4
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:11
+msgid "Customer Lookup"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:30
+msgid "Lookup by Identification"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:52
+msgid "Lookup Customer"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:64
+msgid "Customer Found"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:94
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:173
+msgid "ID"
+msgstr "ID"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:133
+msgid "About Customer Lookup"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:135
+msgid ""
+"Use this tool to quickly find customers by their Venezuelan identification "
+"number (cédula)."
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:138
+msgid "Supported Formats"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:140
+#, fuzzy
+#| msgid "Venezuelan POS System"
+msgid "Venezuelan citizen"
+msgstr "Venezuelan POS System"
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:141
+msgid "Foreign resident"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:142
+msgid "Case insensitive, minimum 7 digits"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:147
+msgid "Tip"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:148
+msgid "For broader searches including name, phone, or email, use the"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_lookup.html:150
+msgid "feature."
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_preferences.html:4
+msgid "Customer Preferences"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_preferences.html:56
+msgid "Communication Channels"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_preferences.html:59
+msgid "Select which communication methods the customer allows"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_preferences.html:68
+msgid "No email provided"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_preferences.html:80
+#: venezuelan_pos/apps/customers/templates/customers/customer_preferences.html:92
+#: venezuelan_pos/apps/customers/templates/customers/customer_preferences.html:104
+msgid "No phone provided"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_preferences.html:117
+msgid "Select which types of notifications to send"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_preferences.html:169
+msgid "Contact Preferences"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_preferences.html:172
+msgid "When and how to contact the customer"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_preferences.html:224
+msgid "Save Preferences"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:64
+#, python-format
+msgid ""
+"\n"
+"                                Found %(counter)s customer\n"
+"                            "
+msgid_plural ""
+"\n"
+"                                Found %(counter)s customers\n"
+"                            "
+msgstr[0] ""
+msgstr[1] ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:70
+msgid "for"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:133
+#, python-format
+msgid ""
+"\n"
+"                                No customers found matching \"%(query)s\". "
+"Try a different search term or check the spelling.\n"
+"                            "
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:139
+msgid "Add New Customer"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:142
+msgid "View All Customers"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:153
+msgid "Search Tips"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:155
+msgid "Search by customer name (first or last name)"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:156
+msgid "Search by phone number (with or without country code)"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:157
+msgid "Search by email address"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:158
+msgid "Search by identification number (cédula)"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/templates/customers/customer_search.html:159
+msgid "Use partial matches - you don't need to type the complete information"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/web_views.py:81
+msgid "Customer created successfully."
+msgstr ""
+
+#: venezuelan_pos/apps/customers/web_views.py:88
+#: venezuelan_pos/apps/customers/web_views.py:89
+msgid "Create Customer"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/web_views.py:104
+msgid "Customer updated successfully."
+msgstr ""
+
+#: venezuelan_pos/apps/customers/web_views.py:113
+msgid "Update Customer"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/web_views.py:133
+msgid "Customer preferences updated successfully."
+msgstr ""
+
+#: venezuelan_pos/apps/customers/web_views.py:204
+msgid "Customer found."
+msgstr ""
+
+#: venezuelan_pos/apps/customers/web_views.py:206
+msgid "Customer not found with this identification."
+msgstr ""
+
+#: venezuelan_pos/apps/customers/web_views.py:291
+msgid "activated"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/web_views.py:291
+msgid "deactivated"
+msgstr ""
+
+#: venezuelan_pos/apps/customers/web_views.py:292
+#, python-brace-format
+msgid "Customer {} successfully."
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/base.html:140
+msgid "Language selector"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/base.html:149
+msgid "Change to Spanish"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/base.html:160
+msgid "Change to English"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/base.html:174
+msgid "Profile"
+msgstr "Profile"
+
+#: venezuelan_pos/apps/events/templates/events/base.html:175
+#: venezuelan_pos/apps/events/templates/events/base.html:248
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:203
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:314
+msgid "Settings"
+msgstr "Settings"
+
+#: venezuelan_pos/apps/events/templates/events/base.html:177
+msgid "Logout"
+msgstr "Logout"
+
+#: venezuelan_pos/apps/events/templates/events/base.html:201
+msgid "OPERATIONS"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/base.html:205
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:4
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:9
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:88
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:98
+msgid "Dashboard"
+msgstr "Dashboard"
+
+#: venezuelan_pos/apps/events/templates/events/base.html:210
+#: venezuelan_pos/apps/events/templates/events/event_list.html:148
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:7
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:7
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:7
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:7
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:7
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:8
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:7
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:7
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:7
+msgid "Sales"
+msgstr "Sales"
+
+#: venezuelan_pos/apps/events/templates/events/base.html:216
+msgid "MANAGEMENT"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/base.html:225
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:7
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:9
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:4
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:7
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:77
+msgid "Venues"
+msgstr "Venues"
+
+#: venezuelan_pos/apps/events/templates/events/base.html:230
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:269
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:7
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:7
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:7
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:7
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:13
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:8
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:13
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:8
+msgid "Pricing"
+msgstr "Pricing"
+
+#: venezuelan_pos/apps/events/templates/events/base.html:236
+msgid "ANALYTICS"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/base.html:239
+msgid "Reports"
+msgstr "Reports"
+
+#: venezuelan_pos/apps/events/templates/events/base.html:245
+msgid "CONFIGURATION"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/base.html:330
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:418
+msgid "Processing..."
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:25
+#, fuzzy
+#| msgid "Venues"
+msgid "Total Venues"
+msgstr "Venues"
+
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:29
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:45
+msgid "active"
+msgstr "active"
+
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:41
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:114
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:63
+#, fuzzy
+#| msgid "Events"
+msgid "Total Events"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:57
+msgid "Upcoming Events"
+msgstr "Upcoming Events"
+
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:61
+msgid "This month"
+msgstr "This month"
+
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:73
+#, fuzzy
+#| msgid "Events"
+msgid "Draft Events"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:77
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:66
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:159
+msgid "Pending"
+msgstr "Pending"
+
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:91
+#, fuzzy
+#| msgid "Events"
+msgid "Recent Events"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:104
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:80
+#: venezuelan_pos/apps/events/templates/events/event_form.html:91
+#: venezuelan_pos/apps/events/templates/events/event_list.html:51
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:249
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:182
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:46
 #, fuzzy
 #| msgid "Venues"
 msgid "Venue"
 msgstr "Venues"
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:91
-msgid "Date"
-msgstr ""
-
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:92
-msgid "Status"
-msgstr ""
-
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:93
-msgid "Actions"
-msgstr ""
-
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:113
-msgid "Active"
-msgstr ""
-
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:115
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:129
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:34
+#: venezuelan_pos/apps/events/templates/events/event_list.html:35
+#: venezuelan_pos/apps/events/templates/events/event_list.html:85
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:213
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:59
 msgid "Draft"
-msgstr ""
+msgstr "Draft"
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:117
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:131
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:38
+#: venezuelan_pos/apps/events/templates/events/event_list.html:37
+#: venezuelan_pos/apps/events/templates/events/event_list.html:87
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:215
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:61
 msgid "Closed"
-msgstr ""
+msgstr "Closed"
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:119
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:133
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:42
+#: venezuelan_pos/apps/events/templates/events/event_list.html:38
+#: venezuelan_pos/apps/events/templates/events/event_list.html:89
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:217
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:63
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:115
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:165
 msgid "Cancelled"
-msgstr ""
+msgstr "Cancelled"
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:146
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:153
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:214
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:166
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:21
+msgid "Map Editor"
+msgstr "Map Editor"
+
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:166
 msgid "No recent events"
-msgstr ""
+msgstr "No recent events"
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:148
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:169
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:251
 msgid "Create First Event"
-msgstr ""
+msgstr "Create First Event"
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:163
-msgid "Quick Actions"
-msgstr ""
-
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:170
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:191
+#: venezuelan_pos/apps/events/templates/events/event_form.html:4
+#: venezuelan_pos/apps/events/templates/events/event_form.html:17
+#: venezuelan_pos/apps/events/templates/events/event_form.html:256
+#: venezuelan_pos/apps/events/templates/events/event_list.html:17
 msgid "Create Event"
-msgstr ""
+msgstr "Create Event"
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:174
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:195
 #, fuzzy
 #| msgid "Venues"
 msgid "Add Venue"
 msgstr "Venues"
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:178
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:199
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:308
 #, fuzzy
 #| msgid "Reports"
 msgid "View Reports"
 msgstr "Reports"
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:193
-msgid "Map Editor"
-msgstr ""
-
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:198
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:219
 msgid "Visually organize your event zones with our interactive map editor."
-msgstr ""
+msgstr "Visually organize your event zones with our interactive map editor."
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:205
-msgid "Map"
-msgstr ""
-
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:211
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:232
 msgid "Create an event to use the map editor"
-msgstr ""
+msgstr "Create an event to use the map editor"
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:223
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:244
 #, fuzzy
 #| msgid "Venues"
 msgid "Top Venues"
 msgstr "Venues"
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:246
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:278
+msgid "No venues registered"
+msgstr "No venues registered"
+
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:293
+msgid "Recent Activity"
+msgstr "Recent Activity"
+
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:305
+msgid "System initialized"
+msgstr "System initialized"
+
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:306
+msgid "Welcome to Tiquemax"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/dashboard.html:309
+msgid "Today"
+msgstr "Today"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:4
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:14
+#, fuzzy
+#| msgid "Tickets"
+msgid "Event Details"
+msgstr "Tickets"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:18
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:228
+#: venezuelan_pos/apps/events/templates/events/event_form.html:4
+#: venezuelan_pos/apps/events/templates/events/event_form.html:15
+#, fuzzy
+#| msgid "Events"
+msgid "Edit Event"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:21
+#, fuzzy
+#| msgid "Events"
+msgid "Back to Events"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:48
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:236
+msgid "Sales Active"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:60
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:188
+msgid "Event Information"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:66
+#: venezuelan_pos/apps/events/templates/events/event_form.html:52
+#, fuzzy
+#| msgid "Event name..."
+msgid "Event Name"
+msgstr "Event name..."
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:69
+#: venezuelan_pos/apps/events/templates/events/event_form.html:65
+#: venezuelan_pos/apps/events/templates/events/event_list.html:118
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:34
+#, fuzzy
+#| msgid "Events"
+msgid "Event Type"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:72
+#: venezuelan_pos/apps/events/templates/events/event_list.html:45
+#: venezuelan_pos/apps/events/templates/events/event_list.html:122
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:37
+msgid "General Assignment"
+msgstr "General Assignment"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:74
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:405
+#: venezuelan_pos/apps/events/templates/events/event_list.html:46
+#: venezuelan_pos/apps/events/templates/events/event_list.html:125
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:181
+#: venezuelan_pos/apps/events/templates/events/table_management.html:36
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:39
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:122
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:259
+msgid "Numbered Seating"
+msgstr "Numbered Seating"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:76
+#: venezuelan_pos/apps/events/templates/events/event_list.html:128
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:41
+#, fuzzy
+#| msgid "Events"
+msgid "Mixed Event"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:91
+#: venezuelan_pos/apps/events/templates/events/event_form.html:120
+#, fuzzy
+#| msgid "Start Date"
+msgid "Start Date & Time"
+msgstr "Start Date"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:97
+#: venezuelan_pos/apps/events/templates/events/event_form.html:133
+msgid "End Date & Time"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:103
+#: venezuelan_pos/apps/events/templates/events/event_list.html:142
+msgid "Currency"
+msgstr "Currency"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:107
+msgid "Rate"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:114
+#: venezuelan_pos/apps/events/templates/events/event_form.html:79
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:332
+#: venezuelan_pos/apps/events/templates/events/table_management.html:85
+#: venezuelan_pos/apps/events/templates/events/table_management.html:374
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:129
+msgid "Description"
+msgstr "Description"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:124
+msgid "Sales Information"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:130
+#, fuzzy
+#| msgid "Sales"
+msgid "Sales Start"
+msgstr "Sales"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:136
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:147
+msgid "Not set"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:141
+#, fuzzy
+#| msgid "Sales"
+msgid "Sales End"
+msgstr "Sales"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:159
+#, fuzzy
+#| msgid "Events"
+msgid "Event Zones"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:163
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:178
+#, fuzzy
+#| msgid "Events"
+msgid "Manage Zones"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:174
+#, fuzzy
+#| msgid "Venue Management"
+msgid "Zone Layout & Management"
+msgstr "Venue Management"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:175
+msgid "Configure and visually arrange your event zones"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:181
+#, fuzzy
+#| msgid "Map Editor"
+msgid "Visual Map Editor"
+msgstr "Map Editor"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:204
+#, fuzzy
+#| msgid "Activate this event?"
+msgid "¿Activar este evento?"
+msgstr "Activate this event?"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:205
+#, fuzzy
+#| msgid "Events"
+msgid "Activate Event"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:211
+#, fuzzy
+#| msgid "Activate this event?"
+msgid "¿Desactivar este evento?"
+msgstr "Activate this event?"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:212
+#, fuzzy
+#| msgid "Events"
+msgid "Deactivate Event"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:221
+msgid "¿Estás seguro de que quieres cancelar este evento?"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:222
+#, fuzzy
+#| msgid "Create Event"
+msgid "Cancel Event"
+msgstr "Create Event"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:232
+msgid "Manage Pricing"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:243
+#, fuzzy
+#| msgid "Confirm Deletion"
+msgid "Configuration"
+msgstr "Confirm Deletion"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:248
+msgid "Payment Options"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:251
+msgid "Partial Payments"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:254
+msgid "Installment Plans"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:257
+msgid "Flexible Payments"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:263
+#, fuzzy
+#| msgid "Location"
+msgid "Notifications"
+msgstr "Location"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:278
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:281
+#, fuzzy
+#| msgid "Tickets"
+msgid "Digital Tickets"
+msgstr "Tickets"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:284
+msgid "QR Codes"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:287
+#, fuzzy
+#| msgid "Tickets"
+msgid "PDF Tickets"
+msgstr "Tickets"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:299
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:107
+#, fuzzy
+#| msgid "Status"
+msgid "Statistics"
+msgstr "Status"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:305
+msgid "Statistics will be available once ticket sales begin"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:321
+#, fuzzy
+#| msgid "Events"
+msgid "Manage Event Zones"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:323
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:322
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:371
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:377
+#: venezuelan_pos/apps/events/templates/events/table_management.html:75
+#: venezuelan_pos/apps/events/templates/events/table_management.html:132
+#: venezuelan_pos/apps/events/templates/events/table_management.html:157
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:266
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:105
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:229
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:295
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:374
+msgid "Close"
+msgstr "Close"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:329
+#: venezuelan_pos/apps/events/templates/events/table_management.html:165
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:289
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:346
+msgid "Loading..."
+msgstr "Loading..."
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:357
+msgid "Error loading zones. Please try again."
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:370
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:253
+msgid "No Zones Configured"
+msgstr "No Zones Configured"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:371
+msgid "This event doesn't have any zones configured yet."
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:373
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:255
+#, fuzzy
+#| msgid "Create First Event"
+msgid "Create First Zone"
+msgstr "Create First Event"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:382
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:257
+msgid "Zone(s) Configured"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:384
+#, fuzzy
+#| msgid "Venues"
+msgid "Add Zone"
+msgstr "Venues"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:405
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:121
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:260
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:12
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:405
+msgid "General Admission"
+msgstr "General Admission"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:409
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:59
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:185
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:168
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:261
+msgid "Capacity"
+msgstr "Capacity"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:413
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:189
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:275
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:634
+#: venezuelan_pos/apps/events/templates/events/table_management.html:272
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:262
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:54
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:362
+#: venezuelan_pos/apps/sales/templates/sales/zone_seat_map.html:38
+msgid "Available"
+msgstr "Available"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:417
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:263
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:236
+msgid "Price"
+msgstr "Price"
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:423
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:265
+#: venezuelan_pos/apps/sales/templates/sales/zone_seat_map.html:13
+msgid "rows"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:423
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:266
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:301
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:286
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:340
+msgid "seats"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_detail.html:438
+msgid "Zone creation functionality would be implemented here"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:22
+msgid "Update event information and settings"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:24
+#, fuzzy
+#| msgid "Manage your events and ticket sales"
+msgid "Create a new event for ticket sales"
+msgstr "Manage your events and ticket sales"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:30
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:294
+msgid "Back"
+msgstr "Back"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:101
+#, fuzzy
+#| msgid "Create Event"
+msgid "Create new venue"
+msgstr "Create Event"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:112
+msgid "Date and Time"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:149
+#, fuzzy
+#| msgid "Start Date"
+msgid "Sales Start Date & Time"
+msgstr "Start Date"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:157
+msgid "Leave empty to start sales immediately"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:163
+msgid "Sales End Date & Time"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:171
+msgid "Leave empty to sell until event starts"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:182
+#, fuzzy
+#| msgid "Settings"
+msgid "Currency Settings"
+msgstr "Settings"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:190
+#, fuzzy
+#| msgid "Currency"
+msgid "Base Currency"
+msgstr "Currency"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:203
+msgid "Conversion Rate"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:211
+msgid "Rate from USD to local currency (1.0000 = USD)"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:223
+#, fuzzy
+#| msgid "Status"
+msgid "Event Status"
+msgstr "Status"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:256
+#, fuzzy
+#| msgid "Create Event"
+msgid "Update Event"
+msgstr "Create Event"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:261
+#, fuzzy
+#| msgid "Events"
+msgid "View Event"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:266
+#, fuzzy
+#| msgid "Activate"
+msgid "Save & Activate"
+msgstr "Activate"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:282
+msgid "Help"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:287
+#, fuzzy
+#| msgid "Events"
+msgid "Event Types:"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:289
+#, fuzzy
+#| msgid "General Assignment"
+msgid "General Assignment:"
+msgstr "General Assignment"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:289
+msgid "Open seating, first-come first-served"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:290
+#, fuzzy
+#| msgid "Numbered Seating"
+msgid "Numbered Seating:"
+msgstr "Numbered Seating"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:290
+#, fuzzy
+#| msgid "General Assignment"
+msgid "Specific seat assignments"
+msgstr "General Assignment"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:291
+#, fuzzy
+#| msgid "Mixed"
+msgid "Mixed:"
+msgstr "Mixed"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:291
+msgid "Combination of both types"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:294
+msgid "Status Options:"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:296
+#, fuzzy
+#| msgid "Draft"
+msgid "Draft:"
+msgstr "Draft"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:296
+msgid "Event is being prepared"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:297
+#, fuzzy
+#| msgid "Active"
+msgid "Active:"
+msgstr "Active"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:297
+msgid "Event is live and selling tickets"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:298
+#, fuzzy
+#| msgid "Closed"
+msgid "Closed:"
+msgstr "Closed"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:298
+#, fuzzy
+#| msgid "No Events Found"
+msgid "Event has ended"
+msgstr "No Events Found"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:299
+#, fuzzy
+#| msgid "Cancelled"
+msgid "Cancelled:"
+msgstr "Cancelled"
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:299
+msgid "Event was cancelled"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:302
+msgid "Tips:"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:304
+msgid "Set sales dates to control when tickets go on sale"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:305
+msgid "Use conversion rates for local currency pricing"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:306
+msgid "Create zones after saving the event"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:351
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:248
+msgid "End date must be after start date"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:359
+msgid "Sales end date must be after sales start date"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_form.html:367
+msgid "Sales must end before the event starts"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/event_list.html:12
+msgid "Manage your events and ticket sales"
+msgstr "Manage your events and ticket sales"
+
+#: venezuelan_pos/apps/events/templates/events/event_list.html:29
+msgid "Event name..."
+msgstr "Event name..."
+
+#: venezuelan_pos/apps/events/templates/events/event_list.html:34
+#: venezuelan_pos/apps/sales/forms.py:98
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:154
+msgid "All Statuses"
+msgstr "All Statuses"
+
+#: venezuelan_pos/apps/events/templates/events/event_list.html:42
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:187
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:35
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:184
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:108
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:378
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:201
+msgid "Type"
+msgstr "Type"
+
+#: venezuelan_pos/apps/events/templates/events/event_list.html:44
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:59
+msgid "All Types"
+msgstr "All Types"
+
+#: venezuelan_pos/apps/events/templates/events/event_list.html:47
+msgid "Mixed"
+msgstr "Mixed"
+
+#: venezuelan_pos/apps/events/templates/events/event_list.html:53
+#, fuzzy
+#| msgid "Venues"
+msgid "All Venues"
+msgstr "Venues"
+
+#: venezuelan_pos/apps/events/templates/events/event_list.html:66
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:63
+msgid "Filter"
+msgstr "Filter"
+
+#: venezuelan_pos/apps/events/templates/events/event_list.html:106
+msgid "Start Date"
+msgstr "Start Date"
+
+#: venezuelan_pos/apps/events/templates/events/event_list.html:173
+msgid "Activate this event?"
+msgstr "Activate this event?"
+
+#: venezuelan_pos/apps/events/templates/events/event_list.html:181
+msgid "Pause this event?"
+msgstr "Pause this event?"
+
+#: venezuelan_pos/apps/events/templates/events/event_list.html:183
+msgid "Pause"
+msgstr "Pause"
+
+#: venezuelan_pos/apps/events/templates/events/event_list.html:232
+msgid "No Events Found"
+msgstr "No Events Found"
+
+#: venezuelan_pos/apps/events/templates/events/event_list.html:234
+msgid "No events match your current filters."
+msgstr "No events match your current filters."
+
+#: venezuelan_pos/apps/events/templates/events/event_list.html:237
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:50
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:82
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:203
+msgid "Clear Filters"
+msgstr "Clear Filters"
+
+#: venezuelan_pos/apps/events/templates/events/event_list.html:240
+msgid "You haven't created any events yet."
+msgstr "You haven't created any events yet."
+
+#: venezuelan_pos/apps/events/templates/events/event_list.html:244
+msgid "Create Your First Event"
+msgstr "Create Your First Event"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:4
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:158
+#: venezuelan_pos/apps/events/templates/events/table_management.html:21
+#, fuzzy
+#| msgid "Venue Management"
+msgid "Seat Management"
+msgstr "Venue Management"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:163
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:320
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:355
+#: venezuelan_pos/apps/events/templates/events/table_management.html:18
+#: venezuelan_pos/apps/events/templates/events/table_management.html:116
+#, fuzzy
+#| msgid "Create Event"
+msgid "Create Table"
+msgstr "Create Event"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:166
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:739
+msgid "Show Tables"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:169
+#: venezuelan_pos/apps/events/templates/events/table_management.html:24
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:24
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:27
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:234
+#, fuzzy
+#| msgid "Events"
+msgid "Back to Event"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:179
+#: venezuelan_pos/apps/events/templates/events/table_management.html:34
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:118
+#, fuzzy
+#| msgid "Events"
+msgid "Zone Type"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:185
+#: venezuelan_pos/apps/events/templates/events/table_management.html:40
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:197
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:258
+#, fuzzy
+#| msgid "Capacity"
+msgid "Total Capacity"
+msgstr "Capacity"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:193
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:279
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:635
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:162
+#: venezuelan_pos/apps/sales/templates/sales/zone_seat_map.html:46
+msgid "Reserved"
+msgstr "Reserved"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:197
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:283
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:636
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:59
+#: venezuelan_pos/apps/sales/templates/sales/zone_seat_map.html:50
+msgid "Sold"
+msgstr "Sold"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:201
+#: venezuelan_pos/apps/events/templates/events/table_management.html:44
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:136
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:218
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:180
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:109
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:142
+msgid "Base Price"
+msgstr "Base Price"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:212
+#, fuzzy
+#| msgid "Events"
+msgid "Management Tools"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:219
+#, fuzzy
+#| msgid "Quick Actions"
+msgid "Bulk Actions"
+msgstr "Quick Actions"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:222
+#, fuzzy
+#| msgid "Available"
+msgid "Make Available"
+msgstr "Available"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:225
+#, fuzzy
+#| msgid "Reserved"
+msgid "Reserve"
+msgstr "Reserved"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:228
+msgid "Block"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:235
+msgid "Selection Tools"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:238
+msgid "Select All"
+msgstr "Select All"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:241
+#, fuzzy
+#| msgid "Confirm Deletion"
+msgid "Clear Selection"
+msgstr "Confirm Deletion"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:244
+msgid "Select Row"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:255
+msgid "Selected seats:"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:256
+#, fuzzy
+#| msgid "Actions"
+msgid "Instructions:"
+msgstr "Actions"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:256
+msgid "Click seats to select them, then use bulk actions above."
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:267
+msgid "Seat Map"
+msgstr "Seat Map"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:287
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:637
+#: venezuelan_pos/apps/sales/templates/sales/zone_seat_map.html:54
+msgid "Blocked"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:291
+#: venezuelan_pos/apps/sales/templates/sales/zone_seat_map.html:42
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:255
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:265
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:397
+msgid "Selected"
+msgstr "Selected"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:297
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:279
+#: venezuelan_pos/apps/sales/templates/sales/zone_seat_map.html:63
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:322
+msgid "STAGE"
+msgstr "STAGE"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:304
+msgid "Loading seats..."
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:327
+#: venezuelan_pos/apps/events/templates/events/table_management.html:80
+#: venezuelan_pos/apps/events/templates/events/table_management.html:369
+msgid "Table Name"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:337
+#: venezuelan_pos/apps/events/templates/events/table_management.html:90
+#: venezuelan_pos/apps/events/templates/events/table_management.html:379
+msgid "Sale Mode"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:339
+#: venezuelan_pos/apps/events/templates/events/table_management.html:92
+#: venezuelan_pos/apps/events/templates/events/table_management.html:262
+#: venezuelan_pos/apps/events/templates/events/table_management.html:381
+msgid "Individual Seats Allowed"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:340
+#: venezuelan_pos/apps/events/templates/events/table_management.html:93
+#: venezuelan_pos/apps/events/templates/events/table_management.html:262
+#: venezuelan_pos/apps/events/templates/events/table_management.html:382
+msgid "Complete Table Only"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:343
+#: venezuelan_pos/apps/events/templates/events/table_management.html:96
+msgid "Complete table only means all seats must be purchased together."
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:349
+msgid ""
+"After creating the table, select seats on the map and assign them to this "
+"table."
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:369
+#, fuzzy
+#| msgid "Tickets"
+msgid "Seat Details"
+msgstr "Tickets"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:379
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:376
+msgid "Save Changes"
+msgstr "Save Changes"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:438
+msgid "Error loading seats. Please refresh the page."
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:462
+#, fuzzy
+#| msgid "No Events Found"
+msgid "No Seats Found"
+msgstr "No Events Found"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:463
+msgid "Seats should be automatically generated for numbered zones."
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:577
+msgid "Enter row number to select:"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:592
+msgid "Please select seats first"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:596
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:249
+msgid "Update"
+msgstr "Update"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:596
+msgid "selected seats to"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:611
+msgid "Updated"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:611
+msgid "seats successfully"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:617
+msgid "Error updating seats"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:629
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:255
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:396
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:403
+#, fuzzy
+#| msgid "Location"
+msgid "Position"
+msgstr "Location"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:630
+#: venezuelan_pos/apps/events/templates/events/table_management.html:503
+#: venezuelan_pos/apps/events/templates/events/table_management.html:515
+#: venezuelan_pos/apps/events/templates/events/table_management.html:548
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:233
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:271
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:253
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:229
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:136
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:6
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:104
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:122
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:194
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:225
+msgid "Row"
+msgstr "Row"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:630
+#: venezuelan_pos/apps/events/templates/events/table_management.html:515
+#: venezuelan_pos/apps/events/templates/events/table_management.html:548
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:255
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:138
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:197
+msgid "Seat"
+msgstr "Seat"
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:641
+#, python-format
+msgid "Price Modifier (%%)"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:645
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:226
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:171
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:111
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:150
+msgid "Final Price"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:678
+msgid "Seat updated successfully"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:680
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:685
+msgid "Error updating seat"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:724
+#: venezuelan_pos/apps/events/templates/events/table_management.html:352
+msgid "Table created successfully!"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:726
+#: venezuelan_pos/apps/events/templates/events/table_management.html:354
+msgid "Error creating table:"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:731
+msgid "Error creating table"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/seat_management.html:739
+msgid "Hide Tables"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:4
+#: venezuelan_pos/apps/events/templates/events/table_management.html:13
+#, fuzzy
+#| msgid "Venue Management"
+msgid "Table Management"
+msgstr "Venue Management"
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:48
+msgid "Tables"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:59
+msgid "Loading tables..."
+msgstr "Loading tables..."
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:73
+msgid "Create New Table"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:101
+#: venezuelan_pos/apps/events/templates/events/table_management.html:387
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:145
+msgid "Display Order"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:130
+msgid "Edit Table"
+msgstr "Edit Table"
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:141
+msgid "Update Table"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:155
+msgid "Assign Seats to Table"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:161
+#, fuzzy
+#| msgid "Available"
+msgid "Available Seats"
+msgstr "Available"
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:171
+msgid "Selected Seats"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:173
+#: venezuelan_pos/apps/events/templates/events/table_management.html:542
+msgid "No seats selected"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:180
+msgid "Assign Seats"
+msgstr "Assign Seats"
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:215
+msgid "Error loading tables. Please refresh the page."
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:228
+msgid "No Tables Configured"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:229
+msgid "This zone doesn't have any tables configured yet."
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:231
+#, fuzzy
+#| msgid "Create First Event"
+msgid "Create First Table"
+msgstr "Create First Event"
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:240
+msgid "Table(s) Configured"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:268
+#: venezuelan_pos/apps/events/templates/events/table_management.html:301
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:268
+msgid "Seats"
+msgstr "Seats"
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:276
+#, fuzzy
+#| msgid "Venues"
+msgid "Total Price"
+msgstr "Venues"
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:284
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:264
+#, fuzzy
+#| msgid "Available"
+msgid "Availability"
+msgstr "Available"
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:304
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:30
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:274
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:115
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:236
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:312
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:270
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:129
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:206
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:154
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:269
+msgid "Delete"
+msgstr "Delete"
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:359
+msgid "Error creating table. Please try again."
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:437
+msgid "Table updated successfully!"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:439
+#: venezuelan_pos/apps/events/templates/events/table_management.html:444
+msgid "Error updating table"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:463
+msgid "Please select seats to assign"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:481
+msgid "Error loading seats"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:571
+msgid "Assigned"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:571
+msgid "seats to table"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:573
+msgid "Error assigning seats:"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:573
+msgid "Unknown error"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:578
+msgid "Error assigning seats"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:583
+#, fuzzy
+#| msgid "Are you sure you want to delete the venue"
+msgid "Are you sure you want to delete the table"
+msgstr "Are you sure you want to delete the venue"
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:583
+msgid "This will also remove all seat assignments."
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:593
+msgid "Table deleted successfully!"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/table_management.html:595
+#: venezuelan_pos/apps/events/templates/events/table_management.html:600
+msgid "Error deleting table"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:42
+msgid "Venue Information"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:48
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:96
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:183
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:107
+msgid "Location"
+msgstr "Location"
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:60
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:139
+msgid "people"
+msgstr "people"
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:81
+msgid "System Information"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:83
+#, fuzzy
+#| msgid "Create"
+msgid "Created:"
+msgstr "Create"
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:86
+msgid "Updated:"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:93
+msgid "Additional Configuration"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:122
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:111
+msgid "Upcoming"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:126
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:115
+msgid "Past"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:144
+#, fuzzy
+#| msgid "Create Event"
+msgid "Create Event at this Venue"
+msgstr "Create Event"
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:148
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:5
+#, fuzzy
+#| msgid "Venues"
+msgid "Edit Venue"
+msgstr "Venues"
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:153
+msgid "Deactivate Venue"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:158
+#, fuzzy
+#| msgid "Activate"
+msgid "Activate Venue"
+msgstr "Activate"
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:174
+msgid "Events at this Venue"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:177
+#, fuzzy
+#| msgid "Events"
+msgid "New Event"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:241
+#, fuzzy
+#| msgid "Events"
+msgid "View All Events"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:248
+msgid "No events scheduled at this venue"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:265
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:303
+msgid "Confirm Deletion"
+msgstr "Confirm Deletion"
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:269
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:307
+msgid "Are you sure you want to delete the venue"
+msgstr "Are you sure you want to delete the venue"
+
+#: venezuelan_pos/apps/events/templates/events/venue_detail.html:270
+#, fuzzy
+#| msgid "This action cannot be undone."
+msgid "This action cannot be undone and will delete all associated data."
+msgstr "This action cannot be undone."
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:5
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:25
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:21
+#, fuzzy
+#| msgid "Venues"
+msgid "New Venue"
+msgstr "Venues"
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:11
+msgid "New"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:23
+#, fuzzy
+#| msgid "Venues"
+msgid "Edit Venue:"
+msgstr "Venues"
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:44
+#, fuzzy
+#| msgid "Venue Management"
+msgid "Venue Name"
+msgstr "Venue Management"
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:52
+msgid "Unique and identifiable venue name"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:57
+#, fuzzy
+#| msgid "Events"
+msgid "Venue Type"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:69
+#, fuzzy
+#| msgid "Capacity"
+msgid "Maximum Capacity"
+msgstr "Capacity"
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:77
+msgid "Maximum number of people"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:84
+#, fuzzy
+#| msgid "Events"
+msgid "Active Venue"
+msgstr "Events"
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:86
+msgid "Inactive venues will not appear in event selection"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:110
+msgid "Complete address of the venue"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:115
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:44
+msgid "City"
+msgstr "City"
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:127
+msgid "State/Province"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:139
+msgid "Country"
+msgstr "Country"
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:151
+#, fuzzy
+#| msgid "Venues"
+msgid "Postal Code"
+msgstr "Venues"
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:173
+msgid "Contact Phone"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:181
+msgid "E.g.: +58-212-555-0123"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:186
+msgid "Contact Email"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:206
+msgid "Advanced Configuration (Optional)"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:213
+msgid "JSON Configuration"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:222
+msgid ""
+"Additional configuration in JSON format. E.g.: {\"parking\": true, \"wifi\": "
+"true}"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:244
+#, fuzzy
+#| msgid "Venues"
+msgid "View Venue"
+msgstr "Venues"
+
+#: venezuelan_pos/apps/events/templates/events/venue_form.html:249
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:17
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:17
+msgid "Create"
+msgstr "Create"
+
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:17
+msgid "Manage your venues and their features"
+msgstr "Manage your venues and their features"
+
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:32
+msgid "Name, city, address..."
+msgstr "Name, city, address..."
+
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:37
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:46
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:55
+msgid "All"
+msgstr "All"
+
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:38
+msgid "Physical"
+msgstr "Physical"
+
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:39
+msgid "Virtual"
+msgstr "Virtual"
+
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:40
+msgid "Hybrid"
+msgstr "Hybrid"
+
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:77
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:263
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:316
+msgid "of"
+msgstr "of"
+
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:152
 #, fuzzy
 #| msgid "Events"
 msgid "events"
 msgstr "Events"
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:253
-msgid "No venues registered"
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:281
+msgid "No venues found"
+msgstr "No venues found"
+
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:284
+msgid "No venues match the applied filters."
+msgstr "No venues match the applied filters."
+
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:286
+msgid "You haven't created any venues yet."
+msgstr "You haven't created any venues yet."
+
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:291
+msgid "Create First Venue"
 msgstr ""
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:268
-msgid "Recent Activity"
-msgstr ""
+#: venezuelan_pos/apps/events/templates/events/venue_list.html:308
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:272
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:196
+msgid "This action cannot be undone."
+msgstr "This action cannot be undone."
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:281
-msgid "System initialized"
-msgstr ""
-
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:282
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:4
 #, fuzzy
-#| msgid "Venezuelan POS System"
-msgid "Welcome to Venezuelan POS System"
-msgstr "Venezuelan POS System"
+#| msgid "Venue Management"
+msgid "Zones Management"
+msgstr "Venue Management"
 
-#: venezuelan_pos/apps/events/templates/events/dashboard.html:285
-msgid "Today"
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:13
+#, fuzzy
+#| msgid "Venue Management"
+msgid "Zone Management"
+msgstr "Venue Management"
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:18
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:213
+#, fuzzy
+#| msgid "Create"
+msgid "Create Zone"
+msgstr "Create"
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:77
+msgid "Visual Map Editor Available!"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:78
+msgid ""
+"Use the Map Editor to visually arrange your zones on the venue layout. Drag, "
+"resize, and position zones exactly where they should be."
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:80
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:256
+#, fuzzy
+#| msgid "Map Editor"
+msgid "Open Map Editor"
+msgstr "Map Editor"
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:89
+msgid "Loading zones..."
+msgstr "Loading zones..."
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:103
+#, fuzzy
+#| msgid "Create Event"
+msgid "Create New Zone"
+msgstr "Create Event"
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:112
+msgid "Zone Name"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:120
+msgid "Select type..."
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:164
+#, fuzzy
+#| msgid "General Assignment"
+msgid "General Admission Settings"
+msgstr "General Assignment"
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:179
+#, fuzzy
+#| msgid "Numbered Seating"
+msgid "Numbered Seating Settings"
+msgstr "Numbered Seating"
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:185
+msgid "Number of Rows"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:191
+msgid "Seats per Row"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:204
+msgid "Seats will be automatically generated based on rows and seats per row."
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:227
+#, fuzzy
+#| msgid "Edit"
+msgid "Edit Zone"
+msgstr "Edit"
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:238
+msgid "Update Zone"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:254
+msgid ""
+"This event doesn't have any zones configured yet. Create zones and arrange "
+"them visually!"
+msgstr ""
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:271
+#, fuzzy
+#| msgid "Are you sure you want to delete the venue"
+msgid "Are you sure you want to delete the zone"
+msgstr "Are you sure you want to delete the venue"
+
+#: venezuelan_pos/apps/events/templates/events/zone_list.html:334
+msgid "Error loading zones. Please refresh the page."
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:4
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:20
+msgid "Bulk Create Row Pricing"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:9
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:15
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:5
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:11
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:19
+msgid "Row Pricing"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:10
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:28
+msgid "Bulk Create"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:32
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:44
+msgid "Zone Base Price:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:35
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:47
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:47
+#, fuzzy
+#| msgid "Venues"
+msgid "Total Rows:"
+msgstr "Venues"
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:38
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:48
+msgid "Seats per Row:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:85
+msgid "This markup will be applied to all rows in the range"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:99
+#, python-brace-format
+msgid "Use {row} to include row number. Example: 'Row {row}'"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:107
+msgid "Preview"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:113
+msgid "Enter row range and markup to see preview"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:132
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:8
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:31
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:175
+msgid "Create Row Pricing"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:142
+msgid "Bulk Creation Guidelines"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:147
+msgid "How It Works"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:149
+msgid "Select a range of rows to configure"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:150
+msgid "Set a single markup percentage for all rows"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:151
+msgid "Optionally use a naming pattern"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:152
+msgid "All rows will be created as active"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:156
+msgid "Common Use Cases"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:158
+msgid "VIP Section:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:158
+#, python-format
+msgid "Rows 1-5 with 50%% markup"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:159
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:203
+msgid "Premium:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:159
+#, python-format
+msgid "Rows 6-12 with 25%% markup"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:160
+msgid "Standard:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:160
+#, python-format
+msgid "Rows 13-20 with 0%% markup"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:161
+msgid "Economy:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:161
+#, python-format
+msgid "Back rows with -10%% markup"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:167
+msgid "Note:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:168
+msgid ""
+"This will only create pricing for rows that don't already have pricing "
+"configured."
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:199
+msgid "Please enter a valid row range"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:214
+msgid "Rows to Create"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:222
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:146
+msgid "Markup Amount"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:235
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:110
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:70
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:106
+msgid "Markup"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:266
+msgid "more rows"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:304
+msgid "Start row must be between 1 and"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:310
+msgid "End row must be between 1 and"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/bulk_row_pricing_form.html:312
+msgid "End row must be greater than or equal to start row"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:4
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:14
+#, fuzzy
+#| msgid "Dashboard"
+msgid "Pricing Dashboard"
+msgstr "Dashboard"
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:18
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:4
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:8
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:15
+msgid "Price Calculator"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:21
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:4
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:8
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:15
+msgid "Price History"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:29
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:30
+msgid "Filters"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:47
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:79
+msgid "Apply Filters"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:71
+msgid "Events with Pricing"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:79
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:98
+msgid "Current Price Stages"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:87
+msgid "Active Row Pricing"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:113
+msgid "Until"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:119
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:160
+msgid "Manage"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:128
+msgid "No current price stages"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:139
+msgid "Upcoming Price Stages"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:154
+msgid "Starts"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:169
+msgid "No upcoming price stages"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:182
+msgid "Price Stage Distribution"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:191
+msgid "Stages"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:192
+msgid "Avg Markup"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:193
+msgid "Range"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:225
+msgid "No pricing data available"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:236
+msgid "Recent Price History"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:276
+msgid "No price history available"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:296
+msgid "Calculate Prices"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/dashboard.html:302
+#, fuzzy
+#| msgid "Events"
+msgid "Manage Events"
+msgstr "Events"
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:18
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:22
+#, fuzzy
+#| msgid "Dashboard"
+msgid "Back to Dashboard"
+msgstr "Dashboard"
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:27
+msgid "Calculation Parameters"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:58
+msgid "Select an event first to see available zones"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:100
+msgid "Leave empty to use current date and time"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:114
+msgid "Calculate Price"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:117
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:327
+msgid "Enable Real-time Calculation"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:127
+msgid "Quick Calculations"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:134
+msgid "Zone Base Price"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:140
+msgid "Front Row"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:146
+msgid "Middle Row"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:152
+msgid "Back Row"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:164
+msgid "Calculation Results"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:177
+msgid "Price Breakdown"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:184
+msgid "Total Markup"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:193
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:41
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:163
+msgid "Zone Information"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:194
+msgid "Zone:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:195
+msgid "Type:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:197
+msgid "Seat:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:199
+msgid "Calculation Date:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:205
+msgid "Price Stages Applied"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:211
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:107
+msgid "Current"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:226
+msgid "Row Pricing Applied"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:245
+msgid "Seat Modifier Applied"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:261
+msgid "Copy Results"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:264
+msgid "Save Calculation"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:270
+msgid "No Calculation Yet"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:271
+msgid "Fill in the form and click 'Calculate Price' to see results here."
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:280
+msgid "Recent Calculations"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:289
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:429
+msgid "No recent calculations"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:315
+msgid "Select an event first"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:323
+msgid "Disable Real-time"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:344
+msgid "Select a zone"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:459
+msgid "Please select a zone first"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:501
+msgid "Results copied to clipboard"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_calculation.html:508
+msgid "Calculation saved"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:19
+msgid "New Calculation"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:37
+#: venezuelan_pos/apps/sales/forms.py:106
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:172
+#, fuzzy
+#| msgid "Events"
+msgid "All Events"
+msgstr "Events"
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:46
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:106
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:261
+msgid "Zone"
+msgstr "Zone"
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:48
+msgid "All Zones"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:57
+msgid "Price Type"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:68
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:181
+msgid "From Date"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:73
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:186
+msgid "To Date"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:85
+#, fuzzy
+#| msgid "Reports"
+msgid "Export"
+msgstr "Reports"
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:95
+msgid "Price Calculation History"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:96
+msgid "records"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:141
+msgid "Zone Base"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:172
+msgid "Copy to Calculator"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:185
+msgid "Price history pagination"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:230
+msgid "No Price History"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:231
+msgid "No price calculations have been recorded yet."
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:233
+msgid "Start Calculating Prices"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:247
+#, fuzzy
+#| msgid "Venues"
+msgid "Total Records"
+msgstr "Venues"
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:255
+msgid "Average Price"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:263
+msgid "Highest Price"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:271
+msgid "Lowest Price"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:283
+msgid "Calculation Details"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:358
+msgid "Detailed calculation breakdown would be shown here."
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:360
+msgid "This would include:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:362
+msgid "Complete price breakdown"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:363
+msgid "Applied price stages"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:364
+msgid "Row and seat modifiers"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:365
+msgid "Calculation methodology"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:373
+msgid "Calculation copied to price calculator"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_history_list.html:389
+msgid "Export functionality would be implemented on the server side"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:6
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:29
+msgid "Edit Price Stage"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:8
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:31
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:173
+msgid "Create Price Stage"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:15
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:5
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:10
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:18
+msgid "Price Stages"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:53
+msgid "Examples: Early Bird, Regular, Last Minute"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:123
+msgid "Percentage increase over base price (0 = no increase)"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:127
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:136
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:107
+msgid "Price Preview"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:131
+msgid "Enter markup to see preview"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:152
+msgid "Only active price stages will be used for price calculations"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:171
+msgid "Update Price Stage"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:184
+msgid "Price Stage Guidelines"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:189
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:191
+msgid "Best Practices"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:191
+msgid "Use clear, descriptive names"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:192
+msgid "Ensure date ranges don't overlap"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:193
+msgid "Order stages chronologically"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:194
+msgid "Consider customer purchasing behavior"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:198
+msgid "Common Markup Examples"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:200
+msgid "Early Bird:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:201
+msgid "Regular:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:202
+msgid "Last Minute:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_form.html:227
+msgid "Example with $100 base price:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:24
+msgid "Add Price Stage"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:37
+msgid "Current Active Stage"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:41
+msgid "Active until"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:49
+msgid "No Active Price Stage"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:50
+msgid "There is no price stage currently active for this event."
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:58
+msgid "All Price Stages"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:59
+msgid "stages"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:67
+msgid "Order"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:69
+msgid "Period"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:72
+msgid "Stage Status"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:90
+msgid "Start:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:91
+msgid "End:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:118
+msgid "Scheduled"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:142
+msgid "No Price Stages"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:143
+msgid "This event doesn't have any price stages configured yet."
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:145
+msgid "Create First Price Stage"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:156
+msgid "Price Stage Timeline"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:189
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:252
+msgid "Confirm Delete"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/price_stage_list.html:193
+msgid "Are you sure you want to delete the price stage"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:6
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:29
+msgid "Edit Row Pricing"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:65
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:258
+msgid "Row number must be between 1 and"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:82
+msgid "Percentage increase over zone base price"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:99
+msgid "Optional name for this row (e.g., VIP, Premium, Standard)"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:129
+msgid "Only active row pricing will be used for price calculations"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:173
+msgid "Update Row Pricing"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:186
+msgid "Row Pricing Guidelines"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:193
+msgid "Front rows typically have higher markups"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:194
+msgid "Consider sight lines and accessibility"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:195
+msgid "Use consistent naming conventions"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:196
+msgid "Test pricing with sample calculations"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:200
+msgid "Common Row Markups"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:202
+msgid "Front Rows (1-3):"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:203
+msgid "Premium (4-8):"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:204
+msgid "Standard (9-15):"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_form.html:205
+msgid "Back Rows:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:10
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:277
+msgid "Zones"
+msgstr "Zones"
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:25
+msgid "Add Row Pricing"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:31
+msgid "Back to Zones"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:46
+msgid "Zone Type:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:51
+msgid "Base Price:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:52
+msgid "Total Capacity:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:53
+msgid "Status:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:66
+msgid "Pricing Statistics"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:72
+msgid "Configured"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:76
+msgid "Unconfigured"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:85
+msgid "complete"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:95
+msgid "Row Pricing Configuration"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:96
+msgid "configured rows"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:167
+msgid "No Row Pricing Configured"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:168
+msgid "This zone doesn't have any row-specific pricing configured yet."
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:171
+msgid "Add Single Row"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:174
+msgid "Bulk Create Rows"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:186
+msgid "Unconfigured Rows"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:190
+msgid ""
+"The following rows don't have specific pricing configured and will use the "
+"zone's base price:"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:199
+msgid "Configure All Rows"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:202
+msgid "Configure Single Row"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:213
+msgid "Visual Row Layout"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:256
+msgid "Are you sure you want to delete the pricing for row"
+msgstr ""
+
+#: venezuelan_pos/apps/pricing/templates/pricing/row_pricing_list.html:259
+msgid "This action cannot be undone. The row will use the zone's base price."
+msgstr ""
+
+#: venezuelan_pos/apps/sales/forms.py:25
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:245
+msgid "First Name"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/forms.py:34
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:252
+msgid "Last Name"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/forms.py:75
+msgid "First name is required for new customers"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/forms.py:78
+msgid "Last name is required for new customers"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/forms.py:81
+msgid "Phone number is required for new customers"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/forms.py:93
+msgid "Search by fiscal series, customer name, email..."
+msgstr ""
+
+#: venezuelan_pos/apps/sales/forms.py:138
+msgid "15 minutes"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/forms.py:139
+msgid "30 minutes"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/forms.py:140
+msgid "1 hour"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/forms.py:141
+msgid "2 hours"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/forms.py:155
+msgid "Optional reason for extension..."
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:4
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:9
+msgid "Checkout"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:8
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:8
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:8
+msgid "Cart"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:125
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:139
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:132
+msgid "Review & Customer"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:127
+msgid "Select customer information"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:135
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:151
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:9
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:142
+msgid "Payment"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:137
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:144
+msgid "Choose payment method"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:145
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:161
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:152
+msgid "Confirmation"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:147
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:163
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:154
+msgid "Review and complete"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:155
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:171
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:162
+msgid "Complete"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:157
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:173
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:164
+msgid "Get your tickets"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:221
+msgid "New Customer"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:223
+msgid "Enter new customer information"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:239
+msgid "New Customer Information"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:278
+msgid "ID Number (Cédula)"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:293
+msgid "Continue to Payment"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:306
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:296
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:333
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:186
+msgid "Order Summary"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:333
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:250
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:93
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:154
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:444
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:144
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:242
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:247
+#, fuzzy
+#| msgid "Tickets"
+msgid "tickets"
+msgstr "Tickets"
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:360
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:305
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:196
+msgid "Subtotal:"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:364
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:309
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:200
+msgid "Taxes:"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:365
+msgid "Calculated at payment"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:369
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:314
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:135
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:460
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:205
+#: venezuelan_pos/apps/sales/templates/sales/zone_seat_map.html:101
+msgid "Total:"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:378
+msgid "Secure checkout process"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout.html:381
+msgid "Session expires in 15 minutes"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:4
+msgid "Confirm Purchase"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:9
+msgid "Confirm"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:141
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:134
+msgid "Customer selected"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:153
+msgid "Payment method selected"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:184
+msgid "Confirm Your Purchase"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:186
+msgid "Please review your order details before completing the purchase"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:226
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:218
+#, fuzzy
+#| msgid "Tickets"
+msgid "Ticket Details"
+msgstr "Tickets"
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:281
+msgid "I agree to the terms and conditions"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:285
+msgid ""
+"By completing this purchase, you agree to our refund policy and event terms. "
+"Tickets are non-refundable unless the event is cancelled."
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:301
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:192
+msgid "Items:"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:325
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:4
+msgid "Payment Method"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:331
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:190
+msgid "Cash Payment"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:334
+msgid "Payment will be processed immediately upon confirmation"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:344
+#, fuzzy
+#| msgid "Events"
+msgid "Total Amount"
+msgstr "Events"
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:349
+msgid "USD - All taxes included"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:357
+msgid "Back to Payment"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:366
+msgid "Complete Purchase"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:376
+msgid "Your transaction is secure and encrypted"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_confirm.html:379
+msgid "Please complete your purchase within the next few minutes"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:176
+msgid "Select Payment Method"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:192
+msgid "Pay with cash at the point of sale"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:195
+msgid "Immediate processing"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:218
+msgid "Credit/Debit Card"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:220
+msgid "Pay with Visa, Mastercard, or local cards"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:223
+msgid "Secure payment processing"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:246
+msgid "Bank Transfer"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:248
+msgid "Direct bank transfer with reference number"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:251
+msgid "May require verification"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:274
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:382
+msgid "PagoMovil"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:276
+msgid "Mobile payment through Venezuelan banks"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:279
+msgid "Quick mobile payment"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:297
+msgid "Continue to Confirmation"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:310
+msgid "Customer"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:338
+#, fuzzy
+#| msgid "Events"
+msgid "Total Amount:"
+msgstr "Events"
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:345
+msgid "Payment Details"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:348
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:359
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:370
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:381
+msgid "Payment Method:"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:349
+msgid "Cash"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:352
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:385
+msgid "Processing:"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:353
+msgid "Immediate"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:360
+msgid "Card"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:363
+msgid "Processing Fee:"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:364
+msgid "Included"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:371
+msgid "Transfer"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:374
+msgid "Verification:"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:375
+msgid "Required"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:386
+msgid "Instant"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/checkout_payment.html:395
+msgid "All payments are secure and encrypted"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:4
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:13
+#, fuzzy
+#| msgid "Dashboard"
+msgid "Sales Dashboard"
+msgstr "Dashboard"
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:14
+msgid "Real-time sales overview and active events"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:19
+msgid "All Transactions"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:23
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:4
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:8
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:84
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:101
+msgid "Reservations"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:36
+msgid "Today's Sales"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:40
+#, fuzzy
+#| msgid "Tickets"
+msgid "Tickets sold"
+msgstr "Tickets"
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:51
+msgid "Today's Revenue"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:55
+#, fuzzy
+#| msgid "Venues"
+msgid "Total income"
+msgstr "Venues"
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:69
+msgid "Awaiting payment"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:80
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:103
+msgid "Active Reservations"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:83
+msgid "Reserved seats"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:97
+#, fuzzy
+#| msgid "Events"
+msgid "Active Events"
+msgstr "Events"
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:122
+msgid "Sell"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:131
+msgid "No active events available"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:132
+msgid "Create an event to start selling tickets"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:145
+#, fuzzy
+#| msgid "Events"
+msgid "Recent Transactions"
+msgstr "Events"
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:183
+msgid "View All Transactions"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:189
+msgid "No recent transactions"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:190
+msgid "Transactions will appear here once sales begin"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:208
+msgid "Expiring Reservations"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:210
+msgid "The following reservations will expire within 1 hour:"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:239
+msgid "Manage Reservations"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:261
+msgid "Refreshing dashboard data..."
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/dashboard.html:273
+msgid "Dashboard loaded successfully"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:16
+#, fuzzy
+#| msgid "Tickets"
+msgid "tickets available"
+msgstr "Tickets"
+
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:27
+msgid "Per ticket"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:74
+msgid "Select Number of Tickets"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:93
+msgid "Maximum"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:99
+msgid "Quick select:"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:122
+msgid "Pricing Summary"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:126
+msgid "Unit Price:"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:130
+msgid "Quantity:"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:148
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:330
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:383
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:413
+msgid "Sold Out"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:150
+#: venezuelan_pos/apps/sales/templates/sales/zone_seat_map.html:104
+msgid "Add to Cart"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:167
+msgid "General admission seating"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:168
+msgid "First come, first served"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:169
+msgid "Entry allowed during event hours"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/general_admission.html:175
+msgid "Pricing Stages:"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:91
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:8
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:4
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:8
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:94
+msgid "Transactions"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:106
+msgid "All Reservations"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:109
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:178
+msgid "Expired"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:112
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:141
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:389
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:156
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:158
+msgid "Completed"
+msgstr "Completed"
+
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:121
+msgid "Refresh"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:162
+msgid "Reserved until"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:172
+msgid "Time remaining"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:189
+msgid "Extend by 30 minutes"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:190
+msgid "Extend"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:196
+msgid "Are you sure you want to cancel this reservation?"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:197
+msgid "Cancel reservation"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:230
+msgid "No reservations found"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:233
+msgid "There are no active reservations at the moment."
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:235
+msgid "No reservations match the current filter."
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:239
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:334
+msgid "Start Selling"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/reservation_list.html:248
+msgid "This page refreshes automatically every 30 seconds"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:5
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:9
+msgid "Seat Selection"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:246
+msgid "Select Zone"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:249
+msgid "Map"
+msgstr "Map"
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:252
+msgid "Grid"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:255
+msgid "List"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:265
+msgid "Zoom In"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:268
+msgid "Zoom Out"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:271
+msgid "Reset Zoom"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:303
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:407
+msgid "available"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:322
+msgid "Numbered Zone"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:326
+msgid "General Zone"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:349
+msgid "Numbered"
+msgstr "Numbered"
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:351
+msgid "General"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:368
+msgid "from"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:378
+msgid "occupied"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:405
+#: venezuelan_pos/apps/sales/templates/sales/zone_seat_map.html:10
+msgid "Numbered Seats"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:430
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:4
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:8
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:90
+msgid "Shopping Cart"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:466
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:213
+msgid "Proceed to Checkout"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:469
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:101
+msgid "Clear Cart"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:475
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:263
+msgid "Your cart is empty"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:476
+msgid "Select seats or zones to add tickets"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/seat_selection.html:490
+msgid "Select Seats"
+msgstr "Select Seats"
+
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:97
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:217
+msgid "Continue Shopping"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:167
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:290
+msgid "Remove"
+msgstr "Remove"
+
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:201
+msgid "Calculated at checkout"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:225
+msgid "Your cart is secure and will be held for 15 minutes"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:236
+msgid "Recommendations"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:243
+msgid "Complete your purchase within 15 minutes to secure your seats"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:247
+msgid "Multiple payment methods accepted"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:251
+msgid "Digital tickets will be sent immediately after payment"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:265
+msgid "Browse our events and add tickets to your cart to get started."
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:269
+#, fuzzy
+#| msgid "Events"
+msgid "Browse Events"
+msgstr "Events"
+
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:279
+msgid "Remove Item"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:283
+msgid "Are you sure you want to remove this item from your cart?"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:384
+msgid "Are you sure you want to clear your entire cart?"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/shopping_cart.html:401
+msgid "Cart cleared successfully"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:4
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:126
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:128
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:415
+msgid "Transaction"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:267
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:347
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:211
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:226
+msgid "Tax"
+msgstr "Tax"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:285
+msgid "Fiscal Information"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:289
+msgid "Fiscal Series"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:294
+msgid "Issue Date"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:317
+msgid "Print Receipt"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:324
+msgid "Complete Transaction"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:330
+msgid "Back to Transactions"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:339
+msgid "Transaction Summary"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:342
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:221
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:354
+msgid "Total"
+msgstr "Total"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:367
+msgid "Transaction Details"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:373
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:248
+msgid "Transaction ID"
+msgstr "Transaction ID"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:395
+msgid "Items"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_detail.html:413
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:7
+msgid "Receipt"
+msgstr "Receipt"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:112
+#, fuzzy
+#| msgid "Events"
+msgid "Total Transactions"
+msgstr "Events"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:120
+msgid "Filtered Results"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:128
+msgid "Match Rate"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:136
+msgid "Pages"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:149
+msgid "Fiscal series, customer name, email..."
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:272
+msgid "Transactions pagination"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:315
+msgid "Showing"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:316
+msgid "transactions"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:324
+msgid "No transactions found"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:327
+msgid "Try adjusting your search filters or"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:328
+msgid "clear all filters"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_list.html:330
+msgid "No transactions have been created yet."
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:133
+msgid "FISCAL RECEIPT"
+msgstr "FISCAL RECEIPT"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:135
+msgid "TRANSACTION RECEIPT"
+msgstr "TRANSACTION RECEIPT"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:143
+msgid "Receipt #"
+msgstr "Receipt #"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:170
+msgid "CUSTOMER"
+msgstr "CUSTOMER"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:182
+msgid "EVENT"
+msgstr "EVENT"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:191
+msgid "TICKETS"
+msgstr "TICKETS"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:199
+msgid "Quantity"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:207
+#, fuzzy
+#| msgid "Price"
+msgid "Unit Price"
+msgstr "Price"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:231
+msgid "TOTAL"
+msgstr "TOTAL"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:238
+msgid "Thank you for your purchase!"
+msgstr "Thank you for your purchase!"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:239
+msgid "Keep this receipt for your records"
+msgstr "Keep this receipt for your records"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:242
+msgid "FISCAL DOCUMENT"
+msgstr "FISCAL DOCUMENT"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:243
+msgid "Series"
+msgstr "Series"
+
+#: venezuelan_pos/apps/sales/templates/sales/transaction_receipt.html:244
+msgid "Issued"
+msgstr "Issued"
+
+#: venezuelan_pos/apps/sales/templates/sales/zone_seat_map.html:13
+msgid "seats total"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/zone_seat_map.html:20
+msgid "Base price"
+msgstr ""
+
+#: venezuelan_pos/apps/sales/templates/sales/zone_seat_map.html:94
+msgid "Selected Seats:"
+msgstr ""
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:4
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:223
+#, fuzzy
+#| msgid "Map Editor"
+msgid "Zone Map Editor"
+msgstr "Map Editor"
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:228
+msgid "Save Layout"
+msgstr "Save Layout"
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:231
+#, fuzzy
+#| msgid "Reserved"
+msgid "Reset"
+msgstr "Reserved"
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:255
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:398
+msgid "None"
+msgstr "None"
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:302
+msgid "No zones found. Create zones first."
+msgstr "No zones found. Create zones first."
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:314
+msgid "Venue Layout"
+msgstr "Venue Layout"
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:366
+msgid "Zone Properties"
+msgstr "Zone Properties"
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:399
+msgid "Reset all zones to default positions? This cannot be undone."
+msgstr ""
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:400
+msgid "Layout saved successfully!"
+msgstr ""
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:401
+msgid "Error saving layout"
+msgstr "Error saving layout"
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:402
+msgid "Error updating zone position"
+msgstr "Error updating zone position"
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:404
+msgid "X Position"
+msgstr "X Position"
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:405
+msgid "Y Position"
+msgstr "Y Position"
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:406
+msgid "Size"
+msgstr "Size"
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:407
+msgid "Width"
+msgstr "Width"
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:408
+msgid "Height"
+msgstr "Height"
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:409
+msgid "Rotation (degrees)"
+msgstr ""
+
+#: venezuelan_pos/apps/zones/templates/zones/zone_map_editor.html:410
+msgid "Properties"
 msgstr ""

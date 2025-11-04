@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Pago Recibido - {{ event.name }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .header { background-color: #28a745; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; }
+        .payment-info { background-color: #d4edda; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #28a745; }
+        .footer { background-color: #6c757d; color: white; padding: 15px; text-align: center; font-size: 12px; }
+        .amount { font-weight: bold; color: #28a745; }
+        .remaining { font-weight: bold; color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>¡Pago Recibido!</h1>
+        <p>{{ event.name }}</p>
+    </div>
+    
+    <div class="content">
+        <p>Estimado/a {{ customer.name }} {{ customer.surname }},</p>
+        
+        <p>Hemos recibido su pago exitosamente. A continuación los detalles:</p>
+        
+        <div class="payment-info">
+            <h3>Detalles del Pago</h3>
+            <p><strong>Evento:</strong> {{ event.name }}</p>
+            <p><strong>Fecha del Pago:</strong> {{ payment.completed_at|date:"d/m/Y H:i" }}</p>
+            <p><strong>Monto Pagado:</strong> <span class="amount">${{ amount_paid }}</span></p>
+            {% if remaining_balance > 0 %}
+            <p><strong>Saldo Pendiente:</strong> <span class="remaining">${{ remaining_balance }}</span></p>
+            {% else %}
+            <p><strong>Estado:</strong> <span class="amount">¡Pago Completo!</span></p>
+            {% endif %}
+        </div>
+        
+        {% if remaining_balance > 0 %}
+        <p><strong>Próximos Pasos:</strong></p>
+        <ul>
+            <li>Su reserva se mantiene activa</li>
+            <li>Complete el pago restante antes de la fecha límite</li>
+            <li>Recibirá recordatorios automáticos</li>
+        </ul>
+        {% else %}
+        <p><strong>¡Felicitaciones!</strong> Ha completado el pago de sus entradas. Sus entradas digitales serán enviadas por separado.</p>
+        {% endif %}
+        
+        <p>¡Gracias por su pago!</p>
+    </div>
+    
+    <div class="footer">
+        <p>Venezuelan POS System</p>
+        <p>Este es un correo automático, por favor no responda.</p>
+    </div>
+</body>
+</html>

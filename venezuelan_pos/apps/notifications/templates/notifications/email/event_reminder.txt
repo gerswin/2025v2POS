@@ -1,0 +1,23 @@
+¡SU EVENTO ES MAÑANA!
+
+Estimado/a {{ customer.name }} {{ customer.surname }},
+
+Le recordamos que el evento para el cual adquirió entradas se realizará MAÑANA.
+
+DETALLES DEL EVENTO:
+- Evento: {{ event.name }}
+- Fecha y Hora: {{ event_date|date:"d/m/Y H:i" }}
+{% if venue %}- Lugar: {{ venue.name }}{% if venue.address %}
+- Dirección: {{ venue.address }}{% endif %}{% endif %}
+
+RECOMENDACIONES:
+- Llegue con suficiente anticipación
+- Traiga su entrada digital o impresa
+- Presente su documento de identidad
+- Revise las políticas del evento
+
+¡Esperamos que disfrute del evento!
+
+---
+Venezuelan POS System
+Este es un correo automático, por favor no responda.

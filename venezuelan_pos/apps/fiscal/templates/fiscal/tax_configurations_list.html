@@ -1,0 +1,268 @@
+{% extends "fiscal/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{% trans "Tax Configurations" %}</h1>
+                <a href="{% url 'fiscal:tax_configuration_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> {% trans "New Tax Configuration" %}
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search Form -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-8">
+                            {{ search_form.search_query }}
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="fas fa-search"></i> {% trans "Search" %}
+                            </button>
+                            <a href="{% url 'fiscal:tax_configurations_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> {% trans "Clear" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tax Configurations List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        {% trans "Tax Configurations" %}
+                        {% if page_obj %}
+                        <span class="badge bg-secondary">{{ page_obj.paginator.count }}</span>
+                        {% endif %}
+                    </h5>
+                </div>
+                
+                <div class="card-body p-0">
+                    {% if page_obj.object_list %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{% trans "Name" %}</th>
+                                    <th>{% trans "Type" %}</th>
+                                    <th>{% trans "Scope" %}</th>
+                                    <th>{% trans "Event" %}</th>
+                                    <th>{% trans "Rate/Amount" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tax_config in page_obj.object_list %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ tax_config.name }}</strong>
+                                        {% if tax_config.description %}
+                                        <br><small class="text-muted">{{ tax_config.description|truncatechars:50 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ tax_config.get_tax_type_display }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ tax_config.get_scope_display }}</span>
+                                    </td>
+                                    <td>
+                                        {% if tax_config.event %}
+                                        <a href="{% url 'events:event_detail' tax_config.event.id %}" class="text-decoration-none">
+                                            {{ tax_config.event.name|truncatechars:30 }}
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">{% trans "All Events" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if tax_config.tax_type == 'PERCENTAGE' or tax_config.tax_type == 'COMPOUND' %}
+                                        <span class="tax-rate">{{ tax_config.rate|floatformat:2 }}%</span>
+                                        {% elif tax_config.tax_type == 'FIXED' %}
+                                        <span class="currency">{{ tax_config.fixed_amount|floatformat:2 }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if tax_config.is_active %}
+                                        <span class="badge bg-success">{% trans "Active" %}</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">{% trans "Inactive" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'fiscal:tax_configuration_detail' tax_config.id %}" 
+                                               class="btn btn-outline-primary" title="{% trans 'View Details' %}">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'fiscal:tax_configuration_edit' tax_config.id %}" 
+                                               class="btn btn-outline-secondary" title="{% trans 'Edit' %}">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                    <div class="card-footer">
+                        <nav aria-label="{% trans 'Tax configurations pagination' %}">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% if request.GET.search_query %}search_query={{ request.GET.search_query }}&{% endif %}page=1">
+                                        {% trans "First" %}
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% if request.GET.search_query %}search_query={{ request.GET.search_query }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                                        {% trans "Previous" %}
+                                    </a>
+                                </li>
+                                {% endif %}
+                                
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        {% trans "Page" %} {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+                                    </span>
+                                </li>
+                                
+                                {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% if request.GET.search_query %}search_query={{ request.GET.search_query }}&{% endif %}page={{ page_obj.next_page_number }}">
+                                        {% trans "Next" %}
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% if request.GET.search_query %}search_query={{ request.GET.search_query }}&{% endif %}page={{ page_obj.paginator.num_pages }}">
+                                        {% trans "Last" %}
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-percentage fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">{% trans "No tax configurations found" %}</h5>
+                        <p class="text-muted">
+                            {% if request.GET.search_query %}
+                            {% trans "No tax configurations match your search criteria." %}
+                            <a href="{% url 'fiscal:tax_configurations_list' %}">{% trans "Clear search" %}</a>
+                            {% else %}
+                            {% trans "Create your first tax configuration to get started." %}
+                            {% endif %}
+                        </p>
+                        {% if not request.GET.search_query %}
+                        <a href="{% url 'fiscal:tax_configuration_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> {% trans "Create Tax Configuration" %}
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Summary Cards -->
+    {% if page_obj.object_list %}
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">{{ page_obj.paginator.count }}</h5>
+                    <p class="card-text">{% trans "Total Configurations" %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-success">
+                        {% with active_count=page_obj.object_list|length %}
+                        {{ active_count }}
+                        {% endwith %}
+                    </h5>
+                    <p class="card-text">{% trans "Active Configurations" %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-info">
+                        {% regroup page_obj.object_list by scope as scope_groups %}
+                        {{ scope_groups|length }}
+                    </h5>
+                    <p class="card-text">{% trans "Scope Types" %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-warning">
+                        {% regroup page_obj.object_list by tax_type as type_groups %}
+                        {{ type_groups|length }}
+                    </h5>
+                    <p class="card-text">{% trans "Tax Types" %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Format currency values
+    const currencyElements = document.querySelectorAll('.currency');
+    currencyElements.forEach(element => {
+        const value = parseFloat(element.textContent);
+        if (!isNaN(value)) {
+            element.textContent = '$' + value.toFixed(2);
+        }
+    });
+    
+    // Format tax rates as percentages
+    const rateElements = document.querySelectorAll('.tax-rate');
+    rateElements.forEach(element => {
+        const value = parseFloat(element.textContent);
+        if (!isNaN(value)) {
+            element.textContent = (value * 100).toFixed(2) + '%';
+        }
+    });
+    
+    // Add tooltips to action buttons
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

@@ -125,7 +125,7 @@ class ZoneSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'event', 'name', 'description', 'zone_type', 'capacity',
             'rows', 'seats_per_row', 'row_configuration', 'base_price', 'status', 'display_order',
-            'map_x', 'map_y', 'map_width', 'map_height', 'map_rotation',
+            'map_x', 'map_y', 'map_width', 'map_height', 'map_rotation', 'map_color',
             'available_capacity', 'sold_capacity', 'is_sold_out',
             'seats', 'tables', 'configuration', 'created_at', 'updated_at'
         ]
@@ -234,6 +234,7 @@ class ZoneListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'event', 'name', 'description', 'zone_type', 'capacity',
             'rows', 'seats_per_row', 'base_price', 'status', 'display_order',
+            'map_color',
             'available_capacity', 'sold_capacity', 'is_sold_out',
             'created_at', 'updated_at'
         ]

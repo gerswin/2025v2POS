@@ -1,0 +1,646 @@
+{% extends "reports/base.html" %}
+{% load static %}
+
+{% block title %}{{ report.name }} - Venezuelan POS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">{{ report.name }}</h1>
+                    <p class="text-muted">
+                        {{ report.get_report_type_display }} • 
+                        Generado el {{ report.created_at|date:"d/m/Y H:i" }}
+                        {% if report.generated_by %}
+                            por {{ report.generated_by.get_full_name|default:report.generated_by.username }}
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    {% if report.is_completed %}
+                        <div class="btn-group me-2" role="group">
+                            <button class="btn btn-outline-success" onclick="exportReport('csv')">
+                                <i class="fas fa-file-csv"></i> CSV
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="exportReport('json')">
+                                <i class="fas fa-file-code"></i> JSON
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="exportReport('pdf')">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </button>
+                        </div>
+                    {% endif %}
+                    <a href="{% url 'reports:sales_reports_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status and Summary -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="chart-container">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle text-info"></i>
+                        Información del Reporte
+                    </h5>
+                    <span class="status-badge status-{{ report.status }}">
+                        {{ report.get_status_display }}
+                    </span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Tipo:</strong></td>
+                                <td>{{ report.get_report_type_display }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Período:</strong></td>
+                                <td>
+                                    {% if report.period_start and report.period_end %}
+                                        {{ report.period_start|date:"d/m/Y H:i" }} - 
+                                        {{ report.period_end|date:"d/m/Y H:i" }}
+                                        <br><small class="text-muted">({{ report.duration_display }})</small>
+                                    {% else %}
+                                        No especificado
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Estado:</strong></td>
+                                <td>
+                                    <span class="status-badge status-{{ report.status }}">
+                                        {{ report.get_status_display }}
+                                    </span>
+                                    {% if report.completed_at %}
+                                        <br><small class="text-muted">
+                                            Completado: {{ report.completed_at|date:"d/m/Y H:i" }}
+                                        </small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Generado por:</strong></td>
+                                <td>
+                                    {% if report.generated_by %}
+                                        {{ report.generated_by.get_full_name|default:report.generated_by.username }}
+                                    {% else %}
+                                        Sistema
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Formatos disponibles:</strong></td>
+                                <td>
+                                    {% if report.export_formats %}
+                                        {% for format in report.export_formats %}
+                                            <span class="badge bg-secondary me-1">{{ format|upper }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">Ninguno</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Filtros aplicados:</strong></td>
+                                <td>
+                                    {% if report.filters %}
+                                        <button class="btn btn-sm btn-outline-info" onclick="showFilters()">
+                                            Ver filtros
+                                        </button>
+                                    {% else %}
+                                        <span class="text-muted">Ninguno</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            {% if report.is_completed and report.detailed_data.base_statistics %}
+                <div class="chart-container">
+                    <h6 class="mb-3">
+                        <i class="fas fa-chart-bar text-success"></i>
+                        Resumen Ejecutivo
+                    </h6>
+                    
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="metric-value text-success">
+                                ${{ report.detailed_data.base_statistics.total_revenue|floatformat:2 }}
+                            </div>
+                            <small class="text-muted">Ingresos Totales</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="metric-value text-primary">
+                                {{ report.detailed_data.base_statistics.total_transactions }}
+                            </div>
+                            <small class="text-muted">Transacciones</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-value text-info">
+                                {{ report.detailed_data.base_statistics.total_tickets }}
+                            </div>
+                            <small class="text-muted">Tickets Vendidos</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-value text-warning">
+                                ${{ report.detailed_data.base_statistics.average_ticket_price|floatformat:2 }}
+                            </div>
+                            <small class="text-muted">Precio Promedio</small>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if report.is_completed and report.detailed_data %}
+        <!-- Detailed Data -->
+        <div class="row">
+            <div class="col-12">
+                <div class="chart-container">
+                    <h5 class="mb-3">
+                        <i class="fas fa-chart-line text-primary"></i>
+                        Datos Detallados del Reporte
+                    </h5>
+
+                    <!-- Navigation Tabs -->
+                    <ul class="nav nav-tabs" id="reportTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab">
+                                <i class="fas fa-chart-pie"></i> Resumen
+                            </button>
+                        </li>
+                        {% if report.detailed_data.breakdowns.by_event %}
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="events-tab" data-bs-toggle="tab" data-bs-target="#events" type="button" role="tab">
+                                    <i class="fas fa-calendar"></i> Por Evento
+                                </button>
+                            </li>
+                        {% endif %}
+                        {% if report.detailed_data.breakdowns.by_zone %}
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="zones-tab" data-bs-toggle="tab" data-bs-target="#zones" type="button" role="tab">
+                                    <i class="fas fa-map-marked-alt"></i> Por Zona
+                                </button>
+                            </li>
+                        {% endif %}
+                        {% if report.detailed_data.breakdowns.by_day %}
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="daily-tab" data-bs-toggle="tab" data-bs-target="#daily" type="button" role="tab">
+                                    <i class="fas fa-calendar-day"></i> Diario
+                                </button>
+                            </li>
+                        {% endif %}
+                        {% if report.detailed_data.breakdowns.by_payment_method %}
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" type="button" role="tab">
+                                    <i class="fas fa-credit-card"></i> Métodos de Pago
+                                </button>
+                            </li>
+                        {% endif %}
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content mt-3" id="reportTabContent">
+                        <!-- Summary Tab -->
+                        <div class="tab-pane fade show active" id="summary" role="tabpanel">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <canvas id="summaryChart"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Estadísticas Principales</h6>
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td>Ingresos Totales:</td>
+                                            <td class="text-end fw-bold text-success">
+                                                ${{ report.detailed_data.base_statistics.total_revenue|floatformat:2 }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Total de Transacciones:</td>
+                                            <td class="text-end fw-bold">
+                                                {{ report.detailed_data.base_statistics.total_transactions }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Tickets Vendidos:</td>
+                                            <td class="text-end fw-bold">
+                                                {{ report.detailed_data.base_statistics.total_tickets }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Precio Promedio por Ticket:</td>
+                                            <td class="text-end fw-bold">
+                                                ${{ report.detailed_data.base_statistics.average_ticket_price|floatformat:2 }}
+                                            </td>
+                                        </tr>
+                                        {% if report.detailed_data.base_statistics.total_subtotal %}
+                                            <tr>
+                                                <td>Subtotal:</td>
+                                                <td class="text-end">
+                                                    ${{ report.detailed_data.base_statistics.total_subtotal|floatformat:2 }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Impuestos:</td>
+                                                <td class="text-end">
+                                                    ${{ report.detailed_data.base_statistics.total_tax|floatformat:2 }}
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Events Tab -->
+                        {% if report.detailed_data.breakdowns.by_event %}
+                            <div class="tab-pane fade" id="events" role="tabpanel">
+                                <div class="table-responsive">
+                                    <table class="table table-hover data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Evento</th>
+                                                <th>Transacciones</th>
+                                                <th>Tickets</th>
+                                                <th>Ingresos</th>
+                                                <th>Promedio</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for event in report.detailed_data.breakdowns.by_event %}
+                                                <tr>
+                                                    <td><strong>{{ event.event_name }}</strong></td>
+                                                    <td>{{ event.transactions }}</td>
+                                                    <td>{{ event.tickets }}</td>
+                                                    <td class="text-success fw-bold">${{ event.revenue|floatformat:2 }}</td>
+                                                    <td>${{ event.revenue|div:event.tickets|floatformat:2 }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Zones Tab -->
+                        {% if report.detailed_data.breakdowns.by_zone %}
+                            <div class="tab-pane fade" id="zones" role="tabpanel">
+                                <div class="table-responsive">
+                                    <table class="table table-hover data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Zona</th>
+                                                <th>Evento</th>
+                                                <th>Tickets</th>
+                                                <th>Capacidad</th>
+                                                <th>Ocupación</th>
+                                                <th>Ingresos</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for zone in report.detailed_data.breakdowns.by_zone %}
+                                                <tr>
+                                                    <td><strong>{{ zone.zone_name }}</strong></td>
+                                                    <td>{{ zone.event_name }}</td>
+                                                    <td>{{ zone.tickets }}</td>
+                                                    <td>{{ zone.capacity }}</td>
+                                                    <td>
+                                                        <div class="progress" style="height: 20px;">
+                                                            <div class="progress-bar" 
+                                                                 style="width: {{ zone.fill_rate }}%"
+                                                                 role="progressbar">
+                                                                {{ zone.fill_rate|floatformat:1 }}%
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-success fw-bold">${{ zone.revenue|floatformat:2 }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Daily Tab -->
+                        {% if report.detailed_data.breakdowns.by_day %}
+                            <div class="tab-pane fade" id="daily" role="tabpanel">
+                                <div class="mb-3">
+                                    <canvas id="dailyChart" height="100"></canvas>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Fecha</th>
+                                                <th>Transacciones</th>
+                                                <th>Tickets</th>
+                                                <th>Ingresos</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for day in report.detailed_data.breakdowns.by_day %}
+                                                <tr>
+                                                    <td>{{ day.date }}</td>
+                                                    <td>{{ day.transactions }}</td>
+                                                    <td>{{ day.tickets }}</td>
+                                                    <td class="text-success fw-bold">${{ day.revenue|floatformat:2 }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Payment Methods Tab -->
+                        {% if report.detailed_data.breakdowns.by_payment_method %}
+                            <div class="tab-pane fade" id="payments" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <canvas id="paymentMethodsChart"></canvas>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Método de Pago</th>
+                                                        <th>Cantidad</th>
+                                                        <th>Monto</th>
+                                                        <th>%</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for payment in report.detailed_data.breakdowns.by_payment_method %}
+                                                        <tr>
+                                                            <td>{{ payment.method }}</td>
+                                                            <td>{{ payment.count }}</td>
+                                                            <td class="text-success fw-bold">${{ payment.amount|floatformat:2 }}</td>
+                                                            <td>
+                                                                {% widthratio payment.amount report.detailed_data.base_statistics.total_revenue 100 %}%
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% elif report.status == 'generating' %}
+        <div class="row">
+            <div class="col-12">
+                <div class="chart-container">
+                    <div class="text-center py-5">
+                        <div class="loading-spinner mb-3"></div>
+                        <h4 class="text-muted">Generando reporte...</h4>
+                        <p class="text-muted">
+                            El reporte se está procesando. Esta página se actualizará automáticamente cuando esté listo.
+                        </p>
+                        <button class="btn btn-outline-primary" onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i> Actualizar Estado
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% elif report.status == 'failed' %}
+        <div class="row">
+            <div class="col-12">
+                <div class="chart-container">
+                    <div class="text-center py-5">
+                        <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
+                        <h4 class="text-danger">Error en la Generación del Reporte</h4>
+                        <p class="text-muted">
+                            Hubo un problema al generar este reporte. Por favor, intenta nuevamente.
+                        </p>
+                        <div>
+                            <a href="{% url 'reports:sales_report_create' %}" class="btn btn-primary me-2">
+                                <i class="fas fa-plus"></i> Crear Nuevo Reporte
+                            </a>
+                            <button class="btn btn-outline-warning" onclick="retryReport()">
+                                <i class="fas fa-redo"></i> Reintentar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Filters Modal -->
+<div class="modal fade" id="filtersModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Filtros Aplicados</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% if report.filters %}
+                    <pre class="bg-light p-3 rounded">{{ report.filters|pprint }}</pre>
+                {% else %}
+                    <p class="text-muted">No se aplicaron filtros específicos a este reporte.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+$(document).ready(function() {
+    {% if report.is_completed and report.detailed_data %}
+        initializeCharts();
+        
+        // Auto-refresh if report is still generating
+        {% if report.status == 'generating' %}
+            setTimeout(() => location.reload(), 10000); // Refresh every 10 seconds
+        {% endif %}
+    {% endif %}
+});
+
+function initializeCharts() {
+    // Summary Chart
+    const summaryCtx = document.getElementById('summaryChart');
+    if (summaryCtx) {
+        new Chart(summaryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Ingresos', 'Impuestos'],
+                datasets: [{
+                    data: [
+                        {{ report.detailed_data.base_statistics.total_subtotal|default:report.detailed_data.base_statistics.total_revenue }},
+                        {{ report.detailed_data.base_statistics.total_tax|default:0 }}
+                    ],
+                    backgroundColor: ['#28a745', '#ffc107'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    // Daily Chart
+    {% if report.detailed_data.breakdowns.by_day %}
+    const dailyCtx = document.getElementById('dailyChart');
+    if (dailyCtx) {
+        const dailyData = {{ report.detailed_data.breakdowns.by_day|safe }};
+        
+        new Chart(dailyCtx, {
+            type: 'line',
+            data: {
+                labels: dailyData.map(d => d.date),
+                datasets: [{
+                    label: 'Ingresos Diarios',
+                    data: dailyData.map(d => d.revenue),
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return ReportsUtils.formatCurrency(value);
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Ingresos: ' + ReportsUtils.formatCurrency(context.parsed.y);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    {% endif %}
+
+    // Payment Methods Chart
+    {% if report.detailed_data.breakdowns.by_payment_method %}
+    const paymentCtx = document.getElementById('paymentMethodsChart');
+    if (paymentCtx) {
+        const paymentData = {{ report.detailed_data.breakdowns.by_payment_method|safe }};
+        
+        new Chart(paymentCtx, {
+            type: 'pie',
+            data: {
+                labels: paymentData.map(p => p.method),
+                datasets: [{
+                    data: paymentData.map(p => p.amount),
+                    backgroundColor: [
+                        '#007bff', '#28a745', '#ffc107', '#dc3545', 
+                        '#6f42c1', '#fd7e14', '#20c997', '#6c757d'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                return context.label + ': ' + ReportsUtils.formatCurrency(context.parsed) + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    {% endif %}
+}
+
+function exportReport(format) {
+    const url = `/api/v1/reports/sales-reports/{{ report.id }}/export/`;
+    
+    $.post(url, {
+        format: format,
+        include_details: true,
+        csrfmiddlewaretoken: $('[name=csrfmiddlewaretoken]').val()
+    })
+    .done(function(data, textStatus, xhr) {
+        // Create download link
+        const contentType = xhr.getResponseHeader('content-type');
+        const blob = new Blob([xhr.responseText], { type: contentType });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `{{ report.name|slugify }}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    })
+    .fail(function() {
+        alert('Error al exportar el reporte');
+    });
+}
+
+function showFilters() {
+    $('#filtersModal').modal('show');
+}
+
+function retryReport() {
+    if (confirm('¿Deseas reintentar la generación de este reporte?')) {
+        // Implementation for retry functionality
+        alert('Funcionalidad de reintento en desarrollo');
+    }
+}
+</script>
+{% endblock %}

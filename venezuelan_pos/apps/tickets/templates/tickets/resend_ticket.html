@@ -1,0 +1,455 @@
+{% extends "tickets/base.html" %}
+{% load static %}
+
+{% block title %}Resend Ticket{% endblock %}
+
+{% block main_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Resend Ticket</h1>
+    <a href="{% url 'tickets_web:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>
+        Back to Dashboard
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-paper-plane me-2"></i>
+                    Resend Digital Ticket
+                </h6>
+            </div>
+            <div class="card-body">
+                <!-- Ticket Information -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-secondary">Ticket Information</h6>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="font-weight-bold">Ticket ID:</td>
+                                <td><code>{{ ticket.id }}</code></td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold">Event:</td>
+                                <td>{{ ticket.transaction.event.name }}</td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold">Customer:</td>
+                                <td>{{ ticket.transaction.customer.full_name }}</td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold">Email:</td>
+                                <td>{{ ticket.transaction.customer.email }}</td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold">Status:</td>
+                                <td>
+                                    {% if ticket.status == 'valid' %}
+                                        <span class="badge badge-success">Valid</span>
+                                    {% elif ticket.status == 'used' %}
+                                        <span class="badge badge-info">Used</span>
+                                    {% elif ticket.status == 'expired' %}
+                                        <span class="badge badge-warning">Expired</span>
+                                    {% elif ticket.status == 'cancelled' %}
+                                        <span class="badge badge-danger">Cancelled</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-secondary">Seat Information</h6>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="font-weight-bold">Zone:</td>
+                                <td>{{ ticket.zone.name }}</td>
+                            </tr>
+                            {% if ticket.seat %}
+                                <tr>
+                                    <td class="font-weight-bold">Seat:</td>
+                                    <td><span class="badge badge-info">{{ ticket.seat.seat_label }}</span></td>
+                                </tr>
+                            {% endif %}
+                            <tr>
+                                <td class="font-weight-bold">Price:</td>
+                                <td>${{ ticket.price|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold">QR Code:</td>
+                                <td>
+                                    {% if ticket.qr_code %}
+                                        <span class="text-success">
+                                            <i class="fas fa-check-circle"></i> Generated
+                                        </span>
+                                    {% else %}
+                                        <span class="text-warning">
+                                            <i class="fas fa-exclamation-triangle"></i> Missing
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Resend Options -->
+                <form method="post" id="resendForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <h6 class="font-weight-bold text-secondary">Delivery Options</h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="sendEmail" name="send_email" checked>
+                                    <label class="form-check-label" for="sendEmail">
+                                        <i class="fas fa-envelope me-2"></i>
+                                        Send via Email
+                                    </label>
+                                </div>
+                                
+                                <div class="mb-3" id="emailOptions">
+                                    <label for="emailAddress" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="emailAddress" name="email_address" 
+                                           value="{{ ticket.transaction.customer.email }}">
+                                    <div class="form-text">
+                                        Leave blank to use customer's registered email
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="sendSMS" name="send_sms">
+                                    <label class="form-check-label" for="sendSMS">
+                                        <i class="fas fa-sms me-2"></i>
+                                        Send via SMS
+                                    </label>
+                                </div>
+                                
+                                <div class="mb-3" id="smsOptions" style="display: none;">
+                                    <label for="phoneNumber" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phoneNumber" name="phone_number" 
+                                           value="{{ ticket.transaction.customer.phone }}">
+                                    <div class="form-text">
+                                        Include country code (e.g., +58)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="font-weight-bold text-secondary">Message Options</h6>
+                        
+                        <div class="mb-3">
+                            <label for="customMessage" class="form-label">Custom Message (Optional)</label>
+                            <textarea class="form-control" id="customMessage" name="custom_message" rows="3" 
+                                      placeholder="Add a personal message to include with the ticket..."></textarea>
+                            <div class="form-text">
+                                This message will be included in the email/SMS along with the ticket
+                            </div>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="includeInstructions" name="include_instructions" checked>
+                            <label class="form-check-label" for="includeInstructions">
+                                Include event instructions and venue information
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="font-weight-bold text-secondary">Delivery Format</h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="formatQR" name="format" value="qr" checked>
+                                    <label class="form-check-label" for="formatQR">
+                                        <i class="fas fa-qrcode me-2"></i>
+                                        QR Code Only
+                                    </label>
+                                    <div class="form-text">Send just the QR code image</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="formatPDF" name="format" value="pdf">
+                                    <label class="form-check-label" for="formatPDF">
+                                        <i class="fas fa-file-pdf me-2"></i>
+                                        Full PDF Ticket
+                                    </label>
+                                    <div class="form-text">Send complete ticket with event details</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Preview Section -->
+                    <div class="mb-4">
+                        <h6 class="font-weight-bold text-secondary">Preview</h6>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div id="messagePreview">
+                                    <div class="text-center">
+                                        <button type="button" class="btn btn-outline-primary" onclick="generatePreview()">
+                                            <i class="fas fa-eye me-1"></i>
+                                            Generate Preview
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'tickets_web:ticket_detail' ticket.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>
+                            Cancel
+                        </a>
+                        
+                        <div>
+                            <button type="button" class="btn btn-info me-2" onclick="generatePreview()">
+                                <i class="fas fa-eye me-1"></i>
+                                Preview
+                            </button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-paper-plane me-1"></i>
+                                Send Ticket
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Ticket Preview -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-ticket-alt me-2"></i>
+                    Ticket Preview
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                {% if ticket.qr_code %}
+                    <img src="{{ ticket.qr_code.url }}" alt="QR Code" class="img-fluid mb-3" style="max-width: 200px;">
+                    <div class="mb-2">
+                        <strong>{{ ticket.transaction.event.name }}</strong>
+                    </div>
+                    <div class="mb-2">
+                        {{ ticket.zone.name }}
+                        {% if ticket.seat %}
+                            - Seat {{ ticket.seat.seat_label }}
+                        {% endif %}
+                    </div>
+                    <div class="text-muted">
+                        {{ ticket.transaction.event.start_date|date:"F d, Y H:i" }}
+                    </div>
+                {% else %}
+                    <div class="text-muted">
+                        <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                        <p>QR Code not available</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="regenerateQR()">
+                            <i class="fas fa-sync me-1"></i>
+                            Regenerate QR
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Delivery History -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-history me-2"></i>
+                    Delivery History
+                </h6>
+            </div>
+            <div class="card-body">
+                <!-- This would show previous delivery attempts -->
+                <div class="text-center text-muted">
+                    <small>Delivery history would be shown here</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-bolt me-2"></i>
+                    Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="sendToOriginalEmail()">
+                        <i class="fas fa-envelope me-1"></i>
+                        Send to Original Email
+                    </button>
+                    
+                    <button class="btn btn-outline-info" onclick="downloadTicket()">
+                        <i class="fas fa-download me-1"></i>
+                        Download PDF
+                    </button>
+                    
+                    <button class="btn btn-outline-secondary" onclick="printTicket()">
+                        <i class="fas fa-print me-1"></i>
+                        Print Ticket
+                    </button>
+                    
+                    {% if not ticket.qr_code %}
+                        <button class="btn btn-outline-warning" onclick="regenerateQR()">
+                            <i class="fas fa-sync me-1"></i>
+                            Regenerate QR Code
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Toggle SMS options
+document.getElementById('sendSMS').addEventListener('change', function() {
+    const smsOptions = document.getElementById('smsOptions');
+    smsOptions.style.display = this.checked ? 'block' : 'none';
+});
+
+// Toggle email options
+document.getElementById('sendEmail').addEventListener('change', function() {
+    const emailOptions = document.getElementById('emailOptions');
+    emailOptions.style.display = this.checked ? 'block' : 'none';
+});
+
+function generatePreview() {
+    const formData = new FormData(document.getElementById('resendForm'));
+    formData.append('preview', 'true');
+    
+    fetch('{% url "tickets_web:resend_ticket" ticket.pk %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const previewDiv = document.getElementById('messagePreview');
+            let html = '';
+            
+            if (data.email_preview) {
+                html += '<h6>Email Preview:</h6>';
+                html += '<div class="border p-3 mb-3">';
+                html += '<strong>Subject:</strong> ' + data.email_preview.subject + '<br>';
+                html += '<strong>To:</strong> ' + data.email_preview.to + '<br><br>';
+                html += '<div style="white-space: pre-wrap;">' + data.email_preview.body + '</div>';
+                html += '</div>';
+            }
+            
+            if (data.sms_preview) {
+                html += '<h6>SMS Preview:</h6>';
+                html += '<div class="border p-3">';
+                html += '<strong>To:</strong> ' + data.sms_preview.to + '<br><br>';
+                html += '<div style="white-space: pre-wrap;">' + data.sms_preview.body + '</div>';
+                html += '</div>';
+            }
+            
+            previewDiv.innerHTML = html;
+        } else {
+            alert('Failed to generate preview: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        alert('Preview error: ' + error.message);
+    });
+}
+
+function sendToOriginalEmail() {
+    // Quick send to original email
+    document.getElementById('sendEmail').checked = true;
+    document.getElementById('sendSMS').checked = false;
+    document.getElementById('emailAddress').value = '{{ ticket.transaction.customer.email }}';
+    document.getElementById('customMessage').value = '';
+    
+    // Submit form
+    document.getElementById('resendForm').submit();
+}
+
+function downloadTicket() {
+    window.location.href = '{% url "tickets_web:ticket_detail" ticket.pk %}?download=pdf';
+}
+
+function printTicket() {
+    window.open('{% url "tickets_web:ticket_detail" ticket.pk %}?print=true', '_blank');
+}
+
+function regenerateQR() {
+    if (confirm('Regenerate QR code for this ticket?')) {
+        fetch('/api/v1/tickets/{{ ticket.pk }}/regenerate-qr/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed to regenerate QR code: ' + (data.error || 'Unknown error'));
+            }
+        });
+    }
+}
+
+// Form validation
+document.getElementById('resendForm').addEventListener('submit', function(e) {
+    const sendEmail = document.getElementById('sendEmail').checked;
+    const sendSMS = document.getElementById('sendSMS').checked;
+    
+    if (!sendEmail && !sendSMS) {
+        e.preventDefault();
+        alert('Please select at least one delivery method (Email or SMS).');
+        return;
+    }
+    
+    if (sendEmail) {
+        const email = document.getElementById('emailAddress').value;
+        if (!email || !email.includes('@')) {
+            e.preventDefault();
+            alert('Please enter a valid email address.');
+            return;
+        }
+    }
+    
+    if (sendSMS) {
+        const phone = document.getElementById('phoneNumber').value;
+        if (!phone || phone.length < 10) {
+            e.preventDefault();
+            alert('Please enter a valid phone number.');
+            return;
+        }
+    }
+    
+    // Show loading state
+    const submitButton = this.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sending...';
+});
+</script>
+{% endblock %}
